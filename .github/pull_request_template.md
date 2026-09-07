@@ -1,32 +1,48 @@
-## Jira issue
+## Pull Request
 
-- **SCRUM-** <!-- issue key, e.g. SCRUM-21 -->
+<!-- Delete or fill each section. Do not leave placeholders. -->
+
+### Jira issue
+- **SCRUM-** <!-- e.g. SCRUM-21 -->
 - Link: <!-- https://your-jira.atlassian.net/browse/SCRUM-XX -->
 
-## Summary
+### Type
+<!-- Choose one: feature / fix / chore / docs / test -->
 
-<!-- What does this change do and why? One or two sentences. -->
+### Summary
+<!-- What does this change do, in one or two sentences? -->
 
-## Changes
+### Why
+<!-- Why is this change needed? Link to the story/acceptance criteria. -->
 
-<!-- Bullet list of concrete changes. Keep it reviewable. -->
-- 
+### Design / architecture impact
+<!-- Module(s) touched, layer changes, cross-module API used, ADR needed? If none: "None." -->
 
-## Testing
+### Database impact
+<!-- Flyway migration number? New/ALTER tables? If none: "None — no schema change." -->
 
-<!-- What was executed to verify this change? -->
-- [ ] `mvn test` passes locally
-- [ ] `mvn clean package` passes locally
-- [ ] Manual check (describe what you tried)
+### Security impact
+<!-- Auth/RBAC/permissions changed? Secrets? If none: "None." -->
 
-## Screenshots
+### Testing performed
+<!-- What did you run? -->
+- [ ] `mvn test` passes
+- [ ] `mvn clean package` passes
+- [ ] Manual checks (describe)
 
-<!-- UI changes only. Attach screenshots here or note "N/A". -->
+### Screenshots
+<!-- UI changes only. Add screenshots or write "N/A". -->
 
-## Checklist
+### Known limitations
+<!-- Anything not handled, or follow-up work. If none: "None." -->
 
-- [ ] Code follows the layering rules in `docs/architecture.md` (controllers stay thin, no DB access in controllers/views)
-- [ ] No premature business logic or design patterns were added beyond the Jira story
-- [ ] No secrets, `.env`, or real credentials committed
-- [ ] No generated/temporary files committed (`target/`, IDE files, logs)
-- [ ] Jira story moved to the agreed status (e.g. In Review)
+### Checklist
+- [ ] Acceptance criteria met
+- [ ] Relevant tests added/updated
+- [ ] `mvn test` passes
+- [ ] `mvn clean package` passes
+- [ ] No secrets or `.env` committed
+- [ ] No unrelated changes in this PR
+- [ ] Flyway migration (if any) reviewed and correctly numbered
+- [ ] Docs updated if behaviour/setup changed
+- [ ] Jira issue linked and moved to review
