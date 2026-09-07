@@ -1,0 +1,23 @@
+# ============================================================
+# SmartFix - `test` profile (used by all automated tests)
+# ------------------------------------------------------------
+# Isolated, in-memory H2 database so that running `mvn test`
+# requires NO external PostgreSQL instance and no per-developer
+# configuration. Overrides the base application.yml values.
+# ============================================================
+spring:
+  datasource:
+    url: jdbc:h2:mem:smartfix;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+  # Flyway is exercised against real PostgreSQL during local development.
+  # Tests keep the migration infra out of the way for now.
+  flyway:
+    enabled: false

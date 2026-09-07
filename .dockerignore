@@ -1,0 +1,9 @@
+# Keep the Docker build context small and avoid leaking local state.
+target
+.git
+.idea
+*.iml
+.env
+**/*.log
+logs
+.docker

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartFix</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="site-header">
+    <span class="brand">SmartFix</span>
+    <nav>
+        <a th:href="@{/}">Home</a>
+    </nav>
+</header>
+
+<main>
+    <section class="hero">
+        <h1 th:text="${systemName}">SmartFix</h1>
+        <p class="tagline" th:text="${tagline}">Campus Facility Maintenance and Technician Dispatch System</p>
+        <p class="badge" th:text="${scaffoldStatus}">Initial Project Scaffold</p>
+    </section>
+
+    <section class="content">
+        <h2>Engineering foundation verified</h2>
+        <p>
+            This page confirms that the SmartFix project scaffold builds, starts, connects to its
+            database and renders a server-side view through the layered Spring architecture.
+        </p>
+        <p>
+            The SmartFix business areas &mdash; maintenance requests, technician dispatch, SLA monitoring,
+            facilities, notifications, reporting and announcements &mdash; will be implemented incrementally
+            in later Agile sprints, each following detailed analysis and design. No business functionality
+            has been added yet.
+        </p>
+        <p class="hint">Check the service health endpoint: <a th:href="@{/actuator/health}">/actuator/health</a></p>
+    </section>
+</main>
+
+<footer>
+    <span>SWE5006 &middot; SmartFix team</span>
+</footer>
+</body>
+</html>

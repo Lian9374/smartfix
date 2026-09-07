@@ -1,0 +1,57 @@
+# ============================================================
+# SmartFix local development environment
+# ------------------------------------------------------------
+#   1. `docker compose up -d db`     -> start PostgreSQL only
+#   2. `mvn spring-boot:run`         -> run the app on the host
+#                                       (SPRING_PROFILES_ACTIVE=dev)
+#
+#   Optionally run the app itself inside Docker:
+#   3. `docker compose --profile app up --build`
+#
+# Environment variables are read from the `.env` file when present
+# (see .env.example). No real secrets are committed.
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: smartfix-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-smartfix}
+      POSTGRES_USER: ${POSTGRES_USER:-smartfix}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartfix}
+    # Host port is configurable (DB_PORT). If 5432 is already used by a locally
+    # installed PostgreSQL, run:  DB_PORT=5433 docker compose up -d db
+    # and point the app at it, e.g. DB_URL=jdbc:postgresql://localhost:5433/smartfix
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - smartfix_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartfix} -d ${POSTGRES_DB:-smartfix}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Optional: run the Spring Boot application in a container.
+  # Opt-in via: docker compose --profile app up --build
+  app:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: smartfix-app
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-smartfix}
+      DB_USERNAME: ${POSTGRES_USER:-smartfix}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-smartfix}
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  smartfix_pgdata:

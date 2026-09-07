@@ -1,0 +1,13 @@
+-- ============================================================
+-- SmartFix baseline migration (V1)
+-- ------------------------------------------------------------
+-- Intentionally EMPTY.
+--
+-- The SmartFix database schema will be introduced through Flyway
+-- migrations ONLY AFTER domain modelling / class design has been
+-- approved for each Sprint story.
+--
+-- No business tables are created during the initial architecture
+-- scaffold. Flyway is present to prove the migration infrastructure
+-- and to give future stories a clean place to add V2, V3, ...
+-- ============================================================

@@ -1,0 +1,19 @@
+# ============================================================
+# SmartFix - `dev` profile
+# ------------------------------------------------------------
+# Activate it with SPRING_PROFILES_ACTIVE=dev (docker compose does
+# this for the optional `app` service) or when running on the host:
+#
+#   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+#
+# Adds developer-friendly settings on top of application.yml.
+# The datasource is inherited from environment variables / defaults.
+# ============================================================
+spring:
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.smartfix: DEBUG
+    org.hibernate.SQL: DEBUG
