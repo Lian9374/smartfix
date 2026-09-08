@@ -1,5 +1,7 @@
 # SmartFix — Campus Facility Maintenance and Technician Dispatch System
 
+**English** | [**简体中文**](README.zh-CN.md)
+
 > **SWE5006 — Designing Modern Software Systems Practice (NUS-ISS)** · five-member
 > Agile team · Jira + GitHub.
 
