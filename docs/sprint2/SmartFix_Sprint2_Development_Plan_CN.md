@@ -529,7 +529,7 @@ sequenceDiagram
 | 包名 | 类名 | 职责 | 调用方 | 状态 |
 |---|---|---|---|---|
 | `com.smartfix.user.domain` | `User` | 用户实体（账号、角色、状态、安全版本号） | 各 Service/Repository | 【S2 新增】 |
-| `com.smartfix.user.domain` | `Role` | 三个正式角色枚举 | 权限判断、模板 | 【现状】`src/main/java/com/smartfix/user/domain/Role.java`，**修改现有类**（保持三值不变） |
+| `com.smartfix.user.domain` | `Role` | 三个正式角色枚举 | 权限判断、模板 | 【现状】**不需要修改**：`src/main/java/com/smartfix/user/domain/Role.java` 直接复用三个枚举值；`ROLE_` 前缀在 `SmartFixUserDetails` 里映射（见 §17.3 A-1） |
 | `com.smartfix.user.domain` | `AccountStatus` | 账户状态枚举（`ACTIVE`/`DISABLED`） | `ActiveAccountFilter`、管理页 | 【S2 新增】 |
 | `com.smartfix.user.repository` | `UserRepository` | 用户持久化查询 | `UserService` | 【S2 新增】 |
 | `com.smartfix.user.service` | `UserService` | 账号创建/角色/状态/查询/认证数据读取 | `UserManagementController`、`SmartFixUserDetailsService`、`MaintenanceRequestService`、`RequestQueryService` | 【S2 新增】 |
@@ -573,6 +573,7 @@ sequenceDiagram
 | `com.smartfix.request.domain` | `RequestStatusHistory` | 状态变更历史条目 | 详情页 | 【S2 新增】 |
 | `com.smartfix.request.domain` | `UrgencyLevel` | 紧急程度枚举 | 表单、列表 | 【S2 新增】 |
 | `com.smartfix.request.domain` | `MaintenanceCategory` | 故障类别枚举 | 表单、列表 | 【S2 新增】 |
+| `com.smartfix.request.domain` | `RequestTicketSequence` | Ticket 计数器实体（支撑计数表，`RequestTicketSequenceRepository` 依赖它） | `RequestTicketNumberGenerator` | 【S2 新增】 |
 | `com.smartfix.request.domain` | `Attachment` | 附件元数据实体 | 详情页、下载 | 【S2 新增】 |
 
 ### 9.5 `request` 模块 · repository（负责分类：C 报修提交与 Ticket）
@@ -1100,125 +1101,423 @@ Docker smoke      → docker compose 起真实 PostgreSQL + 应用
 
 ## 17. 五个工作分类与推进顺序
 
-> **本章不做人员分工。** 团队按下面五个**工作分类**推进，**分类与人员不绑定**——
-> 任何人可以认领任一分类，也可以在不同阶段换手。
-> 真正决定先后的是**分类之间的依赖关系**，不是谁做哪一块。
+> **本章不做人员分工。** 团队按下面五个**工作分类**推进，**分类与人员不绑定**——任何人可以认领任一分类，也可以在不同阶段换手。真正决定先后的是**分类之间的依赖关系**，不是谁做哪一块。
+>
+> **本章是"照着做"的手册：** 每个分类都写明 **① 要改哪个既有文件的哪个类**、**② 要新建哪些文件**、**③ 不能碰什么**、**④ 测试与完成标准**；最后给出**跨分类的推进顺序**。
 >
 > **测试随分类一起完成**，不推迟到 Sprint 末尾，也不集中交给某一个人。
 
-### 17.1 五个工作分类
+**怎么用这一章（三步）**
 
-| 分类 | 覆盖能力 | 涉及模块与包 | 主要类 |
-|---|---|---|---|
-| **A 账户与角色** | 创建用户、改角色、启停账户、引导管理员、对外提供认证数据与访问上下文 | `com.smartfix.user.*` | `User`、`Role`、`AccountStatus`、`UserRepository`、`UserService`、`UserBootstrapService`、`UserManagementController`、`UserAuthenticationData`、`UserAccessResponse`、`PasswordConfig`、`BootstrapAdminProperties`、`BootstrapAdminInitializer` |
-| **B 认证与授权** | 登录/登出、会话、CSRF、路由权限、统一异常与错误页 | `com.smartfix.auth.*`、`com.smartfix.common.exception`、`com.smartfix.common.configuration` | `SecurityConfig`、`SmartFixUserDetails`、`SmartFixUserDetailsService`、`ActiveAccountFilter`、`LoginController`、`GlobalExceptionHandler`、`ResourceNotFoundException`、`BusinessConflictException`、`InputValidationException`、`TimeConfig` |
-| **C 报修提交与 Ticket** | 报修聚合、唯一单号、初始状态历史、提交主链路（PRG） | `com.smartfix.request.{domain,repository,service,controller,dto}`（写侧） | `MaintenanceRequest`、`RequestStatus`、`RequestStatusHistory`、`UrgencyLevel`、`MaintenanceCategory`、`MaintenanceRequestRepository`、`RequestStatusHistoryRepository`、`RequestTicketSequenceRepository`、`RequestTicketNumberGenerator`、`RequestCreationService`、`MaintenanceRequestService`、`MaintenanceRequestController`、`SubmitMaintenanceRequestCommand`、`MaintenanceRequestSubmissionResponse` |
-| **D 地点、查询与所有权** | 地点数据、我的报修、详情与状态历史、越权判定、管理员只读代查 | `com.smartfix.facility.*`、`com.smartfix.request.{controller,service,dto}`（读侧） | `Location`、`LocationRepository`、`LocationService`、`LocationResponse`、`RequestAccessService`、`RequestQueryService`、`RequestQueryController`、`MaintenanceRequestSummaryResponse`、`MaintenanceRequestDetailsResponse`、`RequestStatusHistoryResponse` |
-| **E 附件** | 校验、私有存储、授权下载、失败补偿清理 | `com.smartfix.request.{domain,repository,service,storage,validation,config,controller}`（附件侧） | `Attachment`、`AttachmentRepository`、`AttachmentService`、`AttachmentStorageService`、`LocalAttachmentStorageService`、`AttachmentValidator`、`AttachmentProperties`、`AttachmentController`、`AttachmentResponse`、`UploadAttachmentCommand`、`StoredAttachment` |
+1. 先看 **17.2**：Sprint 2 起点上仓库里到底有什么。**整个仓库只有 4 个 Java 文件**，其余全是要新建的——这决定了"哪些是改造、哪些是创作"。
+2. 找到自己的分类，看该分类的 **「-1 要修改的既有文件」** 与 **「-2 要新建的文件」** 两张表；文件路径都是仓库相对路径，可直接照着建。
+3. 按 **17.9 的步骤号（S1…S12）** 对齐自己的 PR 顺序——**步骤号就是合并顺序**。
 
-### 17.2 每个分类的目标与边界
+---
 
-#### 分类 A — 账户与角色
+### 17.1 五个分类一览
 
-- **目标：** 系统有一份可信的账户数据源：管理员能建号、改角色、启停账户，其他分类能读到认证数据与访问上下文。
-- **对外契约（必须先冻结）：** `UserAuthenticationData`、`UserAccessResponse`、`UserService`（§12.1）。
-- **必须测试的场景：** 创建用户成功／重复用户名 409／密码规则／角色变更自增安全版本／账户停用／**最后一名管理员不能被停用或降级**／引导管理员幂等（重复启动不重复建）。
-- **安全注意事项：** 只收明文密码并**立即 BCrypt**；`passwordHash` 永不出现在页面、日志或 Response；改角色与改状态必须自增 `securityVersion`。
-- **不允许做的事情：** 不做真正的登录逻辑（属于分类 B）；不做注册/找回密码（§4）；不把 `UserRepository` 暴露给其他分类；不在 `User` 上加报修集合。
-- **完成判据：** 管理员能创建三种角色的账户；重复用户名被拒；停用账户无法继续使用旧会话；`V2` 在干净库上执行成功。
+| 分类 | 覆盖能力 | 代码放在哪个包 | 谁在等它的产物 | 做完后能看到什么 |
+|---|---|---|---|---|
+| **A 账户与角色** | 建号、改角色、启停账户、引导管理员、对外提供认证数据与访问上下文 | `com.smartfix.user.*` | **B**（认证数据）、**C/D**（访问上下文）、**C/D**（外键） | 管理员能建出三种角色的账户；重复用户名被拒 |
+| **B 认证与授权** | 登录/登出、会话、CSRF、路由权限、统一异常与错误页 | `com.smartfix.auth.*`、`com.smartfix.common.exception`、`com.smartfix.common.configuration` | **C/D/E**（权限规则与异常映射） | 匿名访问受保护页 → 302 登录页；错误角色 → 403 |
+| **C 报修提交与 Ticket** | 报修聚合、唯一单号、初始状态历史、提交主链路（PRG） | `com.smartfix.request.*`（**写侧**） | **D**（可查询的数据）、**E**（挂载点） | 提交后看到 `SF-2026-000123` 形式的单号；库里有初始 `SUBMITTED` 历史 |
+| **D 地点、查询与所有权** | 地点数据、我的报修、详情与状态历史、越权判定、管理员只读代查 | `com.smartfix.facility.*`、`com.smartfix.request.*`（**读侧**） | **C**（`LocationService` 外键与校验）、**E**（详情页附件区） | A 能看到自己的报修；B 打开 A 的链接得到 **404** |
+| **E 附件** | 校验、私有存储、授权下载、失败补偿清理 | `com.smartfix.request.*`（**附件侧**） | **C**（提交时的存储与补偿） | 上传合法图片后详情页出现下载链接；伪造图片被拒 |
 
-#### 分类 B — 认证与授权
+> **注意 C 与 D 共用 `com.smartfix.request` 包。** 分包规则见 §6、§7：**写侧归 C，读侧归 D**，靠不同的 Service/Controller 拆开（§18.2 第 4 条），不是靠改包名。
 
-- **目标：** 未登录不能访问受保护页面；错误角色被拒；账户停用后旧会话立即失效；所有状态变更请求受 CSRF 保护。
-- **对外契约：** 消费 §12.1 的 `findAuthenticationByUsername`；对外提供**全站权限规则**与**统一异常映射**。
-- **必须测试的场景：** 未登录跳转／正确登录／错误凭据／Technician 越权 403／Requester 访问 `/admin/**` 403／CSRF 缺失被拒 403／账户停用后旧会话失效／角色变更后旧会话失效／登出后受保护页面不可访问。
-- **安全注意事项：** 只在必要处放行（`/login`、`/actuator/health`、静态资源）；**绝不重新引入 permit-all**；CSRF 对 GET 不适用、对 POST 必须开启；错误页不得泄露堆栈。
-- **不允许做的事情：** 不做 SSO/JWT（§4）；不为了让测试通过而放宽授权；不把 `securityVersion` 检查散落到各 Controller（统一在过滤器）。
+---
+
+### 17.2 Sprint 2 起点：仓库现状（已逐文件核对）
+
+**现有 Java 源文件 —— 只有 4 个：**
+
+| 文件 | 里面的类 | 现在是什么样 |
+|---|---|---|
+| `src/main/java/com/smartfix/SmartFixApplication.java` | `SmartFixApplication` | 启动类；`@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)` |
+| `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | **临时基线**：CSRF 关闭、`httpBasic`/`formLogin` 关闭、`anyRequest().permitAll()`；文件里已留 `TODO(Sprint 2)` 注释 |
+| `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | `GET /` 与 `/home` → `home` 模板；只放三个展示用属性 |
+| `src/main/java/com/smartfix/user/domain/Role.java` | `Role` | 三值枚举 `REQUESTER` / `TECHNICIAN` / `ADMINISTRATOR`（**没有** `FACILITY_OFFICER`） |
+
+**现有测试与资源：**
+
+| 类别 | 文件 |
+|---|---|
+| 测试类 | `src/test/java/com/smartfix/SmartFixApplicationTests.java`、`src/test/java/com/smartfix/common/web/HomeControllerTests.java` |
+| 测试配置 | `src/test/resources/application-test.yml`（H2，`mode=PostgreSQL`，`flyway.enabled=false`） |
+| 配置 | `src/main/resources/application.yml`、`application-dev.yml`、根目录 `.env.example` |
+| 迁移 | `src/main/resources/db/migration/V1__baseline.sql`（**故意为空**） |
+| 页面与样式 | `src/main/resources/templates/home.html`、`src/main/resources/static/css/site.css`（83 行） |
+| 工程文件 | `pom.xml`、`Jenkinsfile`、`Dockerfile`、`docker-compose.yml`（服务 `db` 与可选 `app`） |
+
+#### 17.2.1 整个 Sprint 2 只需要改这 6 个既有文件
+
+| # | 既有文件 | 里面的类 | 哪个分类改 | 改什么 |
+|---|---|---|---|---|
+| ① | `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | **B** | 把 `permitAll` 换成真实规则；打开 `formLogin` 与 CSRF；加会话固定防护、登出、403 处理 |
+| ② | `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | **B** | 首页加入口（登录/登出/新报修/我的报修/用户管理）与登录态显示 |
+| ③ | `src/main/resources/templates/home.html` | （模板） | **B** | 导航区加入口链接与登录态显示 |
+| ④ | `src/main/resources/static/css/site.css` | （样式） | **B** 打底 → 之后各分类**追加** | 表单、表格、错误提示、附件列表样式；**只追加，不改既有变量** |
+| ⑤ | `src/main/resources/application.yml` | （配置） | **B** | 会话超时、`spring.servlet.multipart` 上限、`smartfix.*` 自定义命名空间（上传目录、引导管理员） |
+| ⑥ | `src/test/resources/application-test.yml` | （测试配置） | **B** | 测试下的安全/迁移开关，配合 `@WithMockUser` 与 `SecurityConfigTest` |
+
+> **⑤ 是唯一的配置"闸门"。** C/D/E 需要的新配置项（上传目录、大小上限）**不要自己往 `application.yml` 里加**——把键名与默认值写进 PR 描述，由 B 统一加（§18.1）。
+>
+> **④ 只追加不改。** 追加样式不会与别人冲突；一旦动了既有 CSS 变量，全站页面都会变，必须先在群里说。
+
+#### 17.2.2 明确不要改的文件
+
+| 文件 | 为什么不动 |
+|---|---|
+| `src/main/resources/db/migration/V1__baseline.sql` | 已执行过的迁移**永不修改**——校验和不匹配会让所有人启动失败（§15.2） |
+| `src/main/java/com/smartfix/SmartFixApplication.java` | 排除 `UserDetailsServiceAutoConfiguration` 是**正确的**：我们自己提供 `SmartFixUserDetailsService`，放开反而会出现随机密码的默认账号 |
+| `src/main/java/com/smartfix/user/domain/Role.java` | 三个值直接复用；`ROLE_` 前缀在 `SmartFixUserDetails` 里加，**不要**把 Spring Security 的概念塞进领域枚举 |
+| `pom.xml` / `Jenkinsfile` / `Dockerfile` / `docker-compose.yml` | Sprint 2 默认不动。只有 §29 的 D14/D15（Testcontainers、JaCoCo 等）**经团队同意并立 ADR 后**，才由**分类 B 单独开 PR** 修改，且不夹带业务改动 |
+| `src/main/resources/application-dev.yml` | 只在需要调日志级别时改；属于共享文件（§18.1） |
+
+> **一句话记住：** Sprint 2 新增 60 多个文件，但**要改的既有文件只有 6 个**。其余全部是新建，按下面的分类归属，**不要跨分类创建**。
+
+---
+
+### 17.3 分类 A — 账户与角色
+
+**目标：** 系统有一份可信的账户数据源。管理员能建号、改角色、启停账户；其他分类能读到认证数据与访问上下文。
+**对外契约（必须最先冻结）：** `UserService`（§12.1）、`UserAuthenticationData`、`UserAccessResponse`。
+**边界（不做）：** 不做登录逻辑（属 B）；不做注册/找回密码（§4）；不把 `UserRepository` 暴露给其他分类；不在 `User` 上加报修集合。
+
+#### A-1 要修改的既有文件
+
+**无。** `Role.java` 保持三值不变、直接复用。若确实需要权限字符串（`ROLE_REQUESTER`），在 **B** 的 `SmartFixUserDetails` 里映射，不要改枚举。
+
+#### A-2 要新建的文件
+
+| # | 新建文件（仓库相对路径） | 类名 | 作用 | 前置 |
+|---|---|---|---|---|
+| A-01 | `src/main/resources/db/migration/V2__create_users.sql` | — | `users` 表：`username` 唯一约束、`role`、`status`、`security_version`、时间戳 | 迁移号已登记（S1） |
+| A-02 | `src/main/java/com/smartfix/user/domain/User.java` | `User` | 账户实体 | A-01 |
+| A-03 | `src/main/java/com/smartfix/user/domain/AccountStatus.java` | `AccountStatus` | 账户状态枚举 `ACTIVE` / `DISABLED` | — |
+| A-04 | `src/main/java/com/smartfix/user/repository/UserRepository.java` | `UserRepository` | `findByUsername`、列表查询 | A-02 |
+| A-05 | `src/main/java/com/smartfix/user/dto/UserAuthenticationData.java` | `UserAuthenticationData` | **给 B 的认证数据契约**：用户名、密码哈希、角色、状态、`securityVersion` | 契约冻结（S1） |
+| A-06 | `src/main/java/com/smartfix/user/dto/UserAccessResponse.java` | `UserAccessResponse` | **给 C/D 的访问上下文契约**：`userId`、角色、状态 | 契约冻结（S1） |
+| A-07 | `src/main/java/com/smartfix/user/config/PasswordConfig.java` | `PasswordConfig` | 暴露 `PasswordEncoder`（BCrypt）Bean；**B 的登录链路依赖它** | — |
+| A-08 | `src/main/java/com/smartfix/user/service/UserService.java` | `UserService` | 认证数据读取、创建用户、改角色、改状态、维护"最后一名管理员不可停用/降级"不变式 | A-04 ～ A-07 |
+| A-09 | `src/main/java/com/smartfix/user/config/BootstrapAdminProperties.java` | `BootstrapAdminProperties` | 绑定 `smartfix.bootstrap-admin.*`（值只来自环境变量） | ⑤ 配置项由 B 加好 |
+| A-10 | `src/main/java/com/smartfix/user/service/UserBootstrapService.java` | `UserBootstrapService` | 幂等创建引导管理员（已存在则跳过） | A-08、A-09 |
+| A-11 | `src/main/java/com/smartfix/user/config/BootstrapAdminInitializer.java` | `BootstrapAdminInitializer` | 启动钩子，调用 A-10。**没有它就没有任何账号能登录，B 无法验收** | A-10 |
+| A-12 | `src/main/java/com/smartfix/user/dto/CreateUserCommand.java` | `CreateUserCommand` | 建号表单 | — |
+| A-13 | `src/main/java/com/smartfix/user/dto/ChangeUserRoleCommand.java` | `ChangeUserRoleCommand` | 改角色表单 | — |
+| A-14 | `src/main/java/com/smartfix/user/dto/ChangeAccountStatusCommand.java` | `ChangeAccountStatusCommand` | 启停表单 | — |
+| A-15 | `src/main/java/com/smartfix/user/dto/UserSummaryResponse.java` | `UserSummaryResponse` | 用户列表行 | — |
+| A-16 | `src/main/java/com/smartfix/user/controller/UserManagementController.java` | `UserManagementController` | `/admin/users` 五个路由（§13.1） | A-08、A-12 ～ A-15 |
+| A-17 | `src/main/resources/templates/admin/users.html` | — | 用户管理页：列表 + 建号 + 改角色/状态 | A-16、④ 样式 |
+| A-18 | `src/test/java/com/smartfix/user/service/UserServiceTest.java` | `UserServiceTest` | 单元测试 | A-08 |
+| A-19 | `src/test/java/com/smartfix/user/service/UserBootstrapServiceTest.java` | `UserBootstrapServiceTest` | 单元测试（**幂等**：重复启动不重复建号） | A-10 |
+| A-20 | `src/test/java/com/smartfix/user/controller/UserManagementControllerTest.java` | `UserManagementControllerTest` | MockMvc 测试 | A-16 |
+
+#### A-3 不要碰
+
+`SecurityConfig.java`（B）、`com.smartfix.request.*`（C/E）、`com.smartfix.facility.*`（D）、`V1__baseline.sql`。
+
+#### A-4 测试与完成标准
+
+- **必须测：** 建号成功／重复用户名 409／密码规则／角色变更自增 `securityVersion`／账户停用／**最后一名管理员不能被停用或降级**／引导管理员幂等。
+- **安全红线：** 只收明文密码并**立即 BCrypt**；`passwordHash` 永不出现在页面、日志或响应体；改角色与改状态必须自增 `securityVersion`。
+- **完成判据：** 管理员能建出三种角色的账户；重复用户名被拒；停用账户的旧会话失效；`V2` 在干净库上执行成功。
+
+---
+
+### 17.4 分类 B — 认证与授权
+
+**目标：** 未登录不能访问受保护页面；错误角色被拒；账户停用后旧会话立即失效；所有状态变更请求受 CSRF 保护。
+**对外契约：** 消费 §12.1 的 `findAuthenticationByUsername`；对外提供**全站权限规则**与**统一异常映射**。
+**边界（不做）：** 不做 SSO/JWT（§4）；不为让测试通过而放宽授权；不把 `securityVersion` 检查散落到各 Controller（统一在过滤器）。
+
+#### B-1 要修改的既有文件（**全项目改得最多的分类**）
+
+| # | 既有文件 | 里面的类 | 现在 | 要改成 |
+|---|---|---|---|---|
+| ① | `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | `csrf` 关闭、`formLogin` 关闭、`anyRequest().permitAll()` | 打开 `formLogin`（指向 `auth/login`）与 CSRF（GET 除外）；`authorizeHttpRequests` 按 §13.2 写真实规则；配会话固定防护、并发会话、登出成功页、403 处理；**只放行 `/login`、`/actuator/health`、静态资源** |
+| ② | `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | 只放 `systemName`/`tagline`/`scaffoldStatus` | 按登录态与角色补充导航所需属性（是否已登录、角色、显示哪些入口）；**不在这里做权限判断** |
+| ③ | `src/main/resources/templates/home.html` | （模板） | 只有 Home 一个链接 | 导航区加登录/登出/新报修/我的报修/用户管理入口，按角色显示 |
+| ④ | `src/main/resources/static/css/site.css` | （样式） | 83 行基础样式 | **追加**（不改既有变量）：表单、表单错误、表格、提示条、附件列表 |
+| ⑤ | `src/main/resources/application.yml` | （配置） | 数据源、JPA、Flyway、Actuator | 追加：`server.servlet.session.timeout`、`spring.servlet.multipart.max-file-size` 与 `max-request-size`、`smartfix.upload.dir`、`smartfix.bootstrap-admin.*`。**C/D/E 要用的键由 B 统一加** |
+| ⑥ | `src/test/resources/application-test.yml` | （测试配置） | H2 + `flyway.enabled=false` | 配合 `@WithMockUser`/`SecurityConfigTest` 的测试开关；**不要**为了方便把安全规则在测试里整体关掉 |
+
+#### B-2 要新建的文件
+
+| # | 新建文件（仓库相对路径） | 类名 | 作用 | 前置 |
+|---|---|---|---|---|
+| B-01 | `src/main/java/com/smartfix/auth/security/SmartFixUserDetails.java` | `SmartFixUserDetails` | 自定义 `UserDetails`，携带 `userId`、`role`、`securityVersion`；在这里加 `ROLE_` 前缀映射 | A-05 |
+| B-02 | `src/main/java/com/smartfix/auth/service/SmartFixUserDetailsService.java` | `SmartFixUserDetailsService` | 从 `UserService` 加载认证数据 | B-01、A-08 |
+| B-03 | `src/main/java/com/smartfix/auth/security/ActiveAccountFilter.java` | `ActiveAccountFilter` | 每请求校验账户仍启用、`securityVersion` 未失效；失效即清会话 | B-02 |
+| B-04 | `src/main/java/com/smartfix/auth/controller/LoginController.java` | `LoginController` | `GET /login` 登录页 | ① 规则 |
+| B-05 | `src/main/resources/templates/auth/login.html` | — | 登录页（含 CSRF 隐藏域、错误与登出提示） | B-04、④ 样式 |
+| B-06 | `src/main/java/com/smartfix/common/exception/ResourceNotFoundException.java` | `ResourceNotFoundException` | 资源不存在 → **404**（所有权判定也用它） | — |
+| B-07 | `src/main/java/com/smartfix/common/exception/BusinessConflictException.java` | `BusinessConflictException` | 业务冲突 → 409 | — |
+| B-08 | `src/main/java/com/smartfix/common/exception/InputValidationException.java` | `InputValidationException` | 输入校验失败 → 400 | — |
+| B-09 | `src/main/java/com/smartfix/common/exception/GlobalExceptionHandler.java` | `GlobalExceptionHandler` | 统一异常 → 页面/状态码；**错误页不泄露堆栈** | B-06 ～ B-08 |
+| B-10 | `src/main/java/com/smartfix/common/configuration/TimeConfig.java` | `TimeConfig` | 注入 `Clock`（UTC 存储、Asia/Singapore 展示） | — |
+| B-11 | `src/main/resources/templates/error/403.html` | — | 403 页 | B-09 |
+| B-12 | `src/main/resources/templates/error/404.html` | — | 404 页 | B-09 |
+| B-13 | `src/main/resources/templates/error/500.html` | — | 500 页 | B-09 |
+| B-14 | `src/test/java/com/smartfix/auth/service/SmartFixUserDetailsServiceTest.java` | `SmartFixUserDetailsServiceTest` | 单元测试 | B-02 |
+| B-15 | `src/test/java/com/smartfix/auth/config/SecurityConfigTest.java` | `SecurityConfigTest` | MockMvc：匿名 302、错误角色 403、CSRF 缺失 403 | ① |
+| B-16 | `src/test/java/com/smartfix/auth/security/ActiveAccountFilterTest.java` | `ActiveAccountFilterTest` | 停用/改角色后旧会话在下一次请求失效 | B-03 |
+| B-17 | `src/test/java/com/smartfix/auth/AuthenticationFlowIT.java` | `AuthenticationFlowIT` | 集成：登录 → 访问 → 登出 | B-02 ～ B-04 |
+| B-18 | `src/test/java/com/smartfix/MigrationIT.java` | `MigrationIT` | 在**真实 PostgreSQL**上跑 Flyway 全序列 | A-01、C 的迁移、D-01 |
+
+> **B-18 为什么在 B 而不是别人？** 迁移的**编号登记与内容**归各分类，但"整套迁移能在真实 PostgreSQL 上从零跑通"是全项目的基础设施验证，与 CI/环境同属一类，所以放 B。E 的 `AttachmentPersistenceIT` 同理在真实库上验证附件持久化。
+
+#### B-3 不要碰
+
+`com.smartfix.request.*`（C/E）、`com.smartfix.facility.*`（D）、`com.smartfix.user.service.*` 的实现（只调用 A 的 `UserService`）。
+
+#### B-4 测试与完成标准
+
+- **必须测：** 未登录跳转／正确登录／错误凭据／Technician 越权 403／Requester 访问 `/admin/**` 403／**CSRF 缺失被拒 403**／账户停用后旧会话失效／角色变更后旧会话失效／登出后受保护页面不可访问。
+- **安全红线：** 只在必要处放行；**绝不重新引入 permit-all**；CSRF 对 GET 不适用、对 POST 必须开启。
 - **完成判据：** 匿名访问受保护 URL 一律 302 到登录页；错误角色 403；停用账户的旧会话在下一次请求即被踢出。
 
-#### 分类 C — 报修提交与 Ticket
+---
 
-- **目标：** 提交报修后产生**唯一 Ticket**，状态 `SUBMITTED`，并**写入一条初始 `RequestStatusHistory`**。
-- **对外契约（必须先冻结）：** `MaintenanceRequest` 实体字段、`RequestCreationService`、`RequestTicketNumberGenerator`（§12.7、§12.8）。
-- **必须测试的场景：** 合法提交成功／**初始历史必须存在且为 NULL → SUBMITTED**／无附件提交／三张附件提交／字段校验失败不落库／停用地点被拒／**并发 Ticket 不重复**／数据库失败时文件被清理／PRG 重定向到详情页。
-- **安全注意事项：** `requesterId` **只能**来自登录主体；`status` **不接受**客户端输入；提交前必须校验账户启用与地点启用。
-- **不允许做的事情：** 不做审核/派单/工单/SLA（§4）；不写状态流转逻辑（只有 `SUBMITTED`）；不让其他分类直连本分类的 Repository。
-- **完成判据：** 提交成功后能看到形如 `SF-2026-000123` 的唯一单号，数据库中该请求有一条 `SUBMITTED` 状态历史，`changed_by_user_id` 是提交者本人。
+### 17.5 分类 C — 报修提交与 Ticket
 
-#### 分类 D — 地点、查询与所有权
+**目标：** 提交报修后产生**唯一 Ticket**，状态 `SUBMITTED`，并**写入一条初始 `RequestStatusHistory`**。
+**对外契约（必须最先冻结）：** `MaintenanceRequest` 实体字段、`RequestCreationService`、`RequestTicketNumberGenerator`（§12.7、§12.8）。
+**边界（不做）：** 不做审核/派单/工单/SLA（§4）；不写状态流转（只有 `SUBMITTED`）；不让其他分类直连本分类的 Repository。
 
-- **目标：** Requester 只能看到自己的报修列表与详情（含附件与状态历史）；Administrator 能按 Ticket 只读代查；越权一律 404。
-- **对外契约（必须先冻结）：** `LocationService.requireActiveLocation`、`RequestAccessService.requireReadableRequest`（§12.2、§12.5）——附件下载也复用它。
-- **必须测试的场景：** 我的列表只含本人／详情含附件与历史／**Requester B 访问 A 的详情 404**／**B 访问 A 的附件 404**／不存在的 Ticket 404／管理员只读代查成功／**管理员不能提交（403）**／停用地点不出现在下拉中。
-- **安全注意事项：** 所有权判定集中在 `RequestAccessService`；返回 404 而非 403（§13.4）；列表查询条件必须带 `requesterId`，**不能**先全查再过滤。
-- **不允许做的事情：** 不做审核状态、不做地图（§4）；不在模板里用隐藏字段决定可见性；不在 Controller 里手写所有权 if 判断。
+#### C-1 要修改的既有文件
+
+**无。** C 的既有文件改动量是零——**全部是新建**。
+
+#### C-2 要新建的文件
+
+| # | 新建文件（仓库相对路径） | 类名 | 作用 | 前置 |
+|---|---|---|---|---|
+| C-01 | `src/main/resources/db/migration/V4__create_maintenance_requests.sql` | — | `maintenance_requests` 表 + `ticket_number` 唯一约束 + 指向 `users`/`locations` 的外键；单号计数表（D03 决策） | A-01、D-01（外键目标必须先存在） |
+| C-02 | `src/main/java/com/smartfix/request/domain/MaintenanceRequest.java` | `MaintenanceRequest` | 报修聚合根 | C-01 |
+| C-03 | `src/main/java/com/smartfix/request/domain/RequestStatus.java` | `RequestStatus` | 状态枚举（Sprint 2 只用 `SUBMITTED`） | — |
+| C-04 | `src/main/java/com/smartfix/request/domain/RequestStatusHistory.java` | `RequestStatusHistory` | 状态历史条目（`changed_by_user_id` 也是外键） | C-01 |
+| C-05 | `src/main/java/com/smartfix/request/domain/UrgencyLevel.java` | `UrgencyLevel` | 紧急程度枚举 | — |
+| C-06 | `src/main/java/com/smartfix/request/domain/MaintenanceCategory.java` | `MaintenanceCategory` | 故障类别枚举 | — |
+| C-07 | `src/main/java/com/smartfix/request/domain/RequestTicketSequence.java` | `RequestTicketSequence` | **单号计数实体**（对应计数表；`RequestTicketSequenceRepository` 需要它才能存在） | C-01 |
+| C-08 | `src/main/java/com/smartfix/request/repository/MaintenanceRequestRepository.java` | `MaintenanceRequestRepository` | 报修持久化与查询 | C-02 |
+| C-09 | `src/main/java/com/smartfix/request/repository/RequestStatusHistoryRepository.java` | `RequestStatusHistoryRepository` | 历史条目持久化 | C-04 |
+| C-10 | `src/main/java/com/smartfix/request/repository/RequestTicketSequenceRepository.java` | `RequestTicketSequenceRepository` | 取号 + 行锁（`SELECT … FOR UPDATE`） | C-07 |
+| C-11 | `src/main/java/com/smartfix/request/service/RequestTicketNumberGenerator.java` | `RequestTicketNumberGenerator` | 生成 `SF-YYYY-NNNNNN`（按年重置） | C-10 |
+| C-12 | `src/main/java/com/smartfix/request/service/RequestCreationService.java` | `RequestCreationService` | **独立 Bean**，一个事务里写 request + 初始 history | C-08、C-09、C-11 |
+| C-13 | `src/main/java/com/smartfix/request/dto/SubmitMaintenanceRequestCommand.java` | `SubmitMaintenanceRequestCommand` | 提交表单输入 | — |
+| C-14 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestSubmissionResponse.java` | `MaintenanceRequestSubmissionResponse` | 提交结果（含 `ticketNumber`） | — |
+| C-15 | `src/main/java/com/smartfix/request/service/MaintenanceRequestService.java` | `MaintenanceRequestService` | 页面用例入口：准备表单（地点下拉）、编排提交 | C-12、D-02 |
+| C-16 | `src/main/java/com/smartfix/request/controller/MaintenanceRequestController.java` | `MaintenanceRequestController` | `GET /requests/new`、`POST /requests`（PRG） | C-15 |
+| C-17 | `src/main/resources/templates/request/new.html` | — | 报修表单页（**E 会在这里追加文件上传控件**，见 17.8） | C-16、④ 样式 |
+| C-18 | `src/test/java/com/smartfix/request/service/RequestTicketNumberGeneratorTest.java` | `RequestTicketNumberGeneratorTest` | 单测 + **并发不重号** | C-11 |
+| C-19 | `src/test/java/com/smartfix/request/service/RequestCreationServiceTest.java` | `RequestCreationServiceTest` | 单测/集成：request 与 history 同事务 | C-12 |
+| C-20 | `src/test/java/com/smartfix/request/service/MaintenanceRequestServiceTest.java` | `MaintenanceRequestServiceTest` | 单测 | C-15 |
+| C-21 | `src/test/java/com/smartfix/request/controller/MaintenanceRequestControllerTest.java` | `MaintenanceRequestControllerTest` | MockMvc | C-16 |
+
+#### C-3 不要碰
+
+`SecurityConfig.java`（B）、`com.smartfix.facility.*`（D）、附件相关类（E）、`V1__baseline.sql`。
+
+#### C-4 测试与完成标准
+
+- **必须测：** 合法提交成功／**初始历史必须存在且为 `NULL → SUBMITTED`**／无附件提交／三张附件提交／字段校验失败不落库／停用地点被拒／**并发 Ticket 不重复**／数据库失败时文件被清理／PRG 重定向到详情页。
+- **安全红线：** `requesterId` **只能**来自登录主体；`status` **不接受**客户端输入；提交前必须校验账户启用与地点启用。
+- **完成判据：** 提交成功后能看到形如 `SF-2026-000123` 的唯一单号；库中该请求有一条 `SUBMITTED` 历史，`changed_by_user_id` 是提交者本人。
+
+---
+
+### 17.6 分类 D — 地点、查询与所有权
+
+**目标：** Requester 只能看到自己的报修列表与详情（含附件与状态历史）；Administrator 能按 Ticket 只读代查；越权一律 404。
+**对外契约（必须最先冻结）：** `LocationService.requireActiveLocation`、`RequestAccessService.requireReadableRequest`（§12.2、§12.5）——**附件下载也复用它**。
+**边界（不做）：** 不做审核状态、不做地图（§4）；不在模板里用隐藏字段决定可见性；不在 Controller 里手写所有权 if 判断。
+
+#### D-1 要修改的既有文件
+
+**无。** 同 C，D 也全部是新建。
+
+#### D-2 要新建的文件
+
+| # | 新建文件（仓库相对路径） | 类名 | 作用 | 前置 |
+|---|---|---|---|---|
+| D-01 | `src/main/resources/db/migration/V3__create_locations.sql` | — | `locations` 表 + `location_code` 唯一约束 + 少量种子数据（可选，见 §29 D19） | 迁移号已登记（S1） |
+| D-02 | `src/main/java/com/smartfix/facility/domain/Location.java` | `Location` | 设施地点实体 | D-01 |
+| D-03 | `src/main/java/com/smartfix/facility/repository/LocationRepository.java` | `LocationRepository` | 地点查询 | D-02 |
+| D-04 | `src/main/java/com/smartfix/facility/dto/LocationResponse.java` | `LocationResponse` | 下拉/展示数据 | — |
+| D-05 | `src/main/java/com/smartfix/facility/service/LocationService.java` | `LocationService` | 可用地点列表、读取、**校验地点启用**；**C 的表单依赖它** | D-03、D-04 |
+| D-06 | `src/main/java/com/smartfix/request/service/RequestAccessService.java` | `RequestAccessService` | **所有权与角色判定的唯一入口**；越权 → 404；附件下载复用它 | C-02（需要读请求聚合）、A-06 |
+| D-07 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestSummaryResponse.java` | `MaintenanceRequestSummaryResponse` | 列表行 | — |
+| D-08 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestDetailsResponse.java` | `MaintenanceRequestDetailsResponse` | 详情 | — |
+| D-09 | `src/main/java/com/smartfix/request/dto/RequestStatusHistoryResponse.java` | `RequestStatusHistoryResponse` | 历史条目展示 | — |
+| D-10 | `src/main/java/com/smartfix/request/service/RequestQueryService.java` | `RequestQueryService` | 我的报修列表、详情组装、管理员代查 | D-06 ～ D-09、C-08、C-09 |
+| D-11 | `src/main/java/com/smartfix/request/controller/RequestQueryController.java` | `RequestQueryController` | `/requests/mine`、`/requests/{ticketNumber}`、`/admin/requests/lookup` | D-10 |
+| D-12 | `src/main/resources/templates/request/mine.html` | — | 我的报修列表 | D-11、④ 样式 |
+| D-13 | `src/main/resources/templates/request/detail.html` | — | 报修详情（**E 会在这里追加附件区**，见 17.8） | D-11、④ 样式 |
+| D-14 | `src/main/resources/templates/admin/requests.html` | — | 管理员只读代查页 | D-11 |
+| D-15 | `src/test/java/com/smartfix/facility/service/LocationServiceTest.java` | `LocationServiceTest` | 单测 | D-05 |
+| D-16 | `src/test/java/com/smartfix/request/service/RequestAccessServiceTest.java` | `RequestAccessServiceTest` | 单测：本人/他人/管理员/不存在 | D-06 |
+| D-17 | `src/test/java/com/smartfix/request/service/RequestQueryServiceTest.java` | `RequestQueryServiceTest` | 单测：列表只含本人 | D-10 |
+| D-18 | `src/test/java/com/smartfix/request/controller/RequestQueryControllerTest.java` | `RequestQueryControllerTest` | MockMvc | D-11 |
+
+#### D-3 不要碰
+
+`SecurityConfig.java`（B）、`com.smartfix.user.*`（A）、附件相关类（E）；**不要直接改 C 的 `MaintenanceRequest` 实体**（§18.1 协调规则）。
+
+#### D-4 测试与完成标准
+
+- **必须测：** 我的列表只含本人／详情含附件与历史／**Requester B 访问 A 的详情 404**／**B 访问 A 的附件 404**／不存在的 Ticket 404／管理员只读代查成功／**管理员不能提交（403）**／停用地点不出现在下拉中。
+- **安全红线：** 所有权判定集中在 `RequestAccessService`；返回 404 而非 403（§13.4）；列表查询条件必须带 `requesterId`，**不能**先全查再过滤。
 - **完成判据：** Requester A 看到自己的请求；Requester B 打开 A 的链接得到 404；管理员按单号能看到详情但不能提交。
 
-#### 分类 E — 附件
+---
 
-- **目标：** 只有合法图片能被存入私有目录；下载必须授权；提交失败不留垃圾文件。
-- **对外契约（必须先冻结）：** `AttachmentStorageService` 接口与 `AttachmentService.validateAndStore` 的签名（§12.6）——分类 C 依赖它做补偿。
-- **必须测试的场景：** 合法 PNG/JPEG 通过／**改扩展名的伪造文件被拒**／超大文件被拒 413／超像素被拒／超过 3 张被拒／**路径穿越文件名（`../../etc/passwd`）不产生影响**／第 N 个文件失败时前 N-1 个被清理／数据库失败时文件被清理／下载时父子不匹配 404／响应头正确（nosniff、attachment、no-store）。
-- **安全注意事项：** 见 §16.1 全部 20 条，尤其是签名与解码校验、UUID 命名、私有目录、授权下载。
-- **不允许做的事情：** 不把文件写进 `static` 或 `resources`；不信任客户端 Content-Type；不把 `storedFilename` 返回给浏览器；不在日志里打印文件内容或完整路径。
-- **完成判据：** 上传合法图片后详情页能看到下载链接；伪造图片被拒；容器重启后附件仍可下载；提交失败后上传目录里没有残留文件。
+### 17.7 分类 E — 附件
 
-### 17.3 分类之间的依赖关系
+**目标：** 只有合法图片能被存入私有目录；下载必须授权；提交失败不留垃圾文件。
+**对外契约（必须最先冻结）：** `AttachmentStorageService` 接口与 `AttachmentService.validateAndStore` 的签名（§12.6）——**分类 C 依赖它做补偿**。
+**边界（不做）：** 不把文件写进 `static` 或 `resources`；不信任客户端 `Content-Type`；不把 `storedFilename` 返回给浏览器；不在日志里打印文件内容或完整路径。
 
-```mermaid
-flowchart LR
-    A[分类 A 账户与角色] --> B[分类 B 认证与授权]
-    A --> C[分类 C 报修提交与 Ticket]
-    A --> D[分类 D 地点、查询与所有权]
-    D -->|LocationService| C
-    C -->|实体与 Repository| D
-    C -->|requestId 与父子校验| E[分类 E 附件]
-    E -->|validateAndStore 与补偿| C
-    B -->|权限规则与异常映射| C
-    B -->|权限规则与异常映射| D
-    B -->|权限规则与异常映射| E
-```
+#### E-1 要修改的既有文件
 
-**两类相互依赖（C↔D、C↔E）如何拆开：**
+**无**（C、D、E 三个分类都只新建；全项目仅 6 个既有文件需要改，全在 17.2.1）。
 
-- 跨分类的**接口先冻结**，实现后跟上。契约一旦冻结，两个分类就能真正并行。
-- C 与 D 之间：C **先做不含查询的最小版本**（提交 + 详情页雏形），D 基于 C 已合并的实体做只读查询。
-- C 与 E 之间：C **先做不含附件的最小版本**（无附件也能提交），E 独立完成校验与存储后再接入 C 的补偿链路。
-- **禁止**为了"先跑通"而在 C 里临时写一套自己的文件处理——那会立刻产生第二套实现。
+#### E-2 要新建的文件
 
-### 17.4 工作推进顺序
+| # | 新建文件（仓库相对路径） | 类名 | 作用 | 前置 |
+|---|---|---|---|---|
+| E-01 | `src/main/resources/db/migration/V5__create_request_attachments.sql` | — | `request_attachments` 表 + 外键 + `stored_filename` 唯一约束 | C-01（外键指向报修表） |
+| E-02 | `src/main/java/com/smartfix/request/domain/Attachment.java` | `Attachment` | 附件元数据实体 | E-01 |
+| E-03 | `src/main/java/com/smartfix/request/config/AttachmentProperties.java` | `AttachmentProperties` | 绑定 `smartfix.upload.*`（大小、数量、类型、像素、目录） | ⑤ 配置项由 B 加好 |
+| E-04 | `src/main/java/com/smartfix/request/validation/AttachmentValidator.java` | `AttachmentValidator` | 类型/大小/像素/签名校验 | E-03 |
+| E-05 | `src/main/java/com/smartfix/request/service/AttachmentStorageService.java` | `AttachmentStorageService` | **接口**：文件存储抽象（**本项目唯一被批准的"为将来替换而抽象"的接口**，理由见 §10） | 契约冻结（S1） |
+| E-06 | `src/main/java/com/smartfix/request/storage/LocalAttachmentStorageService.java` | `LocalAttachmentStorageService` | 本地磁盘实现：UUID 文件名、私有目录、流式写入 | E-05、E-03 |
+| E-07 | `src/main/java/com/smartfix/request/repository/AttachmentRepository.java` | `AttachmentRepository` | 附件元数据持久化 | E-02 |
+| E-08 | `src/main/java/com/smartfix/request/dto/UploadAttachmentCommand.java` | `UploadAttachmentCommand` | 上传输入（**不含磁盘路径**） | — |
+| E-09 | `src/main/java/com/smartfix/request/dto/StoredAttachment.java` | `StoredAttachment` | 存储结果（存储键、大小、类型） | — |
+| E-10 | `src/main/java/com/smartfix/request/dto/AttachmentResponse.java` | `AttachmentResponse` | 附件展示（**不含 `storedFilename`**） | — |
+| E-11 | `src/main/java/com/smartfix/request/service/AttachmentService.java` | `AttachmentService` | 校验并存储、读取、**失败补偿清理**；向 C 暴露 `validateAndStore` | E-04、E-06、E-07、E-08 ～ E-10 |
+| E-12 | `src/main/java/com/smartfix/request/controller/AttachmentController.java` | `AttachmentController` | `GET /requests/{t}/attachments/{a}` 下载 | E-11、**D-06**（复用所有权判定） |
+| E-13 | `src/test/java/com/smartfix/request/validation/AttachmentValidatorTest.java` | `AttachmentValidatorTest` | 单测：伪造文件、超限 | E-04 |
+| E-14 | `src/test/java/com/smartfix/request/storage/LocalAttachmentStorageServiceTest.java` | `LocalAttachmentStorageServiceTest` | 单测：UUID 命名、路径穿越 | E-06 |
+| E-15 | `src/test/java/com/smartfix/request/service/AttachmentServiceTest.java` | `AttachmentServiceTest` | 单测：补偿清理 | E-11 |
+| E-16 | `src/test/java/com/smartfix/request/controller/AttachmentControllerTest.java` | `AttachmentControllerTest` | MockMvc：父子不匹配 404 | E-12 |
+| E-17 | `src/test/java/com/smartfix/request/repository/AttachmentPersistenceIT.java` | `AttachmentPersistenceIT` | 集成：真实 PostgreSQL 上的持久化 | E-07 |
+
+> **E 的两处"追加"**（不是新建，也不是改逻辑）：`templates/request/new.html` 加文件上传控件、`templates/request/detail.html` 加附件列表——这两个文件属于 **C 和 D**。规则见 17.8。
+
+#### E-3 不要碰
+
+`templates/request/new.html` 与 `detail.html` 的既有结构（只追加，不改别人的表单字段）；`SecurityConfig.java`（B）；`application.yml`（键名报给 B，自己不加）。
+
+#### E-4 测试与完成标准
+
+- **必须测：** 合法 PNG/JPEG 通过／**改扩展名的伪造文件被拒**／超大文件 413／超像素被拒／超过 3 张被拒／**路径穿越文件名（`../../etc/passwd`）不产生影响**／第 N 个文件失败时前 N-1 个被清理／数据库失败时文件被清理／下载时父子不匹配 404／响应头正确（`nosniff`、`attachment`、`no-store`）。
+- **安全红线：** 见 §16.1 全部 20 条，重点是签名与解码校验、UUID 命名、私有目录、授权下载。
+- **完成判据：** 上传合法图片后详情页能看到下载链接；伪造图片被拒；容器重启后附件仍可打开；提交失败后上传目录里没有残留文件。
+
+---
+
+### 17.8 跨分类的共享文件：谁改、怎么排队
+
+这张表是**协调点**：这几处会被两个以上分类碰到，先按"协调方"的顺序改，再让别人追加。
+
+| 共享文件 | 协调方 | 谁还会碰 | 排队规则 |
+|---|---|---|---|
+| `src/main/resources/templates/request/new.html` | **C** | **E**（追加文件上传控件） | C 先把表单字段与结构定稿并合并；E 只**追加**上传区块，不改 C 的字段名 |
+| `src/main/resources/templates/request/detail.html` | **D** | **E**（追加附件列表区） | D 先合并详情页骨架；E 追加附件区；附件为空时页面必须照常渲染 |
+| `src/main/resources/static/css/site.css` | **B**（打底） | 全部 | 只追加新选择器，**不改既有 CSS 变量**；改变量前先在群里说 |
+| `src/main/resources/application.yml` | **B** | **A / E**（新增配置键） | 需要新键的分类把"键名 + 默认值"写进 PR 描述，由 B 一次性加 |
+| `src/test/resources/application-test.yml` | **B** | 全部 | 同上，测试相关的开关集中由 B 改 |
+| `src/main/java/com/smartfix/request/domain/MaintenanceRequest.java` | **C** | **D / E**（只读） | D/E 只读字段，**不新增/不重命名字段**；确需变更走 §18.1 |
+| `src/main/java/com/smartfix/request/repository/MaintenanceRequestRepository.java` | **C** | **D / E**（新增查询方法） | 新增查询方法需 C 同意；避免两人同时重写 |
+| `src/main/resources/db/migration/`（目录与编号） | **C**（登记表） | **A / D / E** | **先登记版本号再写文件**；已执行的迁移永不修改 |
+| `pom.xml` / `Jenkinsfile` / `Dockerfile` / `docker-compose.yml` | **B** | — | Sprint 2 默认不动；ADR 通过后由 B 单独 PR |
+
+> **最关键的一条：** `new.html` 与 `detail.html` 是 **C/D 的资产、E 的接入点**。E 不要另建自己的表单页或详情页——那会立刻产生第二套页面，评审时必然被打回。
+
+---
+
+### 17.9 推进顺序
 
 **四条顺序规则：**
 
-1. 顺序由**依赖**决定，不由人员决定；谁做哪一步可以协商，步骤本身的次序不能颠倒。
+1. 顺序由**依赖**决定，不由人员决定；谁做哪一步可以协商，**步骤本身的次序不能颠倒**。
 2. 上一步没有达到它的**可观察输出**之前，不开始依赖它的下一步。
-3. **接口先冻结、实现后跟上**：跨分类契约在对应分类开工的第一天就定稿（见 17.3）。
+3. **接口先冻结、实现后跟上**：跨分类契约（A-05/A-06、C-11/C-12、D-05/D-06、E-05）在对应分类开工的第一天定稿。
 4. 测试**随分类完成**，不集中到最后；集成与 CI 单独作为最后一步，不吞掉前面的测试工作。
 
-| 步骤 | 内容 | 前置 | 为什么必须在这个位置 | 可观察输出 |
+| 步骤 | 具体交付（文件级） | 前置 | 为什么必须在这个位置 | 可观察输出 |
 |---|---|---|---|---|
-| **S1** | Day 1 冻结：领域模型、命名、类清单、Service 契约、路由与权限、迁移编号 | 无 | 所有分类共用同一套名称与契约；不先冻结就会各写各的 | 类登记表与迁移登记表提交；**不写任何业务代码** |
-| **S2** | 分类 A 第一步：`users` 迁移 + `User`/`Role`/`AccountStatus` + `UserRepository` | S1 | A 是 B、C、D 的共同前置；`requester_id`、`changed_by_user_id` 都要外键指向它 | 干净库迁移到 `V2` 成功 |
-| **S3** | 分类 D 第一步：`locations` 迁移 + `Location` + `LocationService`（**与 S2 并行**） | S1 | 与 A 无依赖；C 的表需要它做外键，先建好才不会卡住 S7 | 干净库迁移到 `V3` 成功 |
-| **S4** | 分类 A 第二步：`UserService`（认证数据、创建、角色、状态）+ 引导管理员 | S2 | B 需要认证数据，C 需要校验报修人；接口契约在此定稿 | `UserServiceTest`、`UserBootstrapServiceTest` 通过 |
-| **S5** | 分类 B 第一步：认证链路（`PasswordConfig` 对接、`SmartFixUserDetails`、`SmartFixUserDetailsService`） | S4 | 没有可信身份，后面的授权与提交都无从谈起 | 能按用户名加载认证数据（含角色、状态、安全版本） |
-| **S6** | 分类 B 第二步：`SecurityConfig` 真实规则 + 会话 + CSRF + 登录页 + 错误页 | S5 | 所有受保护路由都依赖它；早于提交链路完成，才能用真实身份测试提交 | 匿名 302 / 错误角色 403 / 登录成功（AC01–AC05） |
-| **S7** | 分类 C 第一步：`maintenance_requests`、`request_status_history` 迁移 + 实体 + `RequestTicketNumberGenerator` | S2、S3、S1 | 外键目标（`users`、`locations`）必须先存在，否则迁移直接失败 | 干净库迁移到 `V4`/`V6` 成功；并发测试无重复单号 |
-| **S8** | 分类 C 第二步：`RequestCreationService` + `MaintenanceRequestService` + Controller + 表单页（**无附件**） | S6、S7 | 提交必须由真实登录身份驱动；先跑通无附件版本，把附件留作接入点 | 登录后提交成功，Ticket 与初始历史可见（AC10–AC12） |
-| **S9** | 分类 E 第一步：`AttachmentValidator` + `AttachmentStorageService` + 本地实现（**与 S7/S8 并行**） | S1（接口先冻结） | 与提交链路无实现依赖，接口冻结后可完全并行 | `AttachmentValidatorTest`、`LocalAttachmentStorageServiceTest` 通过 |
-| **S10** | 分类 C 与 E 联调：提交链路接入附件 + 补偿清理 | S8、S9 | 补偿是**两个分类都就绪后**才能验证的行为 | AC23、AC24 通过；上传目录无残留 |
-| **S11** | 分类 D 第二步：`RequestAccessService` + `RequestQueryService` + 列表/详情/代查页 | S8 | 查询需要一个已存在且能写入的报修聚合与数据 | AC16、AC17、AC18 通过（越权 404） |
-| **S12** | 集成、测试补齐、PostgreSQL 验证、Docker smoke、CI 与安全检查 | S1–S11 | 只有功能齐备后才能做端到端与真实库验证 | `mvn clean verify` 绿；§27 Demo 脚本一次跑通 |
+| **S1** | Day 1 冻结：领域模型、命名、类清单、Service 契约、路由与权限、迁移编号；建立 `docs/sprint2/class-catalog.md` 与迁移登记表 | 无 | 五个分类共用同一套名称与契约；不先冻结就会各写各的 | 类登记表与迁移登记表提交；**不写任何业务代码** |
+| **S2** | **A**：`V2__create_users.sql` → `User`、`AccountStatus`、`UserRepository` | S1 | A 是 B、C、D 的共同前置；`requester_id`、`changed_by_user_id` 都要外键指向它 | 干净库迁移到 `V2` 成功 |
+| **S3** | **D**：`V3__create_locations.sql` → `Location`、`LocationRepository`、`LocationService`（**与 S2 并行**） | S1 | 与 A 无依赖；C 的表需要它做外键，先建好才不会卡住 S7 | 干净库迁移到 `V3` 成功；`LocationServiceTest` 通过 |
+| **S4** | **A**：`UserService` + `PasswordConfig` + `BootstrapAdminProperties` + `UserBootstrapService` + `BootstrapAdminInitializer` | S2 | B 需要认证数据，C/D 需要访问上下文；**引导管理员必须在这里落地，否则 B 没有账号可登录** | `UserServiceTest`、`UserBootstrapServiceTest` 通过；启动后库里有引导管理员 |
+| **S5** | **B**：`SmartFixUserDetails`、`SmartFixUserDetailsService` | S4 | 没有可信身份，后面的授权与提交都无从谈起 | 能按用户名加载认证数据（含角色、状态、安全版本） |
+| **S6** | **B**：改 ①`SecurityConfig` + `LoginController` + `login.html` + `ActiveAccountFilter` + 错误页 + 改 ②③④⑤⑥ | S5 | 所有受保护路由都依赖它；早于提交链路完成，才能用真实身份测提交 | AC01–AC05：匿名 302 / 错误角色 403 / CSRF 缺失 403 / 登录成功 |
+| **S7** | **C**：`V4` + `MaintenanceRequest` + `RequestStatus` + `RequestStatusHistory` + `RequestTicketSequence` + 三个 Repository + `RequestTicketNumberGenerator` | S2、S3、S1 | 外键目标（`users`、`locations`）必须先存在，否则迁移直接失败 | 干净库迁移到 `V4` 成功；`RequestTicketNumberGeneratorTest` 并发不重号 |
+| **S8** | **C**：`RequestCreationService` + `MaintenanceRequestService` + `MaintenanceRequestController` + `request/new.html`（**无附件**）；**D 同期给出最小版 `request/detail.html`**（只显示单号、状态、地点）让 PRG 闭环 | S6、S7、D-05 | 提交必须由真实登录身份驱动；先跑通无附件版本，把附件留作接入点 | 登录后提交成功，Ticket 与初始历史可见（AC10–AC12） |
+| **S9** | **E**：`AttachmentProperties`、`AttachmentValidator`、`AttachmentStorageService` + `LocalAttachmentStorageService`（**与 S7/S8 并行**） | S1（接口先冻结） | 与提交链路无实现依赖，接口冻结后可完全并行 | `AttachmentValidatorTest`、`LocalAttachmentStorageServiceTest` 通过 |
+| **S10** | **E → C 联调**：`V5` + `Attachment` + `AttachmentRepository` + `AttachmentService` + `AttachmentController`；C 在提交链路接入附件与补偿清理 | S8、S9 | 补偿是**两个分类都就绪后**才能验证的行为 | AC23、AC24 通过；上传目录无残留 |
+| **S11** | **D**：`RequestAccessService` + `RequestQueryService` + `RequestQueryController` + `mine.html` / `detail.html` 完整版 / `admin/requests.html` | S8 | 查询需要一个已存在且能写入的报修聚合与数据 | AC16–AC18 通过（越权 404） |
+| **S12** | **B 牵头、全部分类参与**：集成、测试补齐、真实 PostgreSQL 验证（`MigrationIT`、`AttachmentPersistenceIT`）、Docker smoke、CI 与安全检查 | S1–S11 | 只有功能齐备后才能做端到端与真实库验证 | `mvn clean verify` 绿；§27 Demo 脚本一次跑通 |
 
-**这不是瀑布。** S3 与 S2 并行，S9 与 S7/S8 并行；S4 完成后 B 与 C 的准备工作可以同时展开。
-唯一不能压缩的是 **S1 → S2/S3 → S4 → S5/S6 → S7/S8 → S10/S11** 这条主干上的先后。
+**这不是瀑布。** S3 与 S2 并行，S9 与 S7/S8 并行；S4 完成后 B 与 C 的准备工作可以同时展开。唯一不能压缩的是主干：
 
-### 17.5 分类与本文其他章节的对应
+```mermaid
+flowchart LR
+    S1[S1 冻结] --> S2[S2 A 账户表与实体]
+    S1 --> S3[S3 D 地点表与服务]
+    S2 --> S4[S4 A UserService 与引导管理员]
+    S3 --> S7[S7 C 报修表与实体]
+    S2 --> S7
+    S4 --> S5[S5 B 认证链路]
+    S5 --> S6[S6 B SecurityConfig 与登录]
+    S7 --> S8[S8 C 提交链路]
+    S6 --> S8
+    S9[S9 E 校验与存储，可并行] --> S10[S10 E 接入提交链路]
+    S8 --> S10
+    S8 --> S11[S11 D 查询与所有权]
+    S10 --> S12[S12 集成与验证]
+    S11 --> S12
+```
+
+**两处必须先说好的接口（否则一定返工）：**
+
+1. **C 的表单提交后重定向到哪？** §13.1 定的是 `302 → /requests/{ticketNumber}`，而**详情页属于 D**。所以 S8 必须由 D 同时给出**最小版详情页**；否则 C 只能先临时重定向到 `/requests/new?submitted={ticket}`，等 D 就绪后再改回——**这一行改动属于 C 的 Controller**，要写进 PR 描述。
+2. **E 的补偿接口长什么样？** C 在 `RequestCreationService` 里要调用 `AttachmentService.validateAndStore`，并在事务失败时清理。签名（§12.6）在 S1 冻结，S9 完成实现后 C 才能接。
+
+---
+
+### 17.10 分支、PR 与合并顺序
+
+分支命名遵循 `CONTRIBUTING.md`：**一个 Story 一个分支、一个 PR**。
+
+| 分类 | 建议分支名（把 XX 换成 Jira 号） | 建议 PR 粒度 |
+|---|---|---|
+| A 账户与角色 | `feature/SCRUM-XX-user-account-management` | 一张 PR 做"迁移 + 实体 + `UserService`"，另一张做"管理页 + Controller" |
+| B 认证与授权 | `feature/SCRUM-XX-form-login-rbac` | 认证链路一张；`SecurityConfig` 真实规则 + 页面一张；**`pom.xml`/CI 若有改动必须单独 PR** |
+| C 报修提交与 Ticket | `feature/SCRUM-XX-request-submission` | 迁移 + 实体 + 取号器一张；提交编排 + 表单页一张 |
+| D 地点、查询与所有权 | `feature/SCRUM-XX-request-query-ownership` | 地点一张；查询 + 所有权一张 |
+| E 附件 | `feature/SCRUM-XX-attachment-upload` | 校验 + 存储一张；接入 + 下载一张 |
+
+**合并顺序 = 17.9 的步骤顺序。** 出现冲突时按 17.8 的"协调方"决定谁先合：
+
+1. 先合**迁移**，再合**依赖该迁移的代码**——两张 PR 不要反过来。
+2. 同一个共享文件被两张 PR 改到时，**协调方的 PR 先合**，另一张先 rebase 再合。
+3. 每张 PR 都要：CI 绿 + **至少一名非作者**评审（§24.4）；**禁止自审自合**。
+4. 合并后**立刻**在最新的 `main` 上跑一次关键路径（§24.3），不要攒到最后一天。
+
+---
+
+### 17.11 分类与本文其他章节的对应
 
 | 分类 | 类清单 | Service 契约 | 路由与权限 | 测试类（§21.2） |
 |---|---|---|---|---|
 | A 账户与角色 | §9.1 | §12.1 | §13.1 中 `/admin/users*` | `UserServiceTest`、`UserManagementControllerTest`、`UserBootstrapServiceTest` |
-| B 认证与授权 | §9.2、§9.8 | 消费 §12.1 | §13.1 中 `/login`、`/logout`、§13.2 全表 | `SmartFixUserDetailsServiceTest`、`SecurityConfigTest`、`ActiveAccountFilterTest`、`AuthenticationFlowIT` |
+| B 认证与授权 | §9.2、§9.8 | 消费 §12.1 | §13.1 中 `/login`、`/logout`、§13.2 全表 | `SmartFixUserDetailsServiceTest`、`SecurityConfigTest`、`ActiveAccountFilterTest`、`AuthenticationFlowIT`、`MigrationIT` |
 | C 报修提交与 Ticket | §9.4、§9.5、§9.6（写侧）、§9.7（部分） | §12.3、§12.7、§12.8 | §13.1 中 `/requests/new`、`POST /requests` | `RequestTicketNumberGeneratorTest`、`RequestCreationServiceTest`、`MaintenanceRequestServiceTest`、`MaintenanceRequestControllerTest` |
 | D 地点、查询与所有权 | §9.3、§9.6（读侧）、§9.7（部分） | §12.2、§12.4、§12.5 | §13.1 中 `/requests/mine`、`/requests/{ticketNumber}`、`/admin/requests/lookup` | `LocationServiceTest`、`RequestAccessServiceTest`、`RequestQueryServiceTest`、`RequestQueryControllerTest` |
 | E 附件 | §9.6（附件侧）、§9.7（部分） | §12.6 | §13.1 中 `/requests/{t}/{a}` | `AttachmentValidatorTest`、`LocalAttachmentStorageServiceTest`、`AttachmentServiceTest`、`AttachmentControllerTest`、`AttachmentPersistenceIT` |

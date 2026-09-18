@@ -562,7 +562,7 @@ sequenceDiagram
 | Package | Class | Responsibility | Callers | Status |
 |---|---|---|---|---|
 | `com.smartfix.user.domain` | `User` | User entity (account, role, status, security version) | Services/repositories | 【S2 New】 |
-| `com.smartfix.user.domain` | `Role` | The three official roles | Permission checks, templates | 【Current】 `src/main/java/com/smartfix/user/domain/Role.java`, **modify existing class** (keep exactly three values) |
+| `com.smartfix.user.domain` | `Role` | The three official roles | Permission checks, templates | 【Current】 **No modification needed**: `src/main/java/com/smartfix/user/domain/Role.java` is reused as it is; the `ROLE_` prefix is mapped in `SmartFixUserDetails` (see §17.3 A-1) |
 | `com.smartfix.user.domain` | `AccountStatus` | Account status enum (`ACTIVE` / `DISABLED`) | `ActiveAccountFilter`, admin pages | 【S2 New】 |
 | `com.smartfix.user.repository` | `UserRepository` | User persistence and queries | `UserService` | 【S2 New】 |
 | `com.smartfix.user.service` | `UserService` | Account creation / role / status / queries / authentication data | `UserManagementController`, `SmartFixUserDetailsService`, `MaintenanceRequestService`, `RequestQueryService` | 【S2 New】 |
@@ -606,6 +606,7 @@ sequenceDiagram
 | `com.smartfix.request.domain` | `RequestStatusHistory` | One status-change history entry | Details page | 【S2 New】 |
 | `com.smartfix.request.domain` | `UrgencyLevel` | Urgency enum | Form, list | 【S2 New】 |
 | `com.smartfix.request.domain` | `MaintenanceCategory` | Fault category enum | Form, list | 【S2 New】 |
+| `com.smartfix.request.domain` | `RequestTicketSequence` | Ticket counter entity (backs the counter table; `RequestTicketSequenceRepository` depends on it) | `RequestTicketNumberGenerator` | 【S2 New】 |
 | `com.smartfix.request.domain` | `Attachment` | Attachment metadata entity | Details page, download | 【S2 New】 |
 
 ### 9.5 `request` module · repository (category: C Request submission and tickets)
@@ -1162,137 +1163,423 @@ state as possible and leaves an auditable log.
 
 ## 17. Five work categories and the order of work
 
-> **This chapter makes no task assignment.** The team works through the five **work
-> categories** below, and **categories are not tied to people** — anyone can pick up any
-> category, and hand-over between stages is fine.
-> What determines the order is the **dependency between categories**, not who does which part.
+> **This chapter does not assign people.** The team moves through five **work categories**, and **a category is not bound to a person** — anyone may claim any category, and a category may change hands. What fixes the order is the **dependency between categories**, not who does which part.
 >
-> **Tests are completed together with their category** — never postponed to the end of the
-> sprint, and never concentrated on one person.
+> **This chapter is a how-to manual:** for every category it states **① which existing file (and which class inside it) to modify**, **② which files to create**, **③ what not to touch**, and **④ the tests and done criteria**; it ends with the **cross-category order of work**.
+>
+> **Tests are completed together with their category** — not deferred to the end of the Sprint, and not handed to one person.
 
-### 17.1 The five work categories
+**How to use this chapter (three steps)**
 
-| Category | Capability covered | Modules and packages | Main classes |
+1. Read **17.2** first: what actually exists at the start of Sprint 2. **The whole repository contains only 4 Java files** — everything else is new. That is what separates "modify" from "create".
+2. Find your category and read its two tables, **"-1 Existing files to modify"** and **"-2 Files to create"**. All paths are repository-relative and can be used as-is.
+3. Align your PR order with the step numbers in **17.9 (S1…S12)** — **the step number is the merge order**.
+
+---
+
+### 17.1 The five categories at a glance
+
+| Category | Capability it covers | Package it writes | Who waits for its output | What you can see when it is done |
+|---|---|---|---|---|
+| **A Accounts and roles** | Create accounts, change roles, enable/disable, bootstrap administrator, expose authentication data and access context | `com.smartfix.user.*` | **B** (authentication data), **C/D** (access context), **C/D** (foreign keys) | An administrator can create accounts in all three roles; a duplicate username is rejected |
+| **B Authentication and authorization** | Login/logout, session, CSRF, route permissions, unified exception mapping and error pages | `com.smartfix.auth.*`, `com.smartfix.common.exception`, `com.smartfix.common.configuration` | **C/D/E** (permission rules and exception mapping) | Anonymous access to a protected page → 302 to login; wrong role → 403 |
+| **C Request submission and tickets** | The request aggregate, unique ticket numbers, initial status history, the submission path (PRG) | `com.smartfix.request.*` (**write side**) | **D** (data to query), **E** (the mount point) | After submitting you see a ticket like `SF-2026-000123`; the database holds an initial `SUBMITTED` history row |
+| **D Locations, queries and ownership** | Location data, my requests, details and status history, over-reach decisions, read-only administrator lookup | `com.smartfix.facility.*`, `com.smartfix.request.*` (**read side**) | **C** (`LocationService` foreign key and validation), **E** (the attachment block on the details page) | A sees their own request; B opens A's link and gets **404** |
+| **E Attachments** | Validation, private storage, authorized download, compensation cleanup on failure | `com.smartfix.request.*` (**attachment side**) | **C** (storage and compensation during submission) | After uploading a valid image the details page shows a download link; a forged image is rejected |
+
+> **Note that C and D share the `com.smartfix.request` package.** The split is defined in §6 and §7: **the write side belongs to C, the read side to D**, separated by different services and controllers (§18.2 rule 4) — not by renaming packages.
+
+---
+
+### 17.2 The Sprint 2 starting point: what the repository actually contains (checked file by file)
+
+**Existing Java sources — only 4:**
+
+| File | Class inside | What it is now |
+|---|---|---|
+| `src/main/java/com/smartfix/SmartFixApplication.java` | `SmartFixApplication` | Entry point; `@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)` |
+| `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | **Temporary baseline**: CSRF disabled, `httpBasic`/`formLogin` disabled, `anyRequest().permitAll()`; the file already carries `TODO(Sprint 2)` comments |
+| `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | `GET /` and `/home` → the `home` template; sets three display-only attributes |
+| `src/main/java/com/smartfix/user/domain/Role.java` | `Role` | Three-value enum `REQUESTER` / `TECHNICIAN` / `ADMINISTRATOR` (**no** `FACILITY_OFFICER`) |
+
+**Existing tests and resources:**
+
+| Kind | Files |
+|---|---|
+| Test classes | `src/test/java/com/smartfix/SmartFixApplicationTests.java`, `src/test/java/com/smartfix/common/web/HomeControllerTests.java` |
+| Test configuration | `src/test/resources/application-test.yml` (H2, `MODE=PostgreSQL`, `flyway.enabled=false`) |
+| Configuration | `src/main/resources/application.yml`, `application-dev.yml`, and `.env.example` at the root |
+| Migration | `src/main/resources/db/migration/V1__baseline.sql` (**intentionally empty**) |
+| Views and styles | `src/main/resources/templates/home.html`, `src/main/resources/static/css/site.css` (83 lines) |
+| Engineering | `pom.xml`, `Jenkinsfile`, `Dockerfile`, `docker-compose.yml` (services `db` and the optional `app`) |
+
+#### 17.2.1 Sprint 2 modifies only these 6 existing files
+
+| # | Existing file | Class inside | Category | What changes |
+|---|---|---|---|---|
+| ① | `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | **B** | Replace `permitAll` with real rules; enable `formLogin` and CSRF; add session-fixation protection, logout and 403 handling |
+| ② | `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | **B** | Expose the entries the home page needs (login/logout, new request, my requests, user management) and the sign-in state |
+| ③ | `src/main/resources/templates/home.html` | (template) | **B** | Add the entry links and sign-in state to the navigation |
+| ④ | `src/main/resources/static/css/site.css` | (styles) | **B** lays the base → every category **appends** later | Form, table, error and attachment-list styles; **append only, never change an existing variable** |
+| ⑤ | `src/main/resources/application.yml` | (configuration) | **B** | Session timeout, `spring.servlet.multipart` limits, and the `smartfix.*` namespace (upload directory, bootstrap administrator) |
+| ⑥ | `src/test/resources/application-test.yml` | (test configuration) | **B** | Test-side security/migration switches used by `@WithMockUser` and `SecurityConfigTest` |
+
+> **⑤ is the only configuration gate.** C/D/E must **not** add their own keys to `application.yml`: put the key name and default value in the PR description and let B add it once (§18.1).
+>
+> **④ appends, never rewrites.** Appending never collides with anyone; changing an existing CSS variable changes every page in the application and must be raised in the team channel first.
+
+#### 17.2.2 Files that must not be changed
+
+| File | Why it stays untouched |
+|---|---|
+| `src/main/resources/db/migration/V1__baseline.sql` | An executed migration is **never modified** — a checksum mismatch stops everyone's application from starting (§15.2) |
+| `src/main/java/com/smartfix/SmartFixApplication.java` | Excluding `UserDetailsServiceAutoConfiguration` is **correct**: we supply our own `SmartFixUserDetailsService`, and removing the exclusion would create a default account with a random password |
+| `src/main/java/com/smartfix/user/domain/Role.java` | The three values are reused as they are; the `ROLE_` prefix belongs in `SmartFixUserDetails`, so **do not** push Spring Security concepts into a domain enum |
+| `pom.xml` / `Jenkinsfile` / `Dockerfile` / `docker-compose.yml` | Untouched by default in Sprint 2. Only after §29 decisions D14/D15 (Testcontainers, JaCoCo, …) are **agreed by the team and recorded in an ADR** does **category B change them in a separate PR** — never mixed with business changes |
+| `src/main/resources/application-dev.yml` | Only for log levels; it is a shared file (§18.1) |
+
+> **One sentence to remember:** Sprint 2 adds more than 60 files, but **only 6 existing files are modified**. Everything else is new, and belongs to the category below — **never create a file outside your category**.
+
+---
+
+### 17.3 Category A — Accounts and roles
+
+**Goal:** one trustworthy source of account data. An administrator can create accounts, change roles and enable/disable accounts; other categories can read authentication data and access context.
+**Contracts to freeze first:** `UserService` (§12.1), `UserAuthenticationData`, `UserAccessResponse`.
+**Out of scope:** no login logic (that is B); no sign-up or password recovery (§4); never expose `UserRepository` to another category; do not put a request collection on `User`.
+
+#### A-1 Existing files to modify
+
+**None.** `Role.java` keeps its three values and is reused as it is. If an authority string (`ROLE_REQUESTER`) is genuinely needed, map it in **B**'s `SmartFixUserDetails` — do not change the enum.
+
+#### A-2 Files to create
+
+| # | New file (repository-relative) | Class name | Purpose | Depends on |
+|---|---|---|---|---|
+| A-01 | `src/main/resources/db/migration/V2__create_users.sql` | — | `users` table: unique `username`, `role`, `status`, `security_version`, timestamps | Migration number registered (S1) |
+| A-02 | `src/main/java/com/smartfix/user/domain/User.java` | `User` | Account entity | A-01 |
+| A-03 | `src/main/java/com/smartfix/user/domain/AccountStatus.java` | `AccountStatus` | Account state enum: `ACTIVE` / `DISABLED` | — |
+| A-04 | `src/main/java/com/smartfix/user/repository/UserRepository.java` | `UserRepository` | `findByUsername`, list queries | A-02 |
+| A-05 | `src/main/java/com/smartfix/user/dto/UserAuthenticationData.java` | `UserAuthenticationData` | **Contract for B**: username, password hash, role, status, `securityVersion` | Contract frozen (S1) |
+| A-06 | `src/main/java/com/smartfix/user/dto/UserAccessResponse.java` | `UserAccessResponse` | **Contract for C/D**: `userId`, role, status | Contract frozen (S1) |
+| A-07 | `src/main/java/com/smartfix/user/config/PasswordConfig.java` | `PasswordConfig` | Exposes the `PasswordEncoder` (BCrypt) bean; **B's login path depends on it** | — |
+| A-08 | `src/main/java/com/smartfix/user/service/UserService.java` | `UserService` | Read authentication data, create users, change roles and status, maintain the "last administrator cannot be disabled or demoted" invariant | A-04 – A-07 |
+| A-09 | `src/main/java/com/smartfix/user/config/BootstrapAdminProperties.java` | `BootstrapAdminProperties` | Binds `smartfix.bootstrap-admin.*` (values come only from environment variables) | ⑤ keys added by B |
+| A-10 | `src/main/java/com/smartfix/user/service/UserBootstrapService.java` | `UserBootstrapService` | Idempotent creation of the bootstrap administrator (skip if present) | A-08, A-09 |
+| A-11 | `src/main/java/com/smartfix/user/config/BootstrapAdminInitializer.java` | `BootstrapAdminInitializer` | Startup hook calling A-10. **Without it no account exists, so B cannot be accepted** | A-10 |
+| A-12 | `src/main/java/com/smartfix/user/dto/CreateUserCommand.java` | `CreateUserCommand` | Create-user form | — |
+| A-13 | `src/main/java/com/smartfix/user/dto/ChangeUserRoleCommand.java` | `ChangeUserRoleCommand` | Change-role form | — |
+| A-14 | `src/main/java/com/smartfix/user/dto/ChangeAccountStatusCommand.java` | `ChangeAccountStatusCommand` | Enable/disable form | — |
+| A-15 | `src/main/java/com/smartfix/user/dto/UserSummaryResponse.java` | `UserSummaryResponse` | User list row | — |
+| A-16 | `src/main/java/com/smartfix/user/controller/UserManagementController.java` | `UserManagementController` | The five `/admin/users` routes (§13.1) | A-08, A-12 – A-15 |
+| A-17 | `src/main/resources/templates/admin/users.html` | — | User-management page: list plus create/role/status forms | A-16, ④ styles |
+| A-18 | `src/test/java/com/smartfix/user/service/UserServiceTest.java` | `UserServiceTest` | Unit tests | A-08 |
+| A-19 | `src/test/java/com/smartfix/user/service/UserBootstrapServiceTest.java` | `UserBootstrapServiceTest` | Unit tests (**idempotence**: a second startup creates nothing) | A-10 |
+| A-20 | `src/test/java/com/smartfix/user/controller/UserManagementControllerTest.java` | `UserManagementControllerTest` | MockMvc tests | A-16 |
+
+#### A-3 Do not touch
+
+`SecurityConfig.java` (B), `com.smartfix.request.*` (C/E), `com.smartfix.facility.*` (D), `V1__baseline.sql`.
+
+#### A-4 Tests and done criteria
+
+- **Must be tested:** successful creation / duplicate username 409 / password rules / a role change bumps `securityVersion` / account disabled / **the last administrator cannot be disabled or demoted** / bootstrap administrator is idempotent.
+- **Security red lines:** accept the plain password only to **hash it with BCrypt immediately**; `passwordHash` never appears in a page, a log or a response body; a role or status change must bump `securityVersion`.
+- **Done when:** an administrator can create accounts in all three roles; a duplicate username is rejected; a disabled account's old session stops working; `V2` runs successfully on a clean database.
+
+---
+
+### 17.4 Category B — Authentication and authorization
+
+**Goal:** no protected page is reachable while signed out; a wrong role is refused; a disabled account's old session dies immediately; every state-changing request is CSRF-protected.
+**Contracts:** consumes `findAuthenticationByUsername` from §12.1; provides the **site-wide permission rules** and the **unified exception mapping**.
+**Out of scope:** no SSO/JWT (§4); never loosen authorization to make a test pass; do not scatter `securityVersion` checks across controllers (they belong in one filter).
+
+#### B-1 Existing files to modify (**the category that changes the most files**)
+
+| # | Existing file | Class inside | Now | Becomes |
+|---|---|---|---|---|
+| ① | `src/main/java/com/smartfix/auth/config/SecurityConfig.java` | `SecurityConfig` | `csrf` disabled, `formLogin` disabled, `anyRequest().permitAll()` | Enable `formLogin` (pointing at `auth/login`) and CSRF (except GET); write the real `authorizeHttpRequests` rules from §13.2; configure session-fixation protection, concurrent sessions, the logout success page and 403 handling; **permit only `/login`, `/actuator/health` and static resources** |
+| ② | `src/main/java/com/smartfix/common/web/HomeController.java` | `HomeController` | Only `systemName`/`tagline`/`scaffoldStatus` | Add the attributes the navigation needs (signed in or not, role, which entries to show); **no permission logic here** |
+| ③ | `src/main/resources/templates/home.html` | (template) | A single Home link | Add login/logout/new request/my requests/user management entries, shown by role |
+| ④ | `src/main/resources/static/css/site.css` | (styles) | 83 lines of base styles | **Append** (never modify existing variables): forms, form errors, tables, notices, attachment lists |
+| ⑤ | `src/main/resources/application.yml` | (configuration) | Datasource, JPA, Flyway, Actuator | Add `server.servlet.session.timeout`, `spring.servlet.multipart.max-file-size` and `max-request-size`, `smartfix.upload.dir`, `smartfix.bootstrap-admin.*`. **Keys C/D/E need are added here, by B** |
+| ⑥ | `src/test/resources/application-test.yml` | (test configuration) | H2 + `flyway.enabled=false` | Switches for `@WithMockUser` and `SecurityConfigTest`; **do not** switch the security rules off wholesale just to make tests pass |
+
+#### B-2 Files to create
+
+| # | New file (repository-relative) | Class name | Purpose | Depends on |
+|---|---|---|---|---|
+| B-01 | `src/main/java/com/smartfix/auth/security/SmartFixUserDetails.java` | `SmartFixUserDetails` | Custom `UserDetails` carrying `userId`, `role` and `securityVersion`; the `ROLE_` prefix mapping lives here | A-05 |
+| B-02 | `src/main/java/com/smartfix/auth/service/SmartFixUserDetailsService.java` | `SmartFixUserDetailsService` | Loads authentication data from `UserService` | B-01, A-08 |
+| B-03 | `src/main/java/com/smartfix/auth/security/ActiveAccountFilter.java` | `ActiveAccountFilter` | Per-request check that the account is still enabled and `securityVersion` is unchanged; clears the session when it is not | B-02 |
+| B-04 | `src/main/java/com/smartfix/auth/controller/LoginController.java` | `LoginController` | `GET /login` login page | ① rules |
+| B-05 | `src/main/resources/templates/auth/login.html` | — | Login page (CSRF hidden field, error and logout notices) | B-04, ④ styles |
+| B-06 | `src/main/java/com/smartfix/common/exception/ResourceNotFoundException.java` | `ResourceNotFoundException` | Resource missing → **404** (ownership decisions use it too) | — |
+| B-07 | `src/main/java/com/smartfix/common/exception/BusinessConflictException.java` | `BusinessConflictException` | Business conflict → 409 | — |
+| B-08 | `src/main/java/com/smartfix/common/exception/InputValidationException.java` | `InputValidationException` | Invalid input → 400 | — |
+| B-09 | `src/main/java/com/smartfix/common/exception/GlobalExceptionHandler.java` | `GlobalExceptionHandler` | Maps exceptions to pages and status codes; **error pages never leak a stack trace** | B-06 – B-08 |
+| B-10 | `src/main/java/com/smartfix/common/configuration/TimeConfig.java` | `TimeConfig` | Injects `Clock` (store in UTC, display in Asia/Singapore) | — |
+| B-11 | `src/main/resources/templates/error/403.html` | — | 403 page | B-09 |
+| B-12 | `src/main/resources/templates/error/404.html` | — | 404 page | B-09 |
+| B-13 | `src/main/resources/templates/error/500.html` | — | 500 page | B-09 |
+| B-14 | `src/test/java/com/smartfix/auth/service/SmartFixUserDetailsServiceTest.java` | `SmartFixUserDetailsServiceTest` | Unit tests | B-02 |
+| B-15 | `src/test/java/com/smartfix/auth/config/SecurityConfigTest.java` | `SecurityConfigTest` | MockMvc: anonymous 302, wrong role 403, missing CSRF 403 | ① |
+| B-16 | `src/test/java/com/smartfix/auth/security/ActiveAccountFilterTest.java` | `ActiveAccountFilterTest` | A disabled account or changed role kills the old session on the next request | B-03 |
+| B-17 | `src/test/java/com/smartfix/auth/AuthenticationFlowIT.java` | `AuthenticationFlowIT` | Integration: login → access → logout | B-02 – B-04 |
+| B-18 | `src/test/java/com/smartfix/MigrationIT.java` | `MigrationIT` | Runs the whole Flyway sequence on **real PostgreSQL** | A-01, C's migrations, D-01 |
+
+> **Why does B-18 belong to B?** The **numbering and content** of migrations belong to their own categories, but "the whole migration set runs from zero on real PostgreSQL" is project-wide infrastructure verification, the same family as CI and environments — so it sits with B. E's `AttachmentPersistenceIT` verifies attachment persistence on a real database in the same spirit.
+
+#### B-3 Do not touch
+
+`com.smartfix.request.*` (C/E), `com.smartfix.facility.*` (D), and the implementation of `com.smartfix.user.service.*` (call A's `UserService`, never reach into it).
+
+#### B-4 Tests and done criteria
+
+- **Must be tested:** redirect when signed out / successful login / bad credentials / Technician over-reach 403 / Requester hitting `/admin/**` 403 / **missing CSRF token rejected 403** / disabled account's session dies / session dies after a role change / protected pages unreachable after logout.
+- **Security red lines:** permit only what must be permitted; **never reintroduce permit-all**; CSRF does not apply to GET and must be on for POST.
+- **Done when:** anonymous access to a protected URL always 302s to the login page; a wrong role gets 403; a disabled account's session is killed on its next request.
+
+---
+
+### 17.5 Category C — Request submission and tickets
+
+**Goal:** submitting a request produces a **unique ticket**, status `SUBMITTED`, and writes **one initial `RequestStatusHistory` row**.
+**Contracts to freeze first:** the `MaintenanceRequest` fields, `RequestCreationService`, `RequestTicketNumberGenerator` (§12.7, §12.8).
+**Out of scope:** no approval, dispatch, work orders or SLA (§4); no status transitions (only `SUBMITTED`); other categories never touch this category's repositories directly.
+
+#### C-1 Existing files to modify
+
+**None.** C changes zero existing files — **everything is created**.
+
+#### C-2 Files to create
+
+| # | New file (repository-relative) | Class name | Purpose | Depends on |
+|---|---|---|---|---|
+| C-01 | `src/main/resources/db/migration/V4__create_maintenance_requests.sql` | — | `maintenance_requests` table + unique `ticket_number` + foreign keys to `users`/`locations`; the ticket counter table (decision D03) | A-01, D-01 (the foreign-key targets must exist first) |
+| C-02 | `src/main/java/com/smartfix/request/domain/MaintenanceRequest.java` | `MaintenanceRequest` | Request aggregate root | C-01 |
+| C-03 | `src/main/java/com/smartfix/request/domain/RequestStatus.java` | `RequestStatus` | Status enum (Sprint 2 uses only `SUBMITTED`) | — |
+| C-04 | `src/main/java/com/smartfix/request/domain/RequestStatusHistory.java` | `RequestStatusHistory` | Status-history entry (`changed_by_user_id` is a foreign key too) | C-01 |
+| C-05 | `src/main/java/com/smartfix/request/domain/UrgencyLevel.java` | `UrgencyLevel` | Urgency enum | — |
+| C-06 | `src/main/java/com/smartfix/request/domain/MaintenanceCategory.java` | `MaintenanceCategory` | Fault-category enum | — |
+| C-07 | `src/main/java/com/smartfix/request/domain/RequestTicketSequence.java` | `RequestTicketSequence` | **Ticket-counter entity** (backs the counter table; `RequestTicketSequenceRepository` cannot exist without it) | C-01 |
+| C-08 | `src/main/java/com/smartfix/request/repository/MaintenanceRequestRepository.java` | `MaintenanceRequestRepository` | Request persistence and queries | C-02 |
+| C-09 | `src/main/java/com/smartfix/request/repository/RequestStatusHistoryRepository.java` | `RequestStatusHistoryRepository` | History persistence | C-04 |
+| C-10 | `src/main/java/com/smartfix/request/repository/RequestTicketSequenceRepository.java` | `RequestTicketSequenceRepository` | Takes a number with a row lock (`SELECT … FOR UPDATE`) | C-07 |
+| C-11 | `src/main/java/com/smartfix/request/service/RequestTicketNumberGenerator.java` | `RequestTicketNumberGenerator` | Generates `SF-YYYY-NNNNNN` (resets yearly) | C-10 |
+| C-12 | `src/main/java/com/smartfix/request/service/RequestCreationService.java` | `RequestCreationService` | **Separate bean** writing the request and its initial history in one transaction | C-08, C-09, C-11 |
+| C-13 | `src/main/java/com/smartfix/request/dto/SubmitMaintenanceRequestCommand.java` | `SubmitMaintenanceRequestCommand` | Submission form input | — |
+| C-14 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestSubmissionResponse.java` | `MaintenanceRequestSubmissionResponse` | Submission result (with `ticketNumber`) | — |
+| C-15 | `src/main/java/com/smartfix/request/service/MaintenanceRequestService.java` | `MaintenanceRequestService` | Page-level use cases: prepare the form (location list), orchestrate submission | C-12, D-02 |
+| C-16 | `src/main/java/com/smartfix/request/controller/MaintenanceRequestController.java` | `MaintenanceRequestController` | `GET /requests/new`, `POST /requests` (PRG) | C-15 |
+| C-17 | `src/main/resources/templates/request/new.html` | — | The request form page (**E appends the file input here**, see 17.8) | C-16, ④ styles |
+| C-18 | `src/test/java/com/smartfix/request/service/RequestTicketNumberGeneratorTest.java` | `RequestTicketNumberGeneratorTest` | Unit tests + **no duplicate numbers under concurrency** | C-11 |
+| C-19 | `src/test/java/com/smartfix/request/service/RequestCreationServiceTest.java` | `RequestCreationServiceTest` | Unit/integration: request and history in one transaction | C-12 |
+| C-20 | `src/test/java/com/smartfix/request/service/MaintenanceRequestServiceTest.java` | `MaintenanceRequestServiceTest` | Unit tests | C-15 |
+| C-21 | `src/test/java/com/smartfix/request/controller/MaintenanceRequestControllerTest.java` | `MaintenanceRequestControllerTest` | MockMvc tests | C-16 |
+
+#### C-3 Do not touch
+
+`SecurityConfig.java` (B), `com.smartfix.facility.*` (D), the attachment classes (E), `V1__baseline.sql`.
+
+#### C-4 Tests and done criteria
+
+- **Must be tested:** successful submission / **the initial history must exist and be `NULL → SUBMITTED`** / submission without attachments / submission with three attachments / a validation failure writes nothing / a disabled location is refused / **concurrent tickets never collide** / files are cleaned up when the database write fails / PRG redirects to the details page.
+- **Security red lines:** `requesterId` comes **only** from the authenticated principal; `status` is **never** taken from client input; the account must be enabled and the location active before submission.
+- **Done when:** a successful submission shows a unique ticket such as `SF-2026-000123`, and the database holds one `SUBMITTED` history row whose `changed_by_user_id` is the submitter.
+
+---
+
+### 17.6 Category D — Locations, queries and ownership
+
+**Goal:** a Requester sees only their own requests and details (with attachments and status history); an Administrator can look up any request by ticket, read-only; every over-reach returns 404.
+**Contracts to freeze first:** `LocationService.requireActiveLocation` and `RequestAccessService.requireReadableRequest` (§12.2, §12.5) — **attachment download reuses the latter**.
+**Out of scope:** no approval statuses, no maps (§4); never decide visibility with a hidden field in a template; never hand-write an ownership `if` in a controller.
+
+#### D-1 Existing files to modify
+
+**None.** Like C, D creates everything.
+
+#### D-2 Files to create
+
+| # | New file (repository-relative) | Class name | Purpose | Depends on |
+|---|---|---|---|---|
+| D-01 | `src/main/resources/db/migration/V3__create_locations.sql` | — | `locations` table + unique `location_code` + optional seed rows (see §29 D19) | Migration number registered (S1) |
+| D-02 | `src/main/java/com/smartfix/facility/domain/Location.java` | `Location` | Location entity | D-01 |
+| D-03 | `src/main/java/com/smartfix/facility/repository/LocationRepository.java` | `LocationRepository` | Location queries | D-02 |
+| D-04 | `src/main/java/com/smartfix/facility/dto/LocationResponse.java` | `LocationResponse` | Dropdown / display data | — |
+| D-05 | `src/main/java/com/smartfix/facility/service/LocationService.java` | `LocationService` | Active-location list, lookup, **and the active check**; **C's form depends on it** | D-03, D-04 |
+| D-06 | `src/main/java/com/smartfix/request/service/RequestAccessService.java` | `RequestAccessService` | **The single place role and ownership are decided**; over-reach → 404; attachment download reuses it | C-02 (it reads the request aggregate), A-06 |
+| D-07 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestSummaryResponse.java` | `MaintenanceRequestSummaryResponse` | List row | — |
+| D-08 | `src/main/java/com/smartfix/request/dto/MaintenanceRequestDetailsResponse.java` | `MaintenanceRequestDetailsResponse` | Details | — |
+| D-09 | `src/main/java/com/smartfix/request/dto/RequestStatusHistoryResponse.java` | `RequestStatusHistoryResponse` | History entry for display | — |
+| D-10 | `src/main/java/com/smartfix/request/service/RequestQueryService.java` | `RequestQueryService` | My-request list, details assembly, administrator lookup | D-06 – D-09, C-08, C-09 |
+| D-11 | `src/main/java/com/smartfix/request/controller/RequestQueryController.java` | `RequestQueryController` | `/requests/mine`, `/requests/{ticketNumber}`, `/admin/requests/lookup` | D-10 |
+| D-12 | `src/main/resources/templates/request/mine.html` | — | My-requests list | D-11, ④ styles |
+| D-13 | `src/main/resources/templates/request/detail.html` | — | Request details (**E appends the attachment block here**, see 17.8) | D-11, ④ styles |
+| D-14 | `src/main/resources/templates/admin/requests.html` | — | Read-only administrator lookup page | D-11 |
+| D-15 | `src/test/java/com/smartfix/facility/service/LocationServiceTest.java` | `LocationServiceTest` | Unit tests | D-05 |
+| D-16 | `src/test/java/com/smartfix/request/service/RequestAccessServiceTest.java` | `RequestAccessServiceTest` | Unit tests: owner / other / administrator / missing | D-06 |
+| D-17 | `src/test/java/com/smartfix/request/service/RequestQueryServiceTest.java` | `RequestQueryServiceTest` | Unit tests: the list contains only the caller's requests | D-10 |
+| D-18 | `src/test/java/com/smartfix/request/controller/RequestQueryControllerTest.java` | `RequestQueryControllerTest` | MockMvc tests | D-11 |
+
+#### D-3 Do not touch
+
+`SecurityConfig.java` (B), `com.smartfix.user.*` (A), the attachment classes (E); and **never change C's `MaintenanceRequest` entity** (§18.1 coordination rules).
+
+#### D-4 Tests and done criteria
+
+- **Must be tested:** my list contains only my requests / details include attachments and history / **Requester B opening A's details gets 404** / **B opening A's attachment gets 404** / a non-existent ticket gets 404 / administrator lookup succeeds / **an administrator cannot submit (403)** / a disabled location never appears in the dropdown.
+- **Security red lines:** ownership is decided in `RequestAccessService` only; return 404 rather than 403 (§13.4); the list query must filter by `requesterId` — **never** load everything and filter afterwards.
+- **Done when:** Requester A sees their own request; Requester B opening A's link gets 404; an administrator can read any request by ticket but cannot submit.
+
+---
+
+### 17.7 Category E — Attachments
+
+**Goal:** only valid images reach the private directory; downloads are authorized; a failed submission leaves no garbage files.
+**Contracts to freeze first:** the `AttachmentStorageService` interface and the `AttachmentService.validateAndStore` signature (§12.6) — **category C depends on them for compensation**.
+**Out of scope:** never write files under `static` or `resources`; never trust the client `Content-Type`; never return `storedFilename` to the browser; never log file contents or full paths.
+
+#### E-1 Existing files to modify
+
+**None** (C, D and E all create only; the whole project modifies just 6 existing files, listed in 17.2.1).
+
+#### E-2 Files to create
+
+| # | New file (repository-relative) | Class name | Purpose | Depends on |
+|---|---|---|---|---|
+| E-01 | `src/main/resources/db/migration/V5__create_request_attachments.sql` | — | `request_attachments` table + foreign key + unique `stored_filename` | C-01 (the foreign key points at the request table) |
+| E-02 | `src/main/java/com/smartfix/request/domain/Attachment.java` | `Attachment` | Attachment-metadata entity | E-01 |
+| E-03 | `src/main/java/com/smartfix/request/config/AttachmentProperties.java` | `AttachmentProperties` | Binds `smartfix.upload.*` (size, count, types, pixels, directory) | ⑤ keys added by B |
+| E-04 | `src/main/java/com/smartfix/request/validation/AttachmentValidator.java` | `AttachmentValidator` | Type / size / pixel / signature validation | E-03 |
+| E-05 | `src/main/java/com/smartfix/request/service/AttachmentStorageService.java` | `AttachmentStorageService` | **Interface**: file-storage abstraction (**the only abstraction approved in this project "for future replacement"** — rationale in §10) | Contract frozen (S1) |
+| E-06 | `src/main/java/com/smartfix/request/storage/LocalAttachmentStorageService.java` | `LocalAttachmentStorageService` | Local-disk implementation: UUID filenames, private directory, streaming writes | E-05, E-03 |
+| E-07 | `src/main/java/com/smartfix/request/repository/AttachmentRepository.java` | `AttachmentRepository` | Attachment-metadata persistence | E-02 |
+| E-08 | `src/main/java/com/smartfix/request/dto/UploadAttachmentCommand.java` | `UploadAttachmentCommand` | Upload input (**no disk path**) | — |
+| E-09 | `src/main/java/com/smartfix/request/dto/StoredAttachment.java` | `StoredAttachment` | Storage result (storage key, size, type) | — |
+| E-10 | `src/main/java/com/smartfix/request/dto/AttachmentResponse.java` | `AttachmentResponse` | Attachment display (**no `storedFilename`**) | — |
+| E-11 | `src/main/java/com/smartfix/request/service/AttachmentService.java` | `AttachmentService` | Validate and store, read, and **compensate on failure**; exposes `validateAndStore` to C | E-04, E-06, E-07, E-08 – E-10 |
+| E-12 | `src/main/java/com/smartfix/request/controller/AttachmentController.java` | `AttachmentController` | `GET /requests/{t}/attachments/{a}` download | E-11, **D-06** (reuses the ownership decision) |
+| E-13 | `src/test/java/com/smartfix/request/validation/AttachmentValidatorTest.java` | `AttachmentValidatorTest` | Unit tests: forged files, over-limit inputs | E-04 |
+| E-14 | `src/test/java/com/smartfix/request/storage/LocalAttachmentStorageServiceTest.java` | `LocalAttachmentStorageServiceTest` | Unit tests: UUID naming, path traversal | E-06 |
+| E-15 | `src/test/java/com/smartfix/request/service/AttachmentServiceTest.java` | `AttachmentServiceTest` | Unit tests: compensation cleanup | E-11 |
+| E-16 | `src/test/java/com/smartfix/request/controller/AttachmentControllerTest.java` | `AttachmentControllerTest` | MockMvc: parent/child mismatch 404 | E-12 |
+| E-17 | `src/test/java/com/smartfix/request/repository/AttachmentPersistenceIT.java` | `AttachmentPersistenceIT` | Integration: persistence on real PostgreSQL | E-07 |
+
+> **E's two "appends"** (not new files, and not logic changes): the file input in `templates/request/new.html`, and the attachment list in `templates/request/detail.html`. Both files belong to **C** and **D**. The rules are in 17.8.
+
+#### E-3 Do not touch
+
+The existing structure of `templates/request/new.html` and `detail.html` (append only — never rename someone else's form fields); `SecurityConfig.java` (B); `application.yml` (report key names to B, do not add them yourself).
+
+#### E-4 Tests and done criteria
+
+- **Must be tested:** a valid PNG/JPEG passes / **a renamed forged file is rejected** / an oversized file gets 413 / over-pixel images are rejected / more than three files are rejected / a **path-traversal filename (`../../etc/passwd`) has no effect** / when the Nth file fails, the previous N-1 are cleaned up / files are cleaned up when the database write fails / a parent/child mismatch on download gives 404 / the response headers are correct (`nosniff`, `attachment`, `no-store`).
+- **Security red lines:** all 20 points of §16.1, especially signature and decode validation, UUID naming, a private directory, and authorized download.
+- **Done when:** after uploading a valid image the details page shows a download link; a forged image is rejected; attachments still open after a container restart; the upload directory holds no leftovers after a failed submission.
+
+---
+
+### 17.8 Shared files across categories: who edits, and in which order
+
+This table lists the **coordination points**: files that two or more categories touch. The coordinating category edits first; the others append afterwards.
+
+| Shared file | Coordinating category | Who else touches it | Queuing rule |
 |---|---|---|---|
-| **A Accounts and roles** | Create users, change roles, enable/disable accounts, bootstrap administrator, expose authentication data and access context | `com.smartfix.user.*` | `User`, `Role`, `AccountStatus`, `UserRepository`, `UserService`, `UserBootstrapService`, `UserManagementController`, `UserAuthenticationData`, `UserAccessResponse`, `PasswordConfig`, `BootstrapAdminProperties`, `BootstrapAdminInitializer` |
-| **B Authentication and authorization** | Login/logout, session, CSRF, route permissions, unified exceptions and error pages | `com.smartfix.auth.*`, `com.smartfix.common.exception`, `com.smartfix.common.configuration` | `SecurityConfig`, `SmartFixUserDetails`, `SmartFixUserDetailsService`, `ActiveAccountFilter`, `LoginController`, `GlobalExceptionHandler`, `ResourceNotFoundException`, `BusinessConflictException`, `InputValidationException`, `TimeConfig` |
-| **C Request submission and Ticket** | Request aggregate, unique ticket, initial status history, submission main path (PRG) | `com.smartfix.request.{domain,repository,service,controller,dto}` (write side) | `MaintenanceRequest`, `RequestStatus`, `RequestStatusHistory`, `UrgencyLevel`, `MaintenanceCategory`, `MaintenanceRequestRepository`, `RequestStatusHistoryRepository`, `RequestTicketSequenceRepository`, `RequestTicketNumberGenerator`, `RequestCreationService`, `MaintenanceRequestService`, `MaintenanceRequestController`, `SubmitMaintenanceRequestCommand`, `MaintenanceRequestSubmissionResponse` |
-| **D Locations, queries and ownership** | Location data, my requests, details and status history, over-reach decisions, administrator read-only lookup | `com.smartfix.facility.*`, `com.smartfix.request.{controller,service,dto}` (read side) | `Location`, `LocationRepository`, `LocationService`, `LocationResponse`, `RequestAccessService`, `RequestQueryService`, `RequestQueryController`, `MaintenanceRequestSummaryResponse`, `MaintenanceRequestDetailsResponse`, `RequestStatusHistoryResponse` |
-| **E Attachments** | Validation, private storage, authorized download, compensation cleanup on failure | `com.smartfix.request.{domain,repository,service,storage,validation,config,controller}` (attachment side) | `Attachment`, `AttachmentRepository`, `AttachmentService`, `AttachmentStorageService`, `LocalAttachmentStorageService`, `AttachmentValidator`, `AttachmentProperties`, `AttachmentController`, `AttachmentResponse`, `UploadAttachmentCommand`, `StoredAttachment` |
+| `src/main/resources/templates/request/new.html` | **C** | **E** (appends the file input) | C freezes and merges the form fields and structure first; E **appends** the upload block only and never renames C's fields |
+| `src/main/resources/templates/request/detail.html` | **D** | **E** (appends the attachment list) | D merges the details skeleton first; E appends the attachment block; the page must still render when there are no attachments |
+| `src/main/resources/static/css/site.css` | **B** (base) | everyone | Append new selectors only; **never change an existing CSS variable** — raise it in the team channel first |
+| `src/main/resources/application.yml` | **B** | **A / E** (new keys) | A category that needs a key puts "key name + default" in the PR description and B adds it once |
+| `src/test/resources/application-test.yml` | **B** | everyone | Same; test-side switches are changed centrally by B |
+| `src/main/java/com/smartfix/request/domain/MaintenanceRequest.java` | **C** | **D / E** (read-only) | D/E read the fields and **never add or rename** one; a genuine change goes through §18.1 |
+| `src/main/java/com/smartfix/request/repository/MaintenanceRequestRepository.java` | **C** | **D / E** (new query methods) | New query methods need C's agreement; never two people rewriting it at once |
+| `src/main/resources/db/migration/` (directory and numbering) | **C** (the register) | **A / D / E** | **Register the version number before writing the file**; an executed migration is never modified |
+| `pom.xml` / `Jenkinsfile` / `Dockerfile` / `docker-compose.yml` | **B** | — | Untouched by default in Sprint 2; after an ADR, B changes them in a separate PR |
 
-### 17.2 Goal and boundaries of each category
+> **The single most important rule:** `new.html` and `detail.html` are **C's and D's assets and E's mount points**. E must not build its own form or details page — that instantly creates a second set of pages and will be rejected in review.
 
-#### Category A — Accounts and roles
+---
 
-- **Goal:** the system has a trustworthy account data source: an administrator can create accounts, change roles and enable/disable accounts, and other categories can read authentication data and access context.
-- **Contracts to freeze first:** `UserAuthenticationData`, `UserAccessResponse`, `UserService` (§12.1).
-- **Scenarios that must be tested:** successful creation / duplicate username 409 / password rules / role change bumps the security version / account disabled / **the last administrator cannot be disabled or demoted** / bootstrap administrator is idempotent (a restart does not create a second one).
-- **Security notes:** accept the plaintext password and **BCrypt it immediately**; `passwordHash` never appears on a page, in a log, or in a response; role and status changes must increment `securityVersion`.
-- **Not allowed:** do not implement the real login logic (that is category B); do not implement registration or password reset (§4); do not expose `UserRepository` to other categories; do not add a request collection to `User`.
-- **Done when:** an administrator can create accounts in all three roles; a duplicate username is rejected; a disabled account cannot keep using its old session; `V2` runs successfully on a clean database.
-
-#### Category B — Authentication and authorization
-
-- **Goal:** protected pages are unreachable when logged out; wrong roles are rejected; a disabled account's session dies immediately; every state-changing request is CSRF protected.
-- **Contracts:** consumes `findAuthenticationByUsername` from §12.1; provides the **site-wide permission rules** and the **unified exception mapping**.
-- **Scenarios that must be tested:** anonymous redirect / successful login / bad credentials / technician over-reach 403 / requester hitting `/admin/**` 403 / missing CSRF rejected 403 / disabled account's old session invalidated / old session invalidated after a role change / protected page unreachable after logout.
-- **Security notes:** permit only what is strictly necessary (`/login`, `/actuator/health`, static assets); **never** reintroduce permit-all; CSRF does not apply to GET but must be on for POST; error pages must not leak stack traces.
-- **Not allowed:** do not implement SSO or JWT (§4); do not weaken authorization to make a test pass; do not scatter `securityVersion` checks across controllers (they belong in the filter).
-- **Done when:** anonymous access to a protected URL always 302-redirects to the login page; wrong roles get 403; a disabled account's session is kicked out on its very next request.
-
-#### Category C — Request submission and Ticket
-
-- **Goal:** after submission the system produces a **unique ticket**, status `SUBMITTED`, and **writes one initial `RequestStatusHistory` row**.
-- **Contracts to freeze first:** the `MaintenanceRequest` entity fields, `RequestCreationService`, `RequestTicketNumberGenerator` (§12.7, §12.8).
-- **Scenarios that must be tested:** valid submission succeeds / **the initial history must exist as NULL → SUBMITTED** / submission with no attachments / submission with three attachments / a field validation failure writes nothing / a disabled location is rejected / **concurrent submissions do not duplicate tickets** / files are cleaned up when the database fails / PRG redirects to the details page.
-- **Security notes:** `requesterId` may **only** come from the logged-in principal; `status` **never** accepts client input; account-enabled and location-active must be validated before submission.
-- **Not allowed:** do not implement approval, dispatch, work orders or SLA (§4); do not write status transition logic (only `SUBMITTED` exists); do not let other categories reach this category's repositories directly.
-- **Done when:** after a successful submission a unique number like `SF-2026-000123` is visible, the request has one `SUBMITTED` status-history row, and `changed_by_user_id` is the submitter.
-
-#### Category D — Locations, queries and ownership
-
-- **Goal:** a Requester sees only their own request list and details (including attachments and status history); an Administrator can do a read-only lookup by ticket; over-reach always returns 404.
-- **Contracts to freeze first:** `LocationService.requireActiveLocation`, `RequestAccessService.requireReadableRequest` (§12.2, §12.5) — attachment download reuses the latter.
-- **Scenarios that must be tested:** my list contains only my own / details include attachments and history / **Requester B opening A's details gets 404** / **B opening A's attachment gets 404** / a non-existent ticket gets 404 / administrator read-only lookup succeeds / **administrator cannot submit (403)** / disabled locations do not appear in the dropdown.
-- **Security notes:** the ownership decision lives in `RequestAccessService`; return 404 rather than 403 (§13.4); the list query must filter by `requesterId` — **never** fetch everything and filter afterwards.
-- **Not allowed:** do not implement approval statuses or maps (§4); do not decide visibility with a hidden field in a template; do not hand-write ownership `if` checks inside controllers.
-- **Done when:** Requester A sees their own requests; Requester B opening A's link gets 404; an administrator can see details by ticket number but cannot submit.
-
-#### Category E — Attachments
-
-- **Goal:** only legitimate images reach private storage; downloads are authorized; a failed submission leaves no garbage files.
-- **Contracts to freeze first:** the `AttachmentStorageService` interface and the `AttachmentService.validateAndStore` signature (§12.6) — category C depends on them for compensation.
-- **Scenarios that must be tested:** legitimate PNG/JPEG accepted / **a renamed text file is rejected** / an oversize file rejected 413 / too many pixels rejected / more than 3 files rejected / **a path-traversal filename (`../../etc/passwd`) has no effect** / when file N fails the first N-1 are cleaned up / files are cleaned up when the database fails / a parent-child mismatch on download returns 404 / response headers are correct (nosniff, attachment, no-store).
-- **Security notes:** see all 20 points in §16.1, especially signature and decode checks, UUID naming, the private directory, and authorized download.
-- **Not allowed:** do not write files into `static` or `resources`; do not trust the client Content-Type; do not return `storedFilename` to the browser; do not log file contents or full paths.
-- **Done when:** after uploading a legitimate image the details page offers a download link; a forged image is rejected; attachments survive a container restart; no leftover files remain in the upload directory after a failed submission.
-
-### 17.3 Dependencies between categories
-
-```mermaid
-flowchart LR
-    A[Category A Accounts and roles] --> B[Category B Authentication and authorization]
-    A --> C[Category C Request submission and Ticket]
-    A --> D[Category D Locations, queries and ownership]
-    D -->|LocationService| C
-    C -->|entities and repositories| D
-    C -->|requestId and parent check| E[Category E Attachments]
-    E -->|validateAndStore and compensation| C
-    B -->|permission rules and exception mapping| C
-    B -->|permission rules and exception mapping| D
-    B -->|permission rules and exception mapping| E
-```
-
-**How to break the two mutual dependencies (C↔D and C↔E):**
-
-- **Freeze the interface first, let the implementation follow.** Once a contract is frozen the two
-  categories can genuinely work in parallel.
-- Between C and D: C **first builds the smallest version with no query side** (submission + a
-  placeholder details page), and D builds read-only queries on the entities C has already merged.
-- Between C and E: C **first builds the smallest version with no attachments** (submission works
-  without them), and E completes validation and storage independently before plugging into C's
-  compensation path.
-- **Never** hand-roll a private file-handling path inside C “to get it working first” — that
-  immediately creates a second implementation.
-
-### 17.4 The order of work
+### 17.9 Order of work
 
 **Four ordering rules:**
 
-1. The order is decided by **dependencies**, not by people. Who does which step is negotiable;
-   the sequence of the steps itself is not.
-2. The next step does not start until the previous one has reached its **observable output**.
-3. **Freeze interfaces first, implementations follow**: cross-category contracts are settled on
-   the first day of the corresponding category's work (see 17.3).
-4. Tests are **completed with their category**, not saved up for the end; integration and CI are
-   a separate final step and do not swallow the earlier testing work.
+1. The order comes from **dependencies**, not from people; who does which step is negotiable, but **the order of the steps is not**.
+2. Do not start a step until the one it depends on has reached its **observable output**.
+3. **Freeze interfaces, then implement**: the cross-category contracts (A-05/A-06, C-11/C-12, D-05/D-06, E-05) are finalised on the first day of the category that owns them.
+4. Tests are **completed with their category**, never saved for the end; integration and CI stand alone as the final step and do not swallow the earlier testing work.
 
-| Step | Content | Prerequisite | Why it must sit here | Observable output |
+| Step | Concrete deliverable (file level) | Depends on | Why it must sit here | Observable output |
 |---|---|---|---|---|
-| **S1** | Day 1 freeze: domain model, naming, class inventory, service contracts, routes and permissions, migration numbers | None | Every category shares one set of names and contracts; without the freeze each writes its own | Class register and migration register committed; **no business code written** |
-| **S2** | Category A step 1: `users` migration + `User`/`Role`/`AccountStatus` + `UserRepository` | S1 | A is a shared prerequisite for B, C and D; `requester_id` and `changed_by_user_id` both need a foreign key to it | Clean database migrates to `V2` successfully |
-| **S3** | Category D step 1: `locations` migration + `Location` + `LocationService` (**parallel with S2**) | S1 | Independent of A; C's table needs it as a foreign key target, so building it early prevents blocking S7 | Clean database migrates to `V3` successfully |
-| **S4** | Category A step 2: `UserService` (authentication data, creation, role, status) + bootstrap administrator | S2 | B needs authentication data and C needs requester validation; the contract is finalised here | `UserServiceTest`, `UserBootstrapServiceTest` pass |
-| **S5** | Category B step 1: authentication path (`PasswordConfig` wiring, `SmartFixUserDetails`, `SmartFixUserDetailsService`) | S4 | Without a trusted identity, neither authorization nor submission can be built | Authentication data loads by username (with role, status, security version) |
-| **S6** | Category B step 2: real `SecurityConfig` rules + session + CSRF + login page + error pages | S5 | Every protected route depends on it; completing it before the submission path is what lets submission be tested with a real identity | Anonymous 302 / wrong role 403 / successful login (AC01–AC05) |
-| **S7** | Category C step 1: `maintenance_requests` and `request_status_history` migrations + entities + `RequestTicketNumberGenerator` | S2, S3, S1 | The foreign key targets (`users`, `locations`) must already exist or the migration fails outright | Clean database migrates to `V4`/`V6`; concurrency test shows no duplicate numbers |
-| **S8** | Category C step 2: `RequestCreationService` + `MaintenanceRequestService` + controller + form page (**no attachments**) | S6, S7 | Submission must be driven by a real logged-in identity; getting the attachment-free version working first leaves attachments as a clean plug-in point | Submission succeeds after login; ticket and initial history visible (AC10–AC12) |
-| **S9** | Category E step 1: `AttachmentValidator` + `AttachmentStorageService` + local implementation (**parallel with S7/S8**) | S1 (interface frozen first) | No implementation dependency on the submission path once the interface is frozen, so it runs fully in parallel | `AttachmentValidatorTest`, `LocalAttachmentStorageServiceTest` pass |
-| **S10** | Categories C and E integrated: submission path gains attachments + compensation cleanup | S8, S9 | Compensation is behaviour that can only be verified once **both** categories are ready | AC23 and AC24 pass; no residue in the upload directory |
-| **S11** | Category D step 2: `RequestAccessService` + `RequestQueryService` + list/details/lookup pages | S8 | Queries need a request aggregate that already exists and can be written to | AC16, AC17 and AC18 pass (over-reach returns 404) |
-| **S12** | Integration, filling in tests, PostgreSQL verification, Docker smoke, CI and security checks | S1–S11 | End-to-end and real-database verification only make sense once the features are complete | `mvn clean verify` green; the §27 demo script runs start to finish |
+| **S1** | Day 1 freeze: domain model, naming, class inventory, service contracts, routes and permissions, migration numbers; create `docs/sprint2/class-catalog.md` and the migration register | — | All five categories share one set of names and contracts; without the freeze everyone invents their own | The class register and migration register are committed; **no business code is written** |
+| **S2** | **A**: `V2__create_users.sql` → `User`, `AccountStatus`, `UserRepository` | S1 | A is the shared prerequisite of B, C and D; `requester_id` and `changed_by_user_id` are foreign keys into it | A clean database migrates to `V2` |
+| **S3** | **D**: `V3__create_locations.sql` → `Location`, `LocationRepository`, `LocationService` (**parallel with S2**) | S1 | No dependency on A; C's table needs it as a foreign key, so building it early keeps S7 unblocked | A clean database migrates to `V3`; `LocationServiceTest` passes |
+| **S4** | **A**: `UserService` + `PasswordConfig` + `BootstrapAdminProperties` + `UserBootstrapService` + `BootstrapAdminInitializer` | S2 | B needs authentication data and C/D need the access context; **the bootstrap administrator must land here or B has no account to log in with** | `UserServiceTest` and `UserBootstrapServiceTest` pass; the bootstrap administrator exists after startup |
+| **S5** | **B**: `SmartFixUserDetails`, `SmartFixUserDetailsService` | S4 | Without a trustworthy identity, neither authorization nor submission can be built | Authentication data (role, status, security version) loads by username |
+| **S6** | **B**: modify ①`SecurityConfig` + `LoginController` + `login.html` + `ActiveAccountFilter` + error pages + modify ②③④⑤⑥ | S5 | Every protected route depends on it; finishing it before the submission path means submission can be tested with a real identity | AC01–AC05: anonymous 302 / wrong role 403 / missing CSRF 403 / successful login |
+| **S7** | **C**: `V4` + `MaintenanceRequest` + `RequestStatus` + `RequestStatusHistory` + `RequestTicketSequence` + three repositories + `RequestTicketNumberGenerator` | S2, S3, S1 | The foreign-key targets (`users`, `locations`) must exist first or the migration fails outright | A clean database migrates to `V4`; `RequestTicketNumberGeneratorTest` shows no duplicate numbers |
+| **S8** | **C**: `RequestCreationService` + `MaintenanceRequestService` + `MaintenanceRequestController` + `request/new.html` (**no attachments**); **D delivers a minimal `request/detail.html` in the same window** (ticket number, status, location only) so the PRG can close | S6, S7, D-05 | Submission must be driven by a real signed-in identity; the attachment-free version lands first and leaves attachments as a mount point | After signing in, submission succeeds and the ticket and initial history are visible (AC10–AC12) |
+| **S9** | **E**: `AttachmentProperties`, `AttachmentValidator`, `AttachmentStorageService` + `LocalAttachmentStorageService` (**parallel with S7/S8**) | S1 (contract frozen) | No implementation dependency on the submission path; with the contract frozen this runs fully in parallel | `AttachmentValidatorTest` and `LocalAttachmentStorageServiceTest` pass |
+| **S10** | **E → C integration**: `V5` + `Attachment` + `AttachmentRepository` + `AttachmentService` + `AttachmentController`; C wires attachments and compensation cleanup into the submission path | S8, S9 | Compensation can only be verified once **both** categories are ready | AC23 and AC24 pass; the upload directory holds no leftovers |
+| **S11** | **D**: `RequestAccessService` + `RequestQueryService` + `RequestQueryController` + full `mine.html` / `detail.html` / `admin/requests.html` | S8 | Querying needs a request aggregate that exists and can be written | AC16–AC18 pass (over-reach 404) |
+| **S12** | **B leads, every category participates**: integration, test completion, real-PostgreSQL verification (`MigrationIT`, `AttachmentPersistenceIT`), Docker smoke, CI and security checks | S1–S11 | End-to-end and real-database verification are only possible once the features exist | `mvn clean verify` is green; the §27 demo script runs through in one go |
 
-**This is not a waterfall.** S3 runs parallel to S2, and S9 runs parallel to S7/S8; once S4 is
-done, preparation for both B and C can proceed at the same time.
-The only sequence that cannot be compressed is the trunk:
-**S1 → S2/S3 → S4 → S5/S6 → S7/S8 → S10/S11**.
+**This is not waterfall.** S3 runs parallel with S2, and S9 runs parallel with S7/S8; once S4 lands, B's and C's preparation can proceed at the same time. The only part that cannot be compressed is the trunk:
 
-### 17.5 How categories map onto the rest of this document
+```mermaid
+flowchart LR
+    S1[S1 Freeze] --> S2[S2 A users table and entity]
+    S1 --> S3[S3 D locations table and service]
+    S2 --> S4[S4 A UserService and bootstrap admin]
+    S3 --> S7[S7 C request tables and entities]
+    S2 --> S7
+    S4 --> S5[S5 B authentication path]
+    S5 --> S6[S6 B SecurityConfig and login]
+    S7 --> S8[S8 C submission path]
+    S6 --> S8
+    S9[S9 E validation and storage, parallel] --> S10[S10 E wired into submission]
+    S8 --> S10
+    S8 --> S11[S11 D queries and ownership]
+    S10 --> S12[S12 Integration and verification]
+    S11 --> S12
+```
+
+**Two interfaces to agree on up front, or you will rework:**
+
+1. **Where does the form redirect after submission?** §13.1 specifies `302 → /requests/{ticketNumber}`, and **the details page belongs to D**. So S8 must be accompanied by D's **minimal details page**; otherwise C redirects temporarily to `/requests/new?submitted={ticket}` and switches back once D is ready — **that one line lives in C's controller** and must be stated in the PR description.
+2. **What does E's compensation interface look like?** C calls `AttachmentService.validateAndStore` from `RequestCreationService` and cleans up when the transaction fails. The signature (§12.6) is frozen at S1, and C can only wire it once S9 has an implementation.
+
+---
+
+### 17.10 Branches, PRs and merge order
+
+Branch naming follows `CONTRIBUTING.md`: **one story, one branch, one PR**.
+
+| Category | Suggested branch name (replace XX with the Jira number) | Suggested PR granularity |
+|---|---|---|
+| A Accounts and roles | `feature/SCRUM-XX-user-account-management` | One PR for "migration + entity + `UserService`", another for "management page + controller" |
+| B Authentication and authorization | `feature/SCRUM-XX-form-login-rbac` | One for the authentication path; one for the real `SecurityConfig` rules plus pages; **any `pom.xml` or CI change goes in its own PR** |
+| C Request submission and tickets | `feature/SCRUM-XX-request-submission` | One for the migration, entities and number generator; one for the submission orchestration and form page |
+| D Locations, queries and ownership | `feature/SCRUM-XX-request-query-ownership` | One for locations; one for queries and ownership |
+| E Attachments | `feature/SCRUM-XX-attachment-upload` | One for validation and storage; one for wiring and download |
+
+**The merge order is the step order of 17.9.** When two PRs collide on a shared file, 17.8 decides who merges first:
+
+1. Merge **migrations** before the code that depends on them — never the other way round.
+2. When two PRs touch the same shared file, **the coordinating category's PR merges first**; the other rebases and merges after.
+3. Every PR needs a green CI run and **at least one reviewer who is not the author** (§24.4); **self-approval is forbidden**.
+4. Immediately after a merge, run the critical path once on the fresh `main` (§24.3) — do not save it for the last day.
+
+---
+
+### 17.11 How categories map onto the rest of this document
 
 | Category | Class inventory | Service contracts | Routes and permissions | Test classes (§21.2) |
 |---|---|---|---|---|
 | A Accounts and roles | §9.1 | §12.1 | `/admin/users*` in §13.1 | `UserServiceTest`, `UserManagementControllerTest`, `UserBootstrapServiceTest` |
-| B Authentication and authorization | §9.2, §9.8 | consumes §12.1 | `/login`, `/logout` in §13.1; the whole of §13.2 | `SmartFixUserDetailsServiceTest`, `SecurityConfigTest`, `ActiveAccountFilterTest`, `AuthenticationFlowIT` |
+| B Authentication and authorization | §9.2, §9.8 | consumes §12.1 | `/login`, `/logout` in §13.1; the whole of §13.2 | `SmartFixUserDetailsServiceTest`, `SecurityConfigTest`, `ActiveAccountFilterTest`, `AuthenticationFlowIT`, `MigrationIT` |
 | C Request submission and Ticket | §9.4, §9.5, §9.6 (write side), §9.7 (partly) | §12.3, §12.7, §12.8 | `/requests/new`, `POST /requests` in §13.1 | `RequestTicketNumberGeneratorTest`, `RequestCreationServiceTest`, `MaintenanceRequestServiceTest`, `MaintenanceRequestControllerTest` |
 | D Locations, queries and ownership | §9.3, §9.6 (read side), §9.7 (partly) | §12.2, §12.4, §12.5 | `/requests/mine`, `/requests/{ticketNumber}`, `/admin/requests/lookup` in §13.1 | `LocationServiceTest`, `RequestAccessServiceTest`, `RequestQueryServiceTest`, `RequestQueryControllerTest` |
 | E Attachments | §9.6 (attachment side), §9.7 (partly) | §12.6 | `/requests/{t}/{a}` in §13.1 | `AttachmentValidatorTest`, `LocalAttachmentStorageServiceTest`, `AttachmentServiceTest`, `AttachmentControllerTest`, `AttachmentPersistenceIT` |
