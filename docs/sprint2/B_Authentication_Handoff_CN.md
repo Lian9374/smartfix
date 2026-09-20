@@ -1,6 +1,6 @@
 # Sprint 2 B 部分开发与交接
 
-基于 A 的 `92e661b`，工作分支为 `codex/user-b-auth`。
+基于 A 的 `92e661b`，工作分支为 `feature/SCRUM-UserB-WANGPENGRUI`。
 原 Sprint 规划稿保留原有状态；本文记录此分支的实际实现与验证边界。
 
 ## 已实现的代码
