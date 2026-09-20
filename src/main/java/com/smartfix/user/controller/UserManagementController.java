@@ -48,8 +48,9 @@ import java.security.Principal;
 public class UserManagementController {
 
     private static final String VIEW = "admin/users";
-
     private static final String CREATE_FORM = "createUserCommand";
+    private static final String SUCCESS_MESSAGE = "successMessage";
+    private static final String REDIRECT_TO_USER_LIST = "redirect:/admin/users";
 
     private final UserService userService;
 
@@ -102,9 +103,9 @@ public class UserManagementController {
             // trimming. Reported against the form, never echoing the submitted value.
             return renderListing(model, HttpStatus.BAD_REQUEST, ex.getMessage());
         }
-        redirectAttributes.addFlashAttribute("successMessage",
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE,
                 "Account '" + command.getUsername() + "' was created.");
-        return new ModelAndView("redirect:/admin/users");
+        return new ModelAndView(REDIRECT_TO_USER_LIST);
     }
 
     /** Changes an account's role. */
@@ -123,8 +124,8 @@ public class UserManagementController {
         } catch (BusinessConflictException ex) {
             return renderListing(model, HttpStatus.CONFLICT, ex.getMessage());
         }
-        redirectAttributes.addFlashAttribute("successMessage", "The role was updated.");
-        return new ModelAndView("redirect:/admin/users");
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "The role was updated.");
+        return new ModelAndView(REDIRECT_TO_USER_LIST);
     }
 
     /**
@@ -149,8 +150,8 @@ public class UserManagementController {
         } catch (BusinessConflictException ex) {
             return renderListing(model, HttpStatus.CONFLICT, ex.getMessage());
         }
-        redirectAttributes.addFlashAttribute("successMessage", "The account status was updated.");
-        return new ModelAndView("redirect:/admin/users");
+        redirectAttributes.addFlashAttribute(SUCCESS_MESSAGE, "The account status was updated.");
+        return new ModelAndView(REDIRECT_TO_USER_LIST);
     }
 
     private void populateForListing(Model model) {
