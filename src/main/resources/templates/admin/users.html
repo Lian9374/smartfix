@@ -128,10 +128,24 @@
                           pair. The id is suffixed with the account id because this whole
                           block repeats: a fixed id would be duplicated once per row, and a
                           label pointing at a duplicated id is worse than no label at all.
+
+                          The plain for/id attributes are the static half of that pair, and
+                          the th:for/th:id attributes are the dynamic half. Thymeleaf
+                          overwrites the former with the latter at render time, so the id
+                          that reaches the browser is role-<account id> and stays unique
+                          per row. The static values therefore never ship; they exist so
+                          that a static analyzer reading the template - which does not
+                          evaluate th:for/th:id and so sees neither the association nor the
+                          uniqueness - can recognise the label and its control as a pair.
+                          Keep both attributes on both elements: dropping either one either
+                          loses the accessibility association or reintroduces the duplicate
+                          id this suffix exists to avoid.
                         -->
-                        <label th:for="|role-${user.id}|"
+                        <label for="role-control"
+                               th:for="|role-${user.id}|"
                                th:text="|New role for ${user.username}|">New role</label>
-                        <select th:id="|role-${user.id}|"
+                        <select id="role-control"
+                                th:id="|role-${user.id}|"
                                 name="role"
                                 th:attr="aria-label=|New role for ${user.username}|">
                             <option th:each="candidate : ${roles}"
@@ -144,9 +158,11 @@
                 </td>
                 <td>
                     <form th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post">
-                        <label th:for="|account-status-${user.id}|"
+                        <label for="account-status-control"
+                               th:for="|account-status-${user.id}|"
                                th:text="|New status for ${user.username}|">New account status</label>
-                        <select th:id="|account-status-${user.id}|"
+                        <select id="account-status-control"
+                                th:id="|account-status-${user.id}|"
                                 name="accountStatus"
                                 th:attr="aria-label=|New status for ${user.username}|">
                             <option th:each="candidate : ${accountStatuses}"
