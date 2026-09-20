@@ -11,9 +11,9 @@
 # ============================================================
 spring:
   jpa:
-    show-sql: true
+    show-sql: false
 
 logging:
   level:
     com.smartfix: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.hibernate.SQL: WARN

@@ -15,11 +15,11 @@ WORKDIR /workspace
 
 # Copy only the POM first so dependency resolution can be cached by Docker.
 COPY pom.xml .
-RUN mvn -B -q dependency:go-offline || true
+RUN mvn -B -q dependency:go-offline
 
 # Copy sources and build the application.
 COPY src ./src
-RUN mvn -B -DskipTests package
+RUN mvn -B clean verify
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:21-jre

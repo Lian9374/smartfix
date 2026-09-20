@@ -21,3 +21,8 @@ spring:
   # Tests keep the migration infra out of the way for now.
   flyway:
     enabled: false
+
+# Never bootstrap from a developer's environment during isolated tests.
+smartfix:
+  bootstrap-admin:
+    enabled: false

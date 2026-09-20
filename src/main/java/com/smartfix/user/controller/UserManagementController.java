@@ -38,10 +38,8 @@ import java.security.Principal;
  * the list with the reason attached, so the administrator sees what happened on the page
  * they are already looking at.</p>
  *
- * <p><strong>Not yet protected.</strong> These routes must be restricted to
- * {@code ADMINISTRATOR}, but that is a URL rule in {@code SecurityConfig}, which belongs
- * to category B and is still the temporary permit-all baseline. Until B lands,
- * {@code /admin/**} is reachable by anyone who knows the URL.</p>
+ * <p>Category B's {@code SecurityConfig} restricts these routes to ADMINISTRATOR
+ * and applies CSRF protection to every write.</p>
  */
 @Controller
 @RequestMapping("/admin/users")

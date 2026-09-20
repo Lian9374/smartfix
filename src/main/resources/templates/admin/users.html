@@ -11,6 +11,9 @@
     <span class="brand">SmartFix</span>
     <nav>
         <a th:href="@{/}">Home</a>
+        <form th:action="@{/logout}" method="post" class="inline-form">
+            <button type="submit">Sign out</button>
+        </form>
     </nav>
 </header>
 
@@ -103,7 +106,7 @@
                 <th scope="col">Display name</th>
                 <th scope="col">Role</th>
                 <th scope="col">Status</th>
-                <th scope="col">Created (UTC)</th>
+                <th scope="col">Created (Singapore)</th>
                 <th scope="col">Change role</th>
                 <th scope="col">Change status</th>
             </tr>
@@ -115,12 +118,7 @@
                 <td th:text="${user.displayName}">Alice</td>
                 <td th:text="${user.role}">REQUESTER</td>
                 <td th:text="${user.accountStatus}">ACTIVE</td>
-                <!--
-                  Rendered as the stored UTC instant. Presenting it in Asia/Singapore is
-                  a locale concern that belongs with the shared TimeConfig and template
-                  conventions owned by category B, which do not exist yet.
-                -->
-                <td th:text="${user.createdAt}">2026-01-01T00:00:00Z</td>
+                <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm', 'Asia/Singapore')}">2026-01-01 08:00</td>
                 <td>
                     <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
                         <!--

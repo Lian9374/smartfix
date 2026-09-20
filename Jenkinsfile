@@ -1,70 +1,62 @@
-// ============================================================
-// SmartFix - initial DevSecOps baseline (Jenkins declarative)
-// ------------------------------------------------------------
-// This pipeline ONLY contains stages that can actually run today:
-// checkout, compile, unit tests, packaging.
-//
-// The automated unit tests use the isolated H2 test profile
-// (application-test.yml), so no database is required on the agent.
-//
-// TODO(Sprint 4/5) - future stages to be added ONLY when the tools
-// are actually configured for the project. Do NOT add fabricated
-// integrations:
-//   - Static Code Analysis      (e.g. SonarQube)
-//   - Software Composition Analysis (e.g. OWASP Dependency-Check)
-//   - Security Scanning         (e.g. Trivy / container scanning)
-//   - Docker build + publish
-//   - Deployment
-//
-// Expected Jenkins setup: an agent that has JDK 21 and Maven 3.9+
-// available on PATH (or a configured `maven` tool under "Manage
-// Jenkins -> Tools"). See docs/development-guide.md.
-// ============================================================
-
+// Sprint 2 CI. Requires JDK 21 and Maven 3.9+ on the Jenkins agent.
+// PostgreSQL runs only against an explicitly configured dedicated *_test database.
+// Supply TEST_DB_URL, TEST_DB_USERNAME and TEST_DB_PASSWORD through Jenkins credentials.
 pipeline {
     agent any
-
     options {
         timestamps()
         disableConcurrentBuilds()
     }
-
+    parameters {
+        booleanParam(name: 'RUN_POSTGRES_IT', defaultValue: false,
+            description: 'Run MigrationIT using the dedicated PostgreSQL test database')
+    }
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+                script {
+                    if (params.RUN_POSTGRES_IT) {
+                        currentBuild.description = 'PostgreSQL: requested; external security tools: NOT ENABLED'
+                    } else {
+                        currentBuild.description = 'PostgreSQL: NOT RUN; external security tools: NOT ENABLED'
+                    }
+                }
             }
         }
-
         stage('Build') {
-            steps {
-                // Compile + validate configuration without running tests yet.
-                sh 'mvn -B -DskipTests clean compile'
-            }
+            steps { sh 'mvn -B clean compile' }
         }
-
         stage('Unit Test') {
-            steps {
-                // Runs the JUnit 5 suite against the H2 test profile.
-                sh 'mvn -B test'
-            }
+            steps { sh 'mvn -B test' }
         }
-
         stage('Package') {
-            steps {
-                // Produces the runnable Spring Boot fat jar.
-                sh 'mvn -B -DskipTests package'
-            }
+            steps { sh 'mvn -B package' }
+        }
+        stage('Verify') {
+            steps { sh 'mvn -B clean verify' }
+        }
+        stage('PostgreSQL Integration') {
+            when { expression { params.RUN_POSTGRES_IT } }
+            steps { sh 'mvn -B -Ppostgres-it verify' }
+        }
+        stage('Security') {
+            // This stage is visibly SKIPPED until a real scanner is selected and configured.
+            when { expression { false } }
+            steps { error('Configure a real scanner and its failure policy before enabling this stage.') }
         }
     }
-
     post {
         always {
-            junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+            // Missing reports fail the build; absence never means tests passed.
+            junit testResults: 'target/surefire-reports/TEST-*.xml'
+            junit testResults: 'target/failsafe-reports/TEST-*.xml'
+        }
+        success {
+            archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
         }
         failure {
-            // TODO: add notification (e.g. email/Slack) once decided by the team.
-            echo 'SmartFix build failed - see stage logs.'
+            echo 'SmartFix verification failed. Inspect the failing stage and its reports.'
         }
     }
 }

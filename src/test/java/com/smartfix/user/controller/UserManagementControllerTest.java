@@ -11,7 +11,6 @@ import com.smartfix.user.dto.CreateUserCommand;
 import com.smartfix.user.dto.UserAuthenticationData;
 import com.smartfix.user.dto.UserSummaryResponse;
 import com.smartfix.user.service.UserService;
-import jakarta.servlet.ServletException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import java.time.Instant;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
@@ -52,12 +50,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p><strong>Security filters are switched off.</strong> Who may reach
  * {@code /admin/**}, whether an anonymous visitor is redirected to a login page, and
- * whether a missing CSRF token is refused are all category B's rules, and none of them
- * exists yet. Turning the filters off here tests what this class actually owns - status
+ * whether a missing CSRF token is refused are covered by category B's security tests.
+ * Turning the filters off here tests what this class actually owns - status
  * codes, model contents, redirects and rendering - and keeps these tests from breaking
  * the day category B replaces the temporary permit-all baseline. The consequence is that
- * these tests say nothing about access control; the same URLs are currently reachable by
- * anyone who knows them.</p>
+ * these tests say nothing about access control; SecurityConfigTest and AuthenticationFlowIT
+ * exercise the same routes with the real filters enabled.</p>
  */
 @WebMvcTest(controllers = UserManagementController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -294,19 +292,15 @@ class UserManagementControllerTest {
     // ------------------------------------------------------------ unknown account
 
     @Test
-    @DisplayName("an unknown account id is left to propagate as a not-found for category B to map to 404")
-    void unknownAccountPropagatesAsNotFound() {
+    @DisplayName("an unknown account id renders category B's safe 404 page")
+    void unknownAccountRendersNotFound() throws Exception {
         doThrow(new ResourceNotFoundException("Account 404 does not exist."))
                 .when(userService).changeAccountStatus(eq(404L), any(ChangeAccountStatusCommand.class), any());
 
-        // There is no @ControllerAdvice yet - mapping these three exceptions onto 409/400/404
-        // is category B's shared handler, and inventing a second one here would collide
-        // with it. Until then the exception surfaces as a 500, which this test records
-        // rather than hides.
-        assertThatThrownBy(() -> mockMvc.perform(
-                post("/admin/users/{userId}/status", 404L).param("accountStatus", "DISABLED")))
-                .isInstanceOf(ServletException.class)
-                .hasRootCauseInstanceOf(ResourceNotFoundException.class);
+        mockMvc.perform(post("/admin/users/{userId}/status", 404L).param("accountStatus", "DISABLED"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error"))
+                .andExpect(content().string(not(containsString("Account 404 does not exist."))));
     }
 
     // ------------------------------------------------------------ helpers
