@@ -51,7 +51,7 @@ public class UserManagementController {
     private static final String CREATE_FORM = "createUserCommand";
     private static final String SUCCESS_MESSAGE = "successMessage";
     private static final String REDIRECT_TO_USER_LIST = "redirect:/admin/users";
-
+    private static final String SHOW_CREATE_FORM = "showCreateForm";
     private final UserService userService;
 
     public UserManagementController(UserService userService) {
@@ -62,7 +62,7 @@ public class UserManagementController {
     @GetMapping
     public String listUsers(Model model) {
         populateForListing(model);
-        model.addAttribute("showCreateForm", false);
+        model.addAttribute(SHOW_CREATE_FORM, false);
         return VIEW;
     }
 
@@ -71,7 +71,7 @@ public class UserManagementController {
     public String showCreateForm(Model model) {
         populateForListing(model);
         registerEmptyCreateForm(model);
-        model.addAttribute("showCreateForm", true);
+        model.addAttribute(SHOW_CREATE_FORM, true);
         return VIEW;
     }
 
@@ -198,7 +198,7 @@ public class UserManagementController {
             registerEmptyCreateForm(model);
         }
         populateForListing(model);
-        model.addAttribute("showCreateForm", creatingAccount);
+        model.addAttribute(SHOW_CREATE_FORM, creatingAccount);
         if (formError != null) {
             model.addAttribute("formError", formError);
         }
