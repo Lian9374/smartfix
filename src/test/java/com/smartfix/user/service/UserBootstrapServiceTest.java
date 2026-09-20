@@ -112,9 +112,13 @@ class UserBootstrapServiceTest {
         bootstrapService.initialize();
 
         String stored = captureSaved().getPasswordHash();
-        assertThat(stored).isNotEqualTo(RAW_PASSWORD);
-        assertThat(stored).startsWith("$2");
-        assertThat(passwordEncoder.matches(RAW_PASSWORD, stored)).isTrue();
+
+        assertThat(stored)
+                .isNotEqualTo(RAW_PASSWORD)
+                .startsWith("$2");
+
+        assertThat(passwordEncoder.matches(RAW_PASSWORD, stored))
+                .isTrue();
     }
 
     @Test

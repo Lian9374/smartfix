@@ -123,7 +123,17 @@
                 <td th:text="${user.createdAt}">2026-01-01T00:00:00Z</td>
                 <td>
                     <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
-                        <select name="role" th:attr="aria-label=|New role for ${user.username}|">
+                        <!--
+                          One label per row, tied to its own control by a matching for/id
+                          pair. The id is suffixed with the account id because this whole
+                          block repeats: a fixed id would be duplicated once per row, and a
+                          label pointing at a duplicated id is worse than no label at all.
+                        -->
+                        <label th:for="|role-${user.id}|"
+                               th:text="|New role for ${user.username}|">New role</label>
+                        <select th:id="|role-${user.id}|"
+                                name="role"
+                                th:attr="aria-label=|New role for ${user.username}|">
                             <option th:each="candidate : ${roles}"
                                     th:value="${candidate}"
                                     th:text="${candidate}"
@@ -134,7 +144,11 @@
                 </td>
                 <td>
                     <form th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post">
-                        <select name="accountStatus" th:attr="aria-label=|New status for ${user.username}|">
+                        <label th:for="|account-status-${user.id}|"
+                               th:text="|New status for ${user.username}|">New account status</label>
+                        <select th:id="|account-status-${user.id}|"
+                                name="accountStatus"
+                                th:attr="aria-label=|New status for ${user.username}|">
                             <option th:each="candidate : ${accountStatuses}"
                                     th:value="${candidate}"
                                     th:text="${candidate}"

@@ -102,8 +102,9 @@ class UserServiceTest {
         @DisplayName("rejects a username that is already taken with a business conflict")
         void rejectsDuplicateUsername() {
             when(userRepository.existsByUsername("alice")).thenReturn(true);
+            CreateUserCommand createCommand = command("alice", "Alice Tan", Role.REQUESTER);
 
-            assertThatThrownBy(() -> userService.createUser(command("alice", "Alice Tan", Role.REQUESTER), 99L))
+            assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                     .isInstanceOf(BusinessConflictException.class);
 
             verify(userRepository, never()).saveAndFlush(any(User.class));
@@ -118,8 +119,9 @@ class UserServiceTest {
             when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(BCRYPT_HASH);
             when(userRepository.saveAndFlush(any(User.class)))
                     .thenThrow(new DataIntegrityViolationException("uk_users_username"));
+            CreateUserCommand createCommand = command("alice", "Alice Tan", Role.REQUESTER);
 
-            assertThatThrownBy(() -> userService.createUser(command("alice", "Alice Tan", Role.REQUESTER), 99L))
+            assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                     .isInstanceOf(BusinessConflictException.class);
         }
 
@@ -132,8 +134,9 @@ class UserServiceTest {
 
             verify(passwordEncoder).encode(RAW_PASSWORD);
             User saved = capturedSavedUser();
-            assertThat(saved.getPasswordHash()).isEqualTo(BCRYPT_HASH);
-            assertThat(saved.getPasswordHash()).isNotEqualTo(RAW_PASSWORD);
+            assertThat(saved.getPasswordHash())
+                    .isEqualTo(BCRYPT_HASH)
+                    .isNotEqualTo(RAW_PASSWORD);
         }
 
         @Test
@@ -164,7 +167,9 @@ class UserServiceTest {
         void rejectsUsernameThatIsTooShortAfterTrimming() {
             // "  ab  " satisfies @Size(min = 3) on the raw form value, so the service is
             // the layer that has to catch it.
-            assertThatThrownBy(() -> userService.createUser(command("  ab  ", "Alice Tan", Role.REQUESTER), 99L))
+            CreateUserCommand createCommand = command("  ab  ", "Alice Tan", Role.REQUESTER);
+
+            assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                     .isInstanceOf(InputValidationException.class);
 
             verify(userRepository, never()).saveAndFlush(any(User.class));
@@ -173,7 +178,9 @@ class UserServiceTest {
         @Test
         @DisplayName("rejects a display name that is blank after trimming")
         void rejectsBlankDisplayName() {
-            assertThatThrownBy(() -> userService.createUser(command("alice", "   ", Role.REQUESTER), 99L))
+            CreateUserCommand createCommand = command("alice", "   ", Role.REQUESTER);
+
+            assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                     .isInstanceOf(InputValidationException.class);
 
             verify(userRepository, never()).saveAndFlush(any(User.class));
@@ -186,8 +193,9 @@ class UserServiceTest {
             @Test
             @DisplayName("rejects a password shorter than the minimum, without encoding it")
             void rejectsShortPassword() {
-                assertThatThrownBy(() -> userService.createUser(
-                        command("alice", "Alice Tan", Role.REQUESTER, "Short1"), 99L))
+                CreateUserCommand createCommand = command("alice", "Alice Tan", Role.REQUESTER, "Short1");
+
+                assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                         .isInstanceOf(InputValidationException.class);
 
                 verify(passwordEncoder, never()).encode(anyString());
@@ -196,16 +204,20 @@ class UserServiceTest {
             @Test
             @DisplayName("rejects a password with no digit")
             void rejectsPasswordWithoutDigit() {
-                assertThatThrownBy(() -> userService.createUser(
-                        command("alice", "Alice Tan", Role.REQUESTER, "NoDigitsHereAtAll"), 99L))
+                CreateUserCommand createCommand =
+                        command("alice", "Alice Tan", Role.REQUESTER, "NoDigitsHereAtAll");
+
+                assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                         .isInstanceOf(InputValidationException.class);
             }
 
             @Test
             @DisplayName("rejects a password with no letter")
             void rejectsPasswordWithoutLetter() {
-                assertThatThrownBy(() -> userService.createUser(
-                        command("alice", "Alice Tan", Role.REQUESTER, "1234567890123"), 99L))
+                CreateUserCommand createCommand =
+                        command("alice", "Alice Tan", Role.REQUESTER, "1234567890123");
+
+                assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                         .isInstanceOf(InputValidationException.class);
             }
 
@@ -214,9 +226,10 @@ class UserServiceTest {
             void rejectsPasswordOverTheByteLimit() {
                 // 30 characters, but four bytes each: 120 bytes, past what BCrypt reads.
                 String multiBytePassword = "Passw0rd" + "中".repeat(22);
+                CreateUserCommand createCommand =
+                        command("alice", "Alice Tan", Role.REQUESTER, multiBytePassword);
 
-                assertThatThrownBy(() -> userService.createUser(
-                        command("alice", "Alice Tan", Role.REQUESTER, multiBytePassword), 99L))
+                assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                         .isInstanceOf(InputValidationException.class);
 
                 verify(passwordEncoder, never()).encode(anyString());
@@ -226,9 +239,9 @@ class UserServiceTest {
             @DisplayName("the failure message never echoes the submitted password")
             void failureMessageDoesNotLeakThePassword() {
                 String secret = "leak-me-not";
+                CreateUserCommand createCommand = command("alice", "Alice Tan", Role.REQUESTER, secret);
 
-                assertThatThrownBy(() -> userService.createUser(
-                        command("alice", "Alice Tan", Role.REQUESTER, secret), 99L))
+                assertThatThrownBy(() -> userService.createUser(createCommand, 99L))
                         .isInstanceOf(InputValidationException.class)
                         .hasMessageNotContaining(secret);
             }
@@ -294,7 +307,9 @@ class UserServiceTest {
             when(userRepository.findForUpdateByRoleAndAccountStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE))
                     .thenReturn(List.of(onlyAdministrator));
 
-            assertThatThrownBy(() -> userService.changeRole(1L, roleCommand(Role.REQUESTER), 99L))
+            ChangeUserRoleCommand roleChange = roleCommand(Role.REQUESTER);
+
+            assertThatThrownBy(() -> userService.changeRole(1L, roleChange, 99L))
                     .isInstanceOf(BusinessConflictException.class);
 
             assertThat(onlyAdministrator.getRole()).isEqualTo(Role.ADMINISTRATOR);
@@ -325,7 +340,9 @@ class UserServiceTest {
             when(userRepository.findForUpdateByRoleAndAccountStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE))
                     .thenReturn(List.of(active));
 
-            assertThatThrownBy(() -> userService.changeRole(1L, roleCommand(Role.TECHNICIAN), 99L))
+            ChangeUserRoleCommand roleChange = roleCommand(Role.TECHNICIAN);
+
+            assertThatThrownBy(() -> userService.changeRole(1L, roleChange, 99L))
                     .isInstanceOf(BusinessConflictException.class);
         }
 
@@ -334,7 +351,9 @@ class UserServiceTest {
         void unknownAccountIsNotFound() {
             when(userRepository.findById(404L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> userService.changeRole(404L, roleCommand(Role.TECHNICIAN), 99L))
+            ChangeUserRoleCommand roleChange = roleCommand(Role.TECHNICIAN);
+
+            assertThatThrownBy(() -> userService.changeRole(404L, roleChange, 99L))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -386,7 +405,9 @@ class UserServiceTest {
             when(userRepository.findForUpdateByRoleAndAccountStatus(Role.ADMINISTRATOR, AccountStatus.ACTIVE))
                     .thenReturn(List.of(onlyAdministrator));
 
-            assertThatThrownBy(() -> userService.changeAccountStatus(1L, statusCommand(AccountStatus.DISABLED), 99L))
+            ChangeAccountStatusCommand statusChange = statusCommand(AccountStatus.DISABLED);
+
+            assertThatThrownBy(() -> userService.changeAccountStatus(1L, statusChange, 99L))
                     .isInstanceOf(BusinessConflictException.class);
 
             assertThat(onlyAdministrator.getAccountStatus()).isEqualTo(AccountStatus.ACTIVE);
@@ -411,7 +432,9 @@ class UserServiceTest {
         void unknownAccountIsNotFound() {
             when(userRepository.findById(404L)).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> userService.changeAccountStatus(404L, statusCommand(AccountStatus.DISABLED), 99L))
+            ChangeAccountStatusCommand statusChange = statusCommand(AccountStatus.DISABLED);
+
+            assertThatThrownBy(() -> userService.changeAccountStatus(404L, statusChange, 99L))
                     .isInstanceOf(ResourceNotFoundException.class);
         }
     }
@@ -460,8 +483,9 @@ class UserServiceTest {
 
             // The compiler-generated record toString would have printed the hash; a hash in
             // a log file is a credential an attacker can crack offline.
-            assertThat(data.toString()).doesNotContain(BCRYPT_HASH);
-            assertThat(data.toString()).contains("REDACTED");
+            assertThat(data.toString())
+                    .doesNotContain(BCRYPT_HASH)
+                    .contains("REDACTED");
         }
 
         @Test
@@ -530,8 +554,9 @@ class UserServiceTest {
         @Test
         @DisplayName("refuses to be used for any role other than administrator")
         void refusesNonAdministrator() {
-            assertThatThrownBy(() -> userService.createInitialAdministrator(
-                    command("root", "Root", Role.REQUESTER)))
+            CreateUserCommand createCommand = command("root", "Root", Role.REQUESTER);
+
+            assertThatThrownBy(() -> userService.createInitialAdministrator(createCommand))
                     .isInstanceOf(IllegalArgumentException.class);
         }
     }
