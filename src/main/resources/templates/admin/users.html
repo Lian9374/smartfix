@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User management &middot; SmartFix</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="site-header">
+    <span class="brand">SmartFix</span>
+    <nav>
+        <a th:href="@{/}">Home</a>
+    </nav>
+</header>
+
+<main class="content">
+    <h1>User management</h1>
+
+    <!--
+      Confirmation after a successful POST-Redirect-GET. Rendered from a flash attribute,
+      so it appears once and is gone on refresh.
+    -->
+    <p class="badge" th:if="${successMessage}" th:text="${successMessage}">
+        The account was created.
+    </p>
+
+    <!--
+      Errors that belong to the page rather than to one field: a refused role change or
+      status change. Field-level errors are rendered next to their input instead.
+    -->
+    <p class="hint" th:if="${formError}" th:text="${formError}">
+        The last active administrator cannot be disabled.
+    </p>
+
+    <section th:if="${showCreateForm}">
+        <h2>Create an account</h2>
+
+        <!--
+          th:action is required rather than a plain action: it is what lets Thymeleaf
+          inject the CSRF hidden field once category B enables CSRF. No token has to be
+          written by hand, and none is emitted while CSRF is still disabled.
+        -->
+        <form th:action="@{/admin/users}" th:object="${createUserCommand}" method="post">
+            <p>
+                <label for="username">Username</label><br>
+                <input type="text" id="username" th:field="*{username}" autocomplete="off">
+                <br>
+                <span class="hint" th:errors="*{username}">Username is required.</span>
+            </p>
+
+            <p>
+                <label for="displayName">Display name</label><br>
+                <input type="text" id="displayName" th:field="*{displayName}" autocomplete="off">
+                <br>
+                <span class="hint" th:errors="*{displayName}">Display name is required.</span>
+            </p>
+
+            <p>
+                <label for="password">Password</label><br>
+                <!--
+                  Deliberately NOT th:field. Binding the password back into the page would
+                  echo the submitted secret into the HTML of a failed attempt, where it
+                  would sit in the browser cache, in a screenshot and in any page dump.
+                  The error message still renders, because th:errors reads the
+                  BindingResult directly.
+                -->
+                <input type="password" id="password" name="password" autocomplete="new-password">
+                <br>
+                <span class="hint" th:errors="*{password}">Password is required.</span>
+            </p>
+
+            <p>
+                <label for="role">Role</label><br>
+                <select id="role" th:field="*{role}">
+                    <option value="">-- select a role --</option>
+                    <option th:each="candidate : ${roles}"
+                            th:value="${candidate}"
+                            th:text="${candidate}">REQUESTER</option>
+                </select>
+                <br>
+                <span class="hint" th:errors="*{role}">Role is required.</span>
+            </p>
+
+            <p>
+                <button type="submit">Create account</button>
+            </p>
+        </form>
+    </section>
+
+    <p class="hint" th:unless="${showCreateForm}">
+        <a th:href="@{/admin/users/new}">Create an account</a>
+    </p>
+
+    <section>
+        <h2>Accounts</h2>
+
+        <table>
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Username</th>
+                <th scope="col">Display name</th>
+                <th scope="col">Role</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created (UTC)</th>
+                <th scope="col">Change role</th>
+                <th scope="col">Change status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}">1</td>
+                <td th:text="${user.username}">alice</td>
+                <td th:text="${user.displayName}">Alice</td>
+                <td th:text="${user.role}">REQUESTER</td>
+                <td th:text="${user.accountStatus}">ACTIVE</td>
+                <!--
+                  Rendered as the stored UTC instant. Presenting it in Asia/Singapore is
+                  a locale concern that belongs with the shared TimeConfig and template
+                  conventions owned by category B, which do not exist yet.
+                -->
+                <td th:text="${user.createdAt}">2026-01-01T00:00:00Z</td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
+                        <!--
+                          One label per row, tied to its own control by a matching for/id
+                          pair. The id is suffixed with the account id because this whole
+                          block repeats: a fixed id would be duplicated once per row, and a
+                          label pointing at a duplicated id is worse than no label at all.
+
+                          The plain for/id attributes are the static half of that pair, and
+                          the th:for/th:id attributes are the dynamic half. Thymeleaf
+                          overwrites the former with the latter at render time, so the id
+                          that reaches the browser is role-<account id> and stays unique
+                          per row. The static values therefore never ship; they exist so
+                          that a static analyzer reading the template - which does not
+                          evaluate th:for/th:id and so sees neither the association nor the
+                          uniqueness - can recognise the label and its control as a pair.
+                          Keep both attributes on both elements: dropping either one either
+                          loses the accessibility association or reintroduces the duplicate
+                          id this suffix exists to avoid.
+                        -->
+                        <label for="role-control"
+                               th:for="|role-${user.id}|"
+                               th:text="|New role for ${user.username}|">New role</label>
+                        <select id="role-control"
+                                th:id="|role-${user.id}|"
+                                name="role"
+                                th:attr="aria-label=|New role for ${user.username}|">
+                            <option th:each="candidate : ${roles}"
+                                    th:value="${candidate}"
+                                    th:text="${candidate}"
+                                    th:selected="${candidate == user.role}">REQUESTER</option>
+                        </select>
+                        <button type="submit">Save</button>
+                    </form>
+                </td>
+                <td>
+                    <form th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post">
+                        <label for="account-status-control"
+                               th:for="|account-status-${user.id}|"
+                               th:text="|New status for ${user.username}|">New account status</label>
+                        <select id="account-status-control"
+                                th:id="|account-status-${user.id}|"
+                                name="accountStatus"
+                                th:attr="aria-label=|New status for ${user.username}|">
+                            <option th:each="candidate : ${accountStatuses}"
+                                    th:value="${candidate}"
+                                    th:text="${candidate}"
+                                    th:selected="${candidate == user.accountStatus}">ACTIVE</option>
+                        </select>
+                        <button type="submit">Save</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(users)}">
+                <td colspan="8" class="hint">No accounts exist yet.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+<footer>
+    <span>SWE5006 &middot; SmartFix team</span>
+</footer>
+</body>
+</html>
