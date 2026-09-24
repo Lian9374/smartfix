@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Request Lookup - SmartFix</title>
+
+  <link rel="stylesheet"
+        th:href="@{/css/site.css}">
+</head>
+
+<body>
+
+<header>
+  <h1>Request Lookup</h1>
+
+  <nav>
+    <a th:href="@{/}">Home</a>
+    <a th:href="@{/admin/users}">User Management</a>
+  </nav>
+</header>
+
+<main>
+
+  <section>
+    <h2>Find Request</h2>
+
+    <form method="get"
+          th:action="@{/admin/requests/lookup}">
+
+      <label for="ticketNumber">
+        Ticket Number
+      </label>
+
+      <input
+        id="ticketNumber"
+        name="ticketNumber"
+        type="text"
+        placeholder="SF-2026-000001"
+        th:value="${ticketNumber}"
+        required>
+
+      <button type="submit">
+        Look Up
+      </button>
+
+    </form>
+  </section>
+
+
+  <section th:if="${request != null}">
+
+    <h2>
+      Request
+      <span th:text="${request.ticketNumber}">
+                SF-2026-000001
+            </span>
+    </h2>
+
+    <dl>
+
+      <dt>Requester ID</dt>
+      <dd th:text="${request.requesterId}">1</dd>
+
+      <dt>Title</dt>
+      <dd th:text="${request.title}">
+        Title
+      </dd>
+
+      <dt>Location</dt>
+      <dd th:text="${request.locationDisplayName}">
+        Location
+      </dd>
+
+      <dt>Category</dt>
+      <dd th:text="${request.category}">
+        Category
+      </dd>
+
+      <dt>Urgency</dt>
+      <dd th:text="${request.urgencyLevel}">
+        MEDIUM
+      </dd>
+
+      <dt>Status</dt>
+      <dd th:text="${request.status}">
+        SUBMITTED
+      </dd>
+
+      <dt>Description</dt>
+      <dd th:text="${request.description}">
+        Description
+      </dd>
+
+    </dl>
+
+
+    <h3>Status History</h3>
+
+    <table th:unless="${#lists.isEmpty(request.statusHistory)}">
+      <thead>
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Changed By</th>
+        <th>Changed At</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="history : ${request.statusHistory}">
+        <td th:text="${history.fromStatus != null
+                        ? history.fromStatus
+                        : '-'}">
+          -
+        </td>
+
+        <td th:text="${history.toStatus}">
+          SUBMITTED
+        </td>
+
+        <td th:text="${history.changedByUserId}">
+          1
+        </td>
+
+        <td th:text="${#temporals.format(
+                        history.changedAt,
+                        'yyyy-MM-dd HH:mm'
+                    )}">
+          Time
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+  </section>
+
+</main>
+
+</body>
+</html>

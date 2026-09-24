@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+  <title>My Requests - SmartFix</title>
+
+  <link rel="stylesheet"
+        th:href="@{/css/site.css}">
+</head>
+
+<body>
+
+<header>
+  <h1>My Maintenance Requests</h1>
+
+  <nav>
+    <a th:href="@{/}">Home</a>
+    <a th:href="@{/requests/new}">New Request</a>
+  </nav>
+</header>
+
+<main>
+
+  <p th:if="${#lists.isEmpty(requests)}">
+    You have not submitted any maintenance requests yet.
+  </p>
+
+  <table th:unless="${#lists.isEmpty(requests)}">
+    <thead>
+    <tr>
+      <th>Ticket</th>
+      <th>Title</th>
+      <th>Location</th>
+      <th>Category</th>
+      <th>Urgency</th>
+      <th>Status</th>
+      <th>Created</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="request : ${requests}">
+      <td>
+        <a th:href="@{/requests/{ticketNumber}
+                    (ticketNumber=${request.ticketNumber})}"
+           th:text="${request.ticketNumber}">
+          SF-2026-000001
+        </a>
+      </td>
+
+      <td th:text="${request.title}">Title</td>
+
+      <td th:text="${request.locationDisplayName}">
+        Location
+      </td>
+
+      <td th:text="${request.category}">
+        Category
+      </td>
+
+      <td th:text="${request.urgencyLevel}">
+        Urgency
+      </td>
+
+      <td th:text="${request.status}">
+        SUBMITTED
+      </td>
+
+      <td th:text="${#temporals.format(
+                    request.createdAt,
+                    'yyyy-MM-dd HH:mm'
+                )}">
+        Created
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+</main>
+
+</body>
+</html>

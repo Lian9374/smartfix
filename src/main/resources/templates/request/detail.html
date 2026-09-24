@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1">
+
+  <title>Request Details - SmartFix</title>
+
+  <link rel="stylesheet"
+        th:href="@{/css/site.css}">
+</head>
+
+<body>
+
+<header>
+  <h1>Maintenance Request</h1>
+
+  <nav>
+    <a th:href="@{/}">Home</a>
+    <a th:href="@{/requests/mine}">My Requests</a>
+  </nav>
+</header>
+
+<main>
+
+  <section>
+    <h2 th:text="${request.ticketNumber}">
+      SF-2026-000001
+    </h2>
+
+    <dl>
+
+      <dt>Title</dt>
+      <dd th:text="${request.title}">Title</dd>
+
+      <dt>Location</dt>
+      <dd th:text="${request.locationDisplayName}">
+        Location
+      </dd>
+
+      <dt>Category</dt>
+      <dd th:text="${request.category}">
+        Category
+      </dd>
+
+      <dt>Urgency</dt>
+      <dd th:text="${request.urgencyLevel}">
+        MEDIUM
+      </dd>
+
+      <dt>Status</dt>
+      <dd th:text="${request.status}">
+        SUBMITTED
+      </dd>
+
+      <dt>Description</dt>
+      <dd th:text="${request.description}">
+        Description
+      </dd>
+
+      <dt>Created</dt>
+      <dd th:text="${#temporals.format(
+                    request.createdAt,
+                    'yyyy-MM-dd HH:mm'
+                )}">
+        Created
+      </dd>
+
+    </dl>
+  </section>
+
+
+  <section>
+    <h2>Status History</h2>
+
+    <p th:if="${#lists.isEmpty(request.statusHistory)}">
+      No status history is available.
+    </p>
+
+    <table th:unless="${#lists.isEmpty(request.statusHistory)}">
+      <thead>
+      <tr>
+        <th>From</th>
+        <th>To</th>
+        <th>Changed By</th>
+        <th>Changed At</th>
+        <th>Comment</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="history : ${request.statusHistory}">
+
+        <td th:text="${history.fromStatus != null
+                        ? history.fromStatus
+                        : '-'}">
+          -
+        </td>
+
+        <td th:text="${history.toStatus}">
+          SUBMITTED
+        </td>
+
+        <td th:text="${history.changedByUserId}">
+          1
+        </td>
+
+        <td th:text="${#temporals.format(
+                        history.changedAt,
+                        'yyyy-MM-dd HH:mm'
+                    )}">
+          Time
+        </td>
+
+        <td th:text="${history.comment != null
+                        ? history.comment
+                        : '-'}">
+          -
+        </td>
+
+      </tr>
+      </tbody>
+    </table>
+
+  </section>
+
+
+  <!--
+      Category E mount point.
+
+      E may append the attachment list below this comment.
+      D must not implement attachment storage/download logic here.
+  -->
+
+</main>
+
+</body>
+</html>
