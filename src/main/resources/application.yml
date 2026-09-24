@@ -32,6 +32,11 @@ spring:
   thymeleaf:
     cache: false   # dev-friendly; override to true for prod-style runs
 
+  servlet: 
+    multipart:
+      max-file-size: ${SMARTFIX_UPLOAD_MAX_FILE_SIZE:5242880}
+      max-request-size: ${SMARTFIX_UPLOAD_MAX_TOTAL_SIZE:15728640}
+
 server:
   port: 8080
   servlet:
@@ -54,6 +59,14 @@ smartfix:
     username: ${SMARTFIX_BOOTSTRAP_ADMIN_USERNAME:}
     password: ${SMARTFIX_BOOTSTRAP_ADMIN_PASSWORD:}
     display-name: ${SMARTFIX_BOOTSTRAP_ADMIN_DISPLAY_NAME:SmartFix Administrator}
+
+  uploads:
+    dir: ${SMARTFIX_UPLOAD_DIR:uploads}
+    max-size: ${SMARTFIX_UPLOAD_MAX_FILE_SIZE:5242880}
+    max-files: ${SMARTFIX_UPLOAD_MAX_FILES:3}
+    max-total-size: ${SMARTFIX_UPLOAD_MAX_TOTAL_SIZE:15728640}
+    max-dimension: ${SMARTFIX_UPLOAD_MAX_DIMENSION:10000}
+    max-pixels: ${SMARTFIX_UPLOAD_MAX_PIXELS:20000000}
 
 # Health endpoint used to verify the application is up.
 management:

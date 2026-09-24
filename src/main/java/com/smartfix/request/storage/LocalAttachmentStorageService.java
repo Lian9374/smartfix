@@ -1,12 +1,5 @@
 package com.smartfix.request.storage;
 
-import com.smartfix.request.config.AttachmentProperties;
-import com.smartfix.request.dto.StoredAttachment;
-import com.smartfix.request.service.AttachmentStorageService;
-import com.smartfix.request.validation.AttachmentValidator;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -14,9 +7,19 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.smartfix.request.config.AttachmentProperties;
+import com.smartfix.request.dto.StoredAttachment;
+import com.smartfix.request.service.AttachmentStorageService;
+import com.smartfix.request.validation.AttachmentValidator;
+
 @Service
 public class LocalAttachmentStorageService
-        implements AttachmentStorageService {
+    implements AttachmentStorageService {
 
     private final AttachmentProperties properties;
     private final AttachmentValidator validator;
@@ -30,7 +33,7 @@ public class LocalAttachmentStorageService
     }
 
     @Override
-    public StoredAttachment store(MultipartFile file) {
+public StoredAttachment store(MultipartFile file) {
         String contentType =
                 validator.detectContentType(file);
 
@@ -86,6 +89,52 @@ public class LocalAttachmentStorageService
             );
         }
     }
+
+    @Override
+public Resource loadAsResource(String storedFilename) {
+    if (storedFilename == null
+            || storedFilename.isBlank()) {
+        throw new IllegalArgumentException(
+                "storedFilename must not be blank."
+        );
+    }
+
+    Path uploadDirectory =
+            properties.getDir()
+                    .toAbsolutePath()
+                    .normalize();
+
+    Path target =
+            uploadDirectory
+                    .resolve(storedFilename)
+                    .normalize();
+
+    if (!target.startsWith(uploadDirectory)) {
+        throw new IllegalArgumentException(
+                "Invalid attachment storage key."
+        );
+    }
+
+    try {
+        Resource resource =
+                new UrlResource(target.toUri());
+
+        if (!resource.exists()
+                || !resource.isReadable()) {
+            throw new IllegalStateException(
+                    "Stored attachment is unavailable."
+            );
+        }
+
+        return resource;
+
+    } catch (IOException e) {
+        throw new IllegalStateException(
+                "Failed to read attachment.",
+                e
+        );
+    }
+}
 
     @Override
     public void delete(String storedFilename) {
