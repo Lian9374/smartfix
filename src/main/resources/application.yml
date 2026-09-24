@@ -18,16 +18,13 @@ spring:
     password: ${DB_PASSWORD:smartfix}
     driver-class-name: org.postgresql.Driver
 
-  # No domain model / schema exists yet. Hibernate must never create tables:
-  # the SmartFix schema will be introduced via Flyway migrations AFTER domain
-  # modelling / class design is approved for each Sprint story.
+  # Flyway owns the schema. Hibernate must never create or update production tables.
   jpa:
     hibernate:
       ddl-auto: none
     open-in-view: false
 
-  # Flyway is wired up but currently has only an intentionally-empty baseline
-  # migration (V1). Real tables are added by future story migrations.
+  # V1 baseline + V2 accounts; future modules append migrations.
   flyway:
     enabled: true
     locations: classpath:db/migration
@@ -37,6 +34,26 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: ${SMARTFIX_SESSION_TIMEOUT:30m}
+      tracking-modes: cookie
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${SMARTFIX_SESSION_COOKIE_SECURE:false}
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+smartfix:
+  bootstrap-admin:
+    enabled: ${SMARTFIX_BOOTSTRAP_ADMIN_ENABLED:false}
+    username: ${SMARTFIX_BOOTSTRAP_ADMIN_USERNAME:}
+    password: ${SMARTFIX_BOOTSTRAP_ADMIN_PASSWORD:}
+    display-name: ${SMARTFIX_BOOTSTRAP_ADMIN_DISPLAY_NAME:SmartFix Administrator}
 
 # Health endpoint used to verify the application is up.
 management:
@@ -46,4 +63,4 @@ management:
         include: health,info
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: never

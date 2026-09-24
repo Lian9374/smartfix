@@ -11,6 +11,9 @@
     <span class="brand">SmartFix</span>
     <nav>
         <a th:href="@{/}">Home</a>
+        <form th:action="@{/logout}" method="post" class="inline-form">
+            <button type="submit">Sign out</button>
+        </form>
     </nav>
 </header>
 
@@ -18,22 +21,25 @@
     <section class="hero">
         <h1 th:text="${systemName}">SmartFix</h1>
         <p class="tagline" th:text="${tagline}">Campus Facility Maintenance and Technician Dispatch System</p>
-        <p class="badge" th:text="${scaffoldStatus}">Initial Project Scaffold</p>
+        <p>Signed in as <strong th:text="${username}">User</strong></p>
+        <p class="badge" th:text="${role}">REQUESTER</p>
     </section>
 
     <section class="content">
-        <h2>Engineering foundation verified</h2>
-        <p>
-            This page confirms that the SmartFix project scaffold builds, starts, connects to its
-            database and renders a server-side view through the layered Spring architecture.
-        </p>
-        <p>
-            The SmartFix business areas &mdash; maintenance requests, technician dispatch, SLA monitoring,
-            facilities, notifications, reporting and announcements &mdash; will be implemented incrementally
-            in later Agile sprints, each following detailed analysis and design. No business functionality
-            has been added yet.
-        </p>
-        <p class="hint">Check the service health endpoint: <a th:href="@{/actuator/health}">/actuator/health</a></p>
+        <div th:if="${role == 'ADMINISTRATOR'}">
+            <h2>Administration</h2>
+            <p><a th:href="@{/admin/users}">Manage accounts</a></p>
+            <p><a th:href="@{/admin/requests/lookup}">Look up a repair request</a></p>
+        </div>
+        <div th:if="${role == 'REQUESTER'}">
+            <h2>Your repair requests</h2>
+            <p><a th:href="@{/requests/new}">Submit a repair request</a></p>
+            <p><a th:href="@{/requests/mine}">View my requests</a></p>
+        </div>
+        <div th:if="${role == 'TECHNICIAN'}">
+            <h2>Technician workspace</h2>
+            <p>You are signed in. Work order processing will be available in a later release.</p>
+        </div>
     </section>
 </main>
 

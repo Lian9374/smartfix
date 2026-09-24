@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request unsuccessful · SmartFix</title>
+    <link rel="stylesheet" th:href="@{/css/site.css}">
+</head>
+<body>
+<header class="site-header"><span class="brand">SmartFix</span></header>
+<main class="content">
+    <h1 th:text="|Request unsuccessful (${status})|">Request unsuccessful</h1>
+    <div th:switch="${status}">
+        <p th:case="400">Please check the information you entered and try again.</p>
+        <p th:case="403">You cannot perform this action. If you were submitting a form, refresh the page and try again.</p>
+        <p th:case="404">The requested resource could not be found.</p>
+        <p th:case="409">This action conflicts with the current data. Refresh the page and try again.</p>
+        <p th:case="413">The uploaded files exceed the allowed size.</p>
+        <p th:case="*">We could not complete this request. Please try again later.</p>
+    </div>
+    <p th:if="${reference}" th:text="|Support reference: ${reference}|" class="hint"></p>
+    <a th:href="@{/}">Go to home</a> · <a th:href="@{/login}">Sign in</a>
+</main>
+</body>
+</html>

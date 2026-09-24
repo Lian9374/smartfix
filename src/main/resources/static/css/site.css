@@ -1,4 +1,4 @@
-/* SmartFix scaffold styles - minimal, temporary, deliberately plain. */
+/* Shared SmartFix server-rendered page styles. */
 
 :root {
     color-scheme: light dark;
@@ -81,3 +81,12 @@ footer {
     color: var(--muted);
     border-top: 1px solid var(--border);
 }
+
+.auth-card { max-width: 480px; padding-top: 2rem; }
+.inline-form { display: inline; margin-left: 1rem; }
+input, select, button { font: inherit; padding: 0.45rem 0.65rem; }
+input, select { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
+button { cursor: pointer; }
+a { color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+[role="alert"] { border-left: 3px solid #b91c1c; padding-left: 0.8rem; }
