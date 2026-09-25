@@ -10,8 +10,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -19,6 +21,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.smartfix.request.domain.Attachment;
+import com.smartfix.request.domain.MaintenanceRequest;
 import com.smartfix.request.dto.AttachmentResponse;
 import com.smartfix.request.dto.StoredAttachment;
 import com.smartfix.request.repository.AttachmentRepository;
@@ -32,6 +35,8 @@ class AttachmentServiceTest {
 
     private AttachmentService service;
 
+    private RequestAccessService requestAccessService;
+
     @BeforeEach
     void setUp() {
         validator = mock(AttachmentValidator.class);
@@ -39,11 +44,13 @@ class AttachmentServiceTest {
                 mock(AttachmentStorageService.class);
         repository =
                 mock(AttachmentRepository.class);
-
+        requestAccessService =
+                mock(RequestAccessService.class);
         service = new AttachmentService(
                 validator,
                 storageService,
-                repository
+                repository,
+                requestAccessService
         );
     }
 
@@ -297,6 +304,39 @@ class AttachmentServiceTest {
                 originalFailure,
                 thrown
         );
+    }
+
+    @Test
+    void readAttachmentReturnsNotFoundWhenAttachmentDoesNotBelongToRequest() {
+        MaintenanceRequest request =
+                mock(MaintenanceRequest.class);
+
+        when(request.getId())
+                .thenReturn(100L);
+
+        when(requestAccessService.requireReadableRequest(
+                "SF-2026-000001",
+                10L
+        )).thenReturn(request);
+
+        when(repository.findByIdAndRequestId(
+                999L,
+                100L
+        )).thenReturn(
+                java.util.Optional.empty()
+        );
+
+        assertThrows(
+                com.smartfix.common.exception.ResourceNotFoundException.class,
+                () -> service.readAttachment(
+                        "SF-2026-000001",
+                        999L,
+                        10L
+                )
+        );
+
+        verify(storageService, never())
+                .loadAsResource(anyString());
     }
 
     private StoredAttachment stored(
