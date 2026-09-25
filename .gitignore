@@ -36,3 +36,4 @@ nohup.out
 
 # ---- Docker ----
 .dockerignore-local
+uploads/
