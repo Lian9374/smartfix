@@ -1,6 +1,7 @@
 # S3-B-01 技师资料模块：实现与交接
 
-基线：`upstream/main` 的 `0359d99`。开发分支：`B2`。
+基线：`upstream/main` 的 `0359d99`。开发分支：`feature/SCRUM-UserB2-WANGPENGRUI`。
+提交目标：团队仓库 `Lian9374/smartfix`（`upstream`）。
 2026-09-30，用户确认团队已按 Sprint 3 文档完成 Day 1 对齐，技师模块使用 **V10**。
 本文件记录实际改动与验证边界，不代表已经评审、合并或部署。
 
