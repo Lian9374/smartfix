@@ -1,145 +1,168 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
+<!--
+  Administrator request lookup: one ticket number in, one request out.
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
+  The lookup is a plain GET form, and it stays one - the query belongs in the URL
+  so a result can be linked or reloaded. Both the action and the ticketNumber
+  field name are the ones RequestQueryController expects.
 
-  <title>Request Lookup - SmartFix</title>
+  A ticket that does not exist is not handled here: the service raises
+  ResourceNotFoundException and the shared error page answers with a 404, which
+  is why this page has no "not found" branch of its own.
 
-  <link rel="stylesheet"
-        th:href="@{/css/site.css}">
+  The result is laid out exactly as the requester's detail page is - same card
+  order, same summary list, same timeline - because it is the same request seen
+  by a different reader, and two renderings of one record would eventually
+  disagree about it. The differences are the ones the role justifies: the
+  requester's account id appears here, and the trail back goes to the lookup
+  rather than to a personal list.
+
+  The one page action clears the result, and it only exists while there is a
+  result to clear.
+
+  Comments in this file are ordinary HTML comments, and Thymeleaf ships those to
+  the browser: the words in them are page content as far as anything reading the
+  response is concerned. Nothing is written here that the page must not contain.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Request Lookup')}">
+  <title>Request Lookup · SmartFix</title>
 </head>
-
 <body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('request-lookup')}"></th:block>
 
-<header>
-  <h1>Request Lookup</h1>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('request-lookup')}"></th:block>
 
-  <nav>
-    <a th:href="@{/}">Home</a>
-    <a th:href="@{/admin/users}">User Management</a>
-  </nav>
-</header>
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div th:replace="~{fragments/components :: pageHeading(
+             'Request Lookup',
+             'Open any maintenance request by its ticket number, whoever submitted it.')}">
+          <h1 class="page-head__title">Request Lookup</h1>
+        </div>
 
-<main>
+        <div class="page-head-row__actions" th:if="${request != null}">
+          <a class="btn btn--secondary" th:href="@{/admin/requests/lookup}">Clear result</a>
+        </div>
+      </div>
 
-  <section>
-    <h2>Find Request</h2>
+      <!-- The search itself. One field and one button, on the page rather than
+           inside a card of its own: a card here would put a border around two
+           controls and read as a heavier thing than the result it produces. -->
+      <section class="lookup" aria-labelledby="lookup-title">
+        <h2 class="lookup__title" id="lookup-title">Find a request</h2>
+        <form class="lookup__form" method="get" th:action="@{/admin/requests/lookup}">
+          <div class="form-field">
+            <label class="form-field__label" for="ticketNumber">Ticket number</label>
+            <input id="ticketNumber" name="ticketNumber" type="text"
+                   placeholder="SF-2026-000001" th:value="${ticketNumber}"
+                   autocomplete="off" autocapitalize="none" spellcheck="false"
+                   aria-describedby="ticketNumber-hint" required>
+          </div>
+          <button type="submit" class="btn btn--primary">Look up</button>
+        </form>
+        <p class="lookup__hint" id="ticketNumber-hint">
+          The full ticket number, including the year, for example SF-2026-000001.
+        </p>
+      </section>
 
-    <form method="get"
-          th:action="@{/admin/requests/lookup}">
+      <div th:if="${request != null}">
+        <div class="detail-layout">
+          <aside class="detail-layout__aside" aria-labelledby="lookup-summary-title">
+            <section class="card">
+              <div class="card__header">
+                <h2 class="card__title" id="lookup-summary-title">Request summary</h2>
+              </div>
+              <div class="card__body">
+                <dl class="detail-list">
+                  <dt>Ticket number</dt>
+                  <dd class="data-table__id" th:text="${request.ticketNumber}">SF-2026-000001</dd>
 
-      <label for="ticketNumber">
-        Ticket Number
-      </label>
+                  <dt>Status</dt>
+                  <dd>
+                    <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
+                  </dd>
 
-      <input
-        id="ticketNumber"
-        name="ticketNumber"
-        type="text"
-        placeholder="SF-2026-000001"
-        th:value="${ticketNumber}"
-        required>
+                  <dt>Requester</dt>
+                  <dd th:text="|Account #${request.requesterId}|">Account #10</dd>
 
-      <button type="submit">
-        Look Up
-      </button>
+                  <dt>Location</dt>
+                  <dd th:text="${request.locationDisplayName}">COM1 Level 1</dd>
 
-    </form>
-  </section>
+                  <dt>Category</dt>
+                  <dd th:text="${request.category}">ELECTRICAL</dd>
 
+                  <dt>Urgency</dt>
+                  <dd>
+                    <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
+                  </dd>
 
-  <section th:if="${request != null}">
+                  <dt>Submitted</dt>
+                  <dd th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
 
-    <h2>
-      Request
-      <span th:text="${request.ticketNumber}">
-                SF-2026-000001
-            </span>
-    </h2>
+                  <dt>Last updated</dt>
+                  <dd th:text="${#temporals.format(request.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
+                </dl>
+              </div>
+            </section>
+          </aside>
 
-    <dl>
+          <div class="detail-layout__main">
+            <section class="card" aria-labelledby="lookup-description-title">
+              <div class="card__header">
+                <h2 class="card__title" id="lookup-description-title" th:text="${request.title}">
+                  Broken light
+                </h2>
+              </div>
+              <div class="card__body">
+                <p class="prose" th:text="${request.description}">Description</p>
+              </div>
+            </section>
 
-      <dt>Requester ID</dt>
-      <dd th:text="${request.requesterId}">1</dd>
+            <section class="card" aria-labelledby="lookup-history-title">
+              <div class="card__header">
+                <h2 class="card__title" id="lookup-history-title">Status history</h2>
+                <span class="card__hint"
+                      th:if="${#lists.size(request.statusHistory) == 1}">1 entry</span>
+                <span class="card__hint"
+                      th:if="${#lists.size(request.statusHistory) > 1}"
+                      th:text="|${#lists.size(request.statusHistory)} entries|">2 entries</span>
+              </div>
+              <div class="card__body">
+                <div th:if="${#lists.isEmpty(request.statusHistory)}">
+                  <div th:replace="~{fragments/components :: emptyState(
+                           'No status history is recorded for this request.',
+                           null)}"></div>
+                </div>
 
-      <dt>Title</dt>
-      <dd th:text="${request.title}">
-        Title
-      </dd>
+                <div th:unless="${#lists.isEmpty(request.statusHistory)}">
+                  <div th:replace="~{fragments/components :: timeline(${request.statusHistory})}"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
 
-      <dt>Location</dt>
-      <dd th:text="${request.locationDisplayName}">
-        Location
-      </dd>
+      <!-- Before a search has run there is nothing to show; say what the page is
+           for rather than leaving an empty card. -->
+      <div th:if="${request == null}">
+        <div class="card">
+          <div class="card__body">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No request opened yet',
+                     'Enter a ticket number above to see its details and status history.')}"></div>
+          </div>
+        </div>
+      </div>
+    </main>
 
-      <dt>Category</dt>
-      <dd th:text="${request.category}">
-        Category
-      </dd>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
 
-      <dt>Urgency</dt>
-      <dd th:text="${request.urgencyLevel}">
-        MEDIUM
-      </dd>
-
-      <dt>Status</dt>
-      <dd th:text="${request.status}">
-        SUBMITTED
-      </dd>
-
-      <dt>Description</dt>
-      <dd th:text="${request.description}">
-        Description
-      </dd>
-
-    </dl>
-
-
-    <h3>Status History</h3>
-
-    <table th:unless="${#lists.isEmpty(request.statusHistory)}">
-      <thead>
-      <tr>
-        <th>From</th>
-        <th>To</th>
-        <th>Changed By</th>
-        <th>Changed At</th>
-      </tr>
-      </thead>
-
-      <tbody>
-      <tr th:each="history : ${request.statusHistory}">
-        <td th:text="${history.fromStatus != null
-                        ? history.fromStatus
-                        : '-'}">
-          -
-        </td>
-
-        <td th:text="${history.toStatus}">
-          SUBMITTED
-        </td>
-
-        <td th:text="${history.changedByUserId}">
-          1
-        </td>
-
-        <td th:text="${#temporals.format(
-                        history.changedAt,
-                        'yyyy-MM-dd HH:mm'
-                    )}">
-          Time
-        </td>
-      </tr>
-      </tbody>
-    </table>
-
-  </section>
-
-</main>
-
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

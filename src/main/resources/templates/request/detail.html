@@ -1,141 +1,170 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
+<!--
+  One maintenance request. Two columns on desktop (description and history in the
+  wide column, the identifying facts in the narrow one) collapsing to a single
+  column on phones, where the summary is read first.
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
+  Only fields this page is actually given are shown: MaintenanceRequestDetailsResponse
+  carries the ticket, requester, location, title, description, category, urgency,
+  status, two timestamps and the status history, and that is the whole list.
 
-  <title>Request Details - SmartFix</title>
+  Attachments are deliberately absent. AttachmentService can read a stored file,
+  but nothing maps it to a URL - the download controller was never written - so
+  there is no protected route to link to, and the details response carries no
+  attachment list. When that endpoint lands, its links belong in the wide column
+  under the description, and must use that route rather than any filesystem path.
 
-  <link rel="stylesheet"
-        th:href="@{/css/site.css}">
+  The breadcrumb is the one place in the product with a real parent to show, so
+  it is the one place a trail is drawn. It replaces the account bar's old
+  "Requests / SF-..." label: the same hierarchy, stated in the content where a
+  reader can also follow it, instead of in a bar that every page shares. Which
+  parent it links to depends on how the reader arrived, and only the route that
+  matches the role is offered.
+
+  The document title carries the same trail, which is why it is passed to head()
+  as one string rather than as the bare ticket number. A tab or a history entry
+  reads as "My Requests / <ticket>", which says where the page sits without the
+  reader having to open it.
+
+  The trailing comments on the breadcrumb suppress the whitespace between the
+  link and the separators: the pieces are separate elements, so without them the
+  trail would be announced with a gap around the slash.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(
+    ${navRole == 'ADMINISTRATOR'}
+        ? |Request lookup / ${request.ticketNumber}|
+        : |My Requests / ${request.ticketNumber}|)}">
+  <title>Request details · SmartFix</title>
 </head>
-
 <body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar(
+      ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
 
-<header>
-  <h1>Maintenance Request</h1>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar(
+        ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
 
-  <nav>
-    <a th:href="@{/}">Home</a>
-    <a th:href="@{/requests/mine}">My Requests</a>
-  </nav>
-</header>
+    <main id="main-content" class="content">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a class="crumbs__link" th:if="${navRole == 'ADMINISTRATOR'}"
+           th:href="@{/admin/requests/lookup}">Request lookup</a><!--
+     --><a class="crumbs__link" th:unless="${navRole == 'ADMINISTRATOR'}"
+           th:href="@{/requests/mine}">My Requests</a><!--
+     --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
+     --><span class="crumbs__here" aria-current="page"
+              th:text="${request.ticketNumber}">SF-2026-000001</span>
+      </nav>
 
-<main>
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title" th:text="${request.title}">Broken light</h1>
+          <p class="page-head__subtitle">
+            <span class="page-head__eyebrow" th:text="|Ticket ${request.ticketNumber}|">Ticket SF-2026-000001</span>
+            <span aria-hidden="true"> &middot; </span>
+            <span th:text="|submitted ${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}|">
+              submitted 2026-09-19 08:00
+            </span>
+          </p>
+        </div>
 
-  <section>
-    <h2 th:text="${request.ticketNumber}">
-      SF-2026-000001
-    </h2>
+        <div class="page-head-row__actions">
+          <!-- The current state, beside the title, so it is the first thing read.
+               It is repeated in the summary column only as part of that list. -->
+          <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
 
-    <dl>
+          <a class="btn btn--secondary" th:if="${navRole == 'ADMINISTRATOR'}"
+             th:href="@{/admin/requests/lookup}">Back to request lookup</a>
+          <a class="btn btn--secondary" th:unless="${navRole == 'ADMINISTRATOR'}"
+             th:href="@{/requests/mine}">Back to my requests</a>
+        </div>
+      </div>
 
-      <dt>Title</dt>
-      <dd th:text="${request.title}">Title</dd>
+      <div class="detail-layout">
+        <!-- Summary. First in the markup so the phone layout reads it first. -->
+        <aside class="detail-layout__aside" aria-labelledby="request-summary-title">
+          <section class="card">
+            <div class="card__header">
+              <h2 class="card__title" id="request-summary-title">Request summary</h2>
+            </div>
+            <div class="card__body">
+              <dl class="detail-list">
+                <dt>Ticket number</dt>
+                <dd class="data-table__id" th:text="${request.ticketNumber}">SF-2026-000001</dd>
 
-      <dt>Location</dt>
-      <dd th:text="${request.locationDisplayName}">
-        Location
-      </dd>
+                <dt>Status</dt>
+                <dd>
+                  <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
+                </dd>
 
-      <dt>Category</dt>
-      <dd th:text="${request.category}">
-        Category
-      </dd>
+                <dt>Location</dt>
+                <dd th:text="${request.locationDisplayName}">COM1 Level 1</dd>
 
-      <dt>Urgency</dt>
-      <dd th:text="${request.urgencyLevel}">
-        MEDIUM
-      </dd>
+                <dt>Category</dt>
+                <dd th:text="${request.category}">ELECTRICAL</dd>
 
-      <dt>Status</dt>
-      <dd th:text="${request.status}">
-        SUBMITTED
-      </dd>
+                <dt>Urgency</dt>
+                <dd>
+                  <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
+                </dd>
 
-      <dt>Description</dt>
-      <dd th:text="${request.description}">
-        Description
-      </dd>
+                <dt>Submitted</dt>
+                <dd th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
 
-      <dt>Created</dt>
-      <dd th:text="${#temporals.format(
-                    request.createdAt,
-                    'yyyy-MM-dd HH:mm'
-                )}">
-        Created
-      </dd>
+                <dt>Last updated</dt>
+                <dd th:text="${#temporals.format(request.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
 
-    </dl>
-  </section>
+                <!-- Shown to administrators only: a requester already knows this
+                     request is theirs, so the account id would be noise. -->
+                <th:block th:if="${navRole == 'ADMINISTRATOR'}">
+                  <dt>Requester</dt>
+                  <dd th:text="|Account #${request.requesterId}|">Account #10</dd>
+                </th:block>
+              </dl>
+            </div>
+          </section>
+        </aside>
 
+        <div class="detail-layout__main">
+          <section class="card" aria-labelledby="description-title">
+            <div class="card__header">
+              <h2 class="card__title" id="description-title">Description</h2>
+            </div>
+            <div class="card__body">
+              <p class="prose" th:text="${request.description}">Description</p>
+            </div>
+          </section>
 
-  <section>
-    <h2>Status History</h2>
+          <section class="card" aria-labelledby="history-title">
+            <div class="card__header">
+              <h2 class="card__title" id="history-title">Status history</h2>
+              <span class="card__hint"
+                    th:if="${#lists.size(request.statusHistory) == 1}">1 entry</span>
+              <span class="card__hint"
+                    th:if="${#lists.size(request.statusHistory) > 1}"
+                    th:text="|${#lists.size(request.statusHistory)} entries|">2 entries</span>
+            </div>
+            <div class="card__body">
+              <div th:if="${#lists.isEmpty(request.statusHistory)}">
+                <div th:replace="~{fragments/components :: emptyState(
+                         'No status history is recorded for this request.',
+                         null)}"></div>
+              </div>
 
-    <p th:if="${#lists.isEmpty(request.statusHistory)}">
-      No status history is available.
-    </p>
+              <div th:unless="${#lists.isEmpty(request.statusHistory)}">
+                <div th:replace="~{fragments/components :: timeline(${request.statusHistory})}"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 
-    <table th:unless="${#lists.isEmpty(request.statusHistory)}">
-      <thead>
-      <tr>
-        <th>From</th>
-        <th>To</th>
-        <th>Changed By</th>
-        <th>Changed At</th>
-        <th>Comment</th>
-      </tr>
-      </thead>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
 
-      <tbody>
-      <tr th:each="history : ${request.statusHistory}">
-
-        <td th:text="${history.fromStatus != null
-                        ? history.fromStatus
-                        : '-'}">
-          -
-        </td>
-
-        <td th:text="${history.toStatus}">
-          SUBMITTED
-        </td>
-
-        <td th:text="${history.changedByUserId}">
-          1
-        </td>
-
-        <td th:text="${#temporals.format(
-                        history.changedAt,
-                        'yyyy-MM-dd HH:mm'
-                    )}">
-          Time
-        </td>
-
-        <td th:text="${history.comment != null
-                        ? history.comment
-                        : '-'}">
-          -
-        </td>
-
-      </tr>
-      </tbody>
-    </table>
-
-  </section>
-
-
-  <!--
-      Category E mount point.
-
-      E may append the attachment list below this comment.
-      D must not implement attachment storage/download logic here.
-  -->
-
-</main>
-
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

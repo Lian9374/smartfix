@@ -1,92 +1,1690 @@
-/* Shared SmartFix server-rendered page styles. */
+/* ==========================================================================
+   SmartFix - Campus Facility Maintenance and Technician Dispatch System
+   One stylesheet, organised top-down: tokens, base, shell, furniture,
+   components, page-specific rules, then motion and responsive.
+
+   Rules live in the section that owns them and nowhere else. A page-specific
+   block may narrow a shared component (".essentials .badge { ... }"), but it
+   may not redefine it: that is how a product starts looking like several.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Tokens
+   ========================================================================== */
 
 :root {
-    color-scheme: light dark;
-    --bg: #f6f7f9;
-    --fg: #1f2933;
-    --accent: #14532d;
-    --card: #ffffff;
-    --border: #e2e8f0;
-    --muted: #64748b;
+  /* --- brand ----------------------------------------------------------- */
+  --brand:            #246B63;
+  --brand-dark:       #164D47;
+  --brand-hover:      #1D5A53;
+  --brand-tint:       #E7F2ED;   /* mint: bands, current-navigation marks  */
+  --brand-tint-line:  #CFE3DA;   /* a border for something on mint         */
+
+  /* --- surfaces -------------------------------------------------------- */
+  --canvas:           #F6F8F7;   /* the page behind everything             */
+  --canvas-warm:      #FAF9F6;   /* the sign-in panel: a warmer off-white  */
+  --surface:          #FFFFFF;   /* cards, bars                            */
+
+  /* --- text ------------------------------------------------------------ */
+  --text:             #182B29;
+  --muted:            #5C6D6A;   /* 5.45:1 on white, 5.11:1 on canvas,
+                                    4.76:1 on mint - AA at body size        */
+  --muted-strong:     #46585A;   /* for text on the tinted pill backgrounds */
+
+  /* --- lines ----------------------------------------------------------- */
+  --border:           #E1E8E5;
+  --border-strong:    #CBD8D4;
+
+  /* --- one warm accent, for illustration detail and nothing else ------- */
+  --accent:           #E0A458;
+  --accent-ink:       #8A5A1B;
+
+  /* --- status tones ----------------------------------------------------
+     Each tone is a background, a border and an ink that were measured
+     together; none of them is used as text on anything but its own
+     background. Every badge also prints its state as a word, so colour is
+     never the only carrier. */
+  --tone-neutral-bg:  #EEF2F1;
+  --tone-neutral-ink: #46585A;
+  --tone-neutral-bd:  #DCE5E2;
+
+  --tone-info-bg:     #E7F2ED;
+  --tone-info-ink:    #164D47;
+  --tone-info-bd:     #CFE3DA;
+
+  --tone-success-bg:  #E6F3EA;
+  --tone-success-ink: #1D6B45;
+  --tone-success-bd:  #CBE4D5;
+
+  --tone-warning-bg:  #FDF3E2;
+  --tone-warning-ink: #8A5A1B;
+  --tone-warning-bd:  #F0DFC2;
+
+  --tone-danger-bg:   #FBEAEA;
+  --tone-danger-ink:  #9B2C2C;
+  --tone-danger-bd:   #F0D3D3;
+
+  /* --- type ------------------------------------------------------------ */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, "Noto Sans", "PingFang SC",
+               "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Liberation Mono", monospace;
+
+  --text-xs:   0.75rem;    /* 12px - badges, hints                        */
+  --text-sm:   0.8125rem;  /* 13px - meta, table body                     */
+  --text-base: 0.9375rem;  /* 15px - body                                 */
+  --text-md:   1rem;       /* 16px - card titles, inputs                  */
+  --text-lg:   1.25rem;    /* 20px - page titles                          */
+  --text-xl:   1.5rem;     /* 24px - section titles                       */
+  --text-2xl:  2rem;       /* 32px - the sign-in statement                */
+
+  --leading-tight: 1.25;
+  --leading-body:  1.55;
+
+  /* --- space ----------------------------------------------------------- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* --- shape ----------------------------------------------------------- */
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  14px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(24, 43, 41, 0.05);
+  --shadow-md: 0 1px 3px rgba(24, 43, 41, 0.06), 0 8px 24px rgba(24, 43, 41, 0.06);
+
+  /* --- layout ---------------------------------------------------------- */
+  --content-max:   1160px;  /* text and cards stop here, centred           */
+  --content-pad:   24px;    /* the gutter outside it, never smaller        */
+  --rail-width:    248px;   /* the administrative rail                     */
+  --bar-height:    70px;    /* the top bar, within the 68-72px band        */
+  --field-height:  46px;    /* every text input in the product             */
+  --focus-ring:    3px;
+
+  --transition: 140ms ease;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --bg: #0f172a;
-        --fg: #e2e8f0;
-        --accent: #4ade80;
-        --card: #1e293b;
-        --border: #334155;
-        --muted: #94a3b8;
-    }
-}
+/* ==========================================================================
+   2. Base
+   ========================================================================== */
 
-* { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
 
 body {
-    margin: 0;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.6;
-    color: var(--fg);
-    background: var(--bg);
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
 }
 
-.site-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.9rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    background: var(--card);
+h1, h2, h3, h4, p, figure, dl, dd, dt, fieldset, legend {
+  margin: 0;
 }
 
-.brand { font-weight: 700; letter-spacing: 0.02em; }
-
-.site-header nav a { margin-left: 1rem; color: var(--accent); text-decoration: none; }
-
-.hero {
-    text-align: center;
-    padding: 3rem 1rem 1.5rem;
+h1, h2, h3, h4 {
+  line-height: var(--leading-tight);
+  font-weight: 650;
+  letter-spacing: -0.011em;
 }
 
-.hero h1 { font-size: 2.4rem; margin: 0 0 0.4rem; }
-.tagline { font-size: 1.15rem; color: var(--muted); margin: 0 0 1rem; }
+ul, ol { margin: 0; padding: 0; }
+
+a {
+  color: var(--brand-dark);
+  text-decoration: none;
+  text-underline-offset: 2px;
+}
+a:hover { text-decoration: underline; }
+
+img, svg { max-width: 100%; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--tone-neutral-bg);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: var(--space-6) 0;
+}
+
+/* One focus treatment for the whole product, keyboard only. */
+:focus-visible {
+  outline: var(--focus-ring) solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+/* The bar and the rail sit on their own backgrounds; the ring still shows. */
+.appbar :focus-visible,
+.sidebar :focus-visible { outline-offset: 3px; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.meta {
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.prose {
+  font-size: var(--text-md);
+  line-height: 1.65;
+  /* A description is a person's own words: the line breaks they typed are
+     kept, while runs of spaces still collapse. */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   3. App shell
+   The same skeleton wears one of two navigations. A rail is a flex child of
+   the shell, so when a role has none the content simply takes the width -
+   no page carries a variant class for it.
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100dvh;
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;      /* lets long table content scroll instead of pushing */
+}
+
+/* The one content column. Its outer width is the maximum plus both gutters,
+   and the gutters never fall below --content-pad; the bar and the footer use
+   the same expression, so all three share one left edge. */
+.content {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: calc(var(--content-max) + 2 * var(--content-pad));
+  margin-inline: auto;
+  padding: var(--space-8) var(--content-pad) var(--space-12);
+}
+
+.site-footer {
+  padding: var(--space-5) max(var(--content-pad), calc((100% - var(--content-max)) / 2)) var(--space-8);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* --------------------------------------------------------------- the mark */
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand__mark {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  color: #fff;
+}
+.brand__mark svg { width: 19px; height: 19px; display: block; }
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand__name {
+  font-size: var(--text-md);
+  font-weight: 660;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+.brand__product {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------- the rail */
+
+.sidebar {
+  display: flex;
+  flex: 0 0 var(--rail-width);
+  flex-direction: column;
+  gap: var(--space-6);
+  width: var(--rail-width);
+  padding: var(--space-5) var(--space-4) var(--space-5);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-2);
+}
+
+.sidebar__brand { display: inline-flex; }
+
+.sidebar__foot {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav__group-label {
+  padding: var(--space-2) var(--space-3) var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 620;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.nav__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: 550;
+}
+.nav__link:hover { background: var(--canvas); text-decoration: none; }
+
+.nav__link svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+
+/* The current destination is marked by a tinted pill, not by an underline:
+   in a rail an underline reads as a divider between rows. */
+.nav__link[aria-current="page"] {
+  background: var(--brand-tint);
+  color: var(--brand-dark);
+  font-weight: 620;
+}
+.nav__link[aria-current="page"] svg { color: var(--brand); }
+
+/* ---------------------------------------------------------------- the bar */
+
+.appbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+/* For an administrator the rail is the navigation and already carries the
+   brand, so the bar above the breakpoint would be a second copy of both: the
+   same wordmark twice on one screen, once in the rail and once on the bar.
+   Below the breakpoint the rail is off-canvas and the bar is the only way to
+   reach it, so there it stays. */
+@media (min-width: 901px) {
+  .appbar--rail { display: none; }
+}
+
+.appbar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--bar-height);
+  padding-inline: max(var(--content-pad), calc((100% - var(--content-max)) / 2));
+}
+
+.appbar__brand {
+  display: inline-flex;
+  flex: 0 0 auto;
+  color: inherit;
+}
+.appbar__brand:hover { text-decoration: none; }
+
+/* Everything except the mark: the destinations, then the account block.
+   On a wide screen it is one row; on a narrow one it is the second row of
+   the bar, revealed by the Menu button. */
+.appbar__panel {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.appbar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-right: auto;
+}
+
+.appbar__link {
+  padding: 8px var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  font-size: var(--text-base);
+  font-weight: 580;
+  white-space: nowrap;
+}
+.appbar__link:hover { background: var(--canvas); color: var(--text); text-decoration: none; }
+
+.appbar__link[aria-current="page"] {
+  background: var(--brand-tint);
+  color: var(--brand-dark);
+  font-weight: 640;
+}
+
+.nav-toggle {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: 9px var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font: inherit;
+  font-weight: 580;
+  cursor: pointer;
+}
+.nav-toggle:hover { background: var(--canvas); }
+.nav-toggle svg { width: 18px; height: 18px; }
+
+.nav-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--muted);
+  cursor: pointer;
+}
+.nav-close:hover { background: var(--canvas); color: var(--text); }
+.nav-close svg { width: 18px; height: 18px; }
+
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: none;
+  padding: 0;
+  border: 0;
+  background: rgba(24, 43, 41, 0.42);
+  cursor: pointer;
+}
+.nav-backdrop.is-open { display: block; }
+
+/* --------------------------------------------------------- the account box */
+
+.userbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.userbox__avatar {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-tint);
+  color: var(--brand-dark);
+  font-size: var(--text-sm);
+  font-weight: 660;
+  text-transform: uppercase;
+}
+
+.userbox__who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.userbox__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 16ch;
+}
+
+/* The role, said once and quietly. In a table a role is a filled pill; in the
+   account block it is a line of small text, because the name is what matters
+   there and a second pill beside it would pull the eye off the bar. */
+.userbox .badge {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 520;
+}
+
+.logout-form { margin: 0; }
+
+.link-button {
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 560;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link-button:hover { color: var(--text); }
+
+/* ==========================================================================
+   4. Page furniture
+   ========================================================================== */
+
+.page-head { min-width: 0; }
+
+.page-head__title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.018em;
+}
+
+.page-head__subtitle {
+  margin-top: var(--space-2);
+  max-width: 68ch;
+  color: var(--muted);
+  font-size: var(--text-base);
+}
+
+.page-head__eyebrow {
+  font-variant-numeric: tabular-nums;
+  font-weight: 560;
+}
+
+/* A heading with something beside it - an action, a status, a count. The
+   action aligns with the title's baseline block rather than with the page's
+   top, so it sits with the heading instead of floating above it. */
+.page-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.page-head-row__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding-top: 2px;
+}
+
+.page-head-row__meta {
+  flex: 0 0 auto;
+  padding-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The trail. Only pages with a real parent have one. */
+.crumbs {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+.crumbs__link { color: var(--muted); font-weight: 560; }
+.crumbs__link:hover { color: var(--brand-dark); }
+.crumbs__sep { padding-inline: 6px; }
+.crumbs__here {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------- the card */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;   /* so a flushed table meets the rounded corner */
+}
+
+.card + .card { margin-top: var(--space-5); }
+
+.card__header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6) var(--space-3);
+}
+
+.card__title {
+  font-size: var(--text-md);
+  letter-spacing: -0.008em;
+}
+
+.card__hint {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.card__link {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  font-weight: 580;
+}
+
+.card__body { padding: 0 var(--space-6) var(--space-6); }
+
+/* A body that holds a table or an empty state, both of which carry their own
+   padding, so the card does not add a second one around them. */
+.card__body--flush { padding: 0; }
+
+.card__footer {
+  padding: var(--space-4) var(--space-6) var(--space-5);
+  border-top: 1px solid var(--border);
+  background: var(--canvas);
+}
+
+/* ==========================================================================
+   5. Components
+   ========================================================================== */
+
+/* --------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 40px;
+  padding: 0 var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-base);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.btn--primary {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;                      /* 6.25:1 on --brand */
+}
+.btn--primary:hover { background: var(--brand-hover); border-color: var(--brand-hover); }
+
+.btn--secondary {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.btn--secondary:hover { background: var(--canvas); border-color: var(--muted); }
+
+.btn--small { min-height: 32px; padding: 0 var(--space-3); font-size: var(--text-sm); }
+
+.btn--block { width: 100%; min-height: var(--field-height); }
+
+.btn[disabled], .btn[aria-disabled="true"] {
+  background: var(--tone-neutral-bg);
+  border-color: var(--tone-neutral-bd);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- badges */
 
 .badge {
-    display: inline-block;
-    padding: 0.25rem 0.9rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    color: #fff;
-    background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border: 1px solid var(--tone-neutral-bd);
+  border-radius: var(--radius-pill);
+  background: var(--tone-neutral-bg);
+  color: var(--tone-neutral-ink);
+  font-size: var(--text-xs);
+  font-weight: 620;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
-.content {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 0 1.5rem 2rem;
+.badge--neutral { background: var(--tone-neutral-bg); border-color: var(--tone-neutral-bd); color: var(--tone-neutral-ink); }
+.badge--info    { background: var(--tone-info-bg);    border-color: var(--tone-info-bd);    color: var(--tone-info-ink); }
+.badge--success { background: var(--tone-success-bg); border-color: var(--tone-success-bd); color: var(--tone-success-ink); }
+.badge--warning { background: var(--tone-warning-bg); border-color: var(--tone-warning-bd); color: var(--tone-warning-ink); }
+.badge--danger  { background: var(--tone-danger-bg);  border-color: var(--tone-danger-bd);  color: var(--tone-danger-ink); }
+
+/* A role is the one badge that is filled: it names a person, and it is worn
+   rather than reported, so it reads as a label and not as a state. */
+.badge--brand {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
 }
 
-.content h2 { margin-top: 1.5rem; }
+/* ---------------------------------------------------------------- alerts */
 
-.content p { color: var(--muted); }
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--tone-neutral-bd);
+  border-radius: var(--radius-md);
+  background: var(--tone-neutral-bg);
+  color: var(--tone-neutral-ink);
+  font-size: var(--text-base);
+}
 
-.hint { font-size: 0.9rem; }
-.hint a { color: var(--accent); }
+.alert__icon { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 1px; }
+.alert__body { min-width: 0; }
+.alert__title { font-weight: 640; }
 
-footer {
-    text-align: center;
-    padding: 1rem;
-    font-size: 0.85rem;
-    color: var(--muted);
+.alert--success { background: var(--tone-success-bg); border-color: var(--tone-success-bd); color: var(--tone-success-ink); }
+.alert--warning { background: var(--tone-warning-bg); border-color: var(--tone-warning-bd); color: var(--tone-warning-ink); }
+.alert--error   { background: var(--tone-danger-bg);  border-color: var(--tone-danger-bd);  color: var(--tone-danger-ink); }
+.alert--info    { background: var(--tone-info-bg);    border-color: var(--tone-info-bd);    color: var(--tone-info-ink); }
+
+/* Two alerts in a row - a page can carry a refusal and a confirmation at
+   once - get a gap without either of them needing a margin. */
+.alert + .alert { margin-top: var(--space-3); }
+
+/* ----------------------------------------------------------- the page note */
+
+/* A standing fact about a page, not an event. It is text with a small icon
+   rather than a box, so it can sit beside a list without competing with it. */
+.page-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.page-note svg { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; }
+
+/* ------------------------------------------------------------ empty states */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.empty-state__icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: var(--space-1);
+  color: var(--border-strong);
+}
+
+.empty-state__title {
+  color: var(--text);
+  font-size: var(--text-md);
+  font-weight: 640;
+}
+
+/* The illustrated one, for a list nobody has filled yet. It is taller than
+   the quiet state because it is the first thing a new account sees on the
+   page, and it holds a drawing rather than a glyph. */
+.empty-state--illustrated { padding: var(--space-8) var(--space-6) var(--space-10); }
+
+.empty-state__art {
+  display: block;
+  width: 100%;
+  max-width: 200px;
+  margin-bottom: var(--space-3);
+}
+.empty-state__art svg { display: block; width: 100%; height: auto; }
+
+/* ---------------------------------------------------------------- notice */
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-base);
+}
+.notice__icon { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; color: var(--brand); }
+.notice__title { color: var(--text); font-weight: 620; }
+
+/* -------------------------------------------------------------- timeline */
+
+.timeline { list-style: none; }
+
+.timeline__item {
+  position: relative;
+  padding: 0 0 var(--space-5) var(--space-6);
+  border-left: 2px solid var(--border);
+}
+.timeline__item:last-child { padding-bottom: 0; border-left-color: transparent; }
+
+.timeline__item::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: -7px;              /* centres a 12px dot on the 2px rule */
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--brand);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+
+.timeline__transition {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.timeline__meta {
+  margin-top: var(--space-1);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline__comment {
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  font-size: var(--text-sm);
+}
+
+/* ----------------------------------------------------------- detail lists */
+
+.detail-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-1) 0;
+}
+
+.detail-list dt {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.detail-list dt:first-child { margin-top: 0; }
+
+.detail-list dd {
+  font-size: var(--text-base);
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   6. Tables
+   ========================================================================== */
+
+/* The only element allowed to be wider than the page, and only inside here. */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.data-table caption { text-align: left; }
+
+.data-table th, .data-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table thead th {
+  padding-block: var(--space-3);
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 620;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:last-child th,
+.data-table tbody tr:last-child td { border-bottom: 0; }
+
+.data-table tbody tr { transition: background-color var(--transition); }
+.data-table tbody tr:hover { background: var(--canvas); }
+/* Hover is a convenience; keyboard focus must be just as visible. */
+.data-table tbody tr:focus-within { background: var(--brand-tint); }
+
+.data-table a { font-weight: 580; }
+
+.data-table__id {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.data-table__nowrap { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Long titles and long location names wrap inside their cell instead of
+   widening the table. anything that still cannot wrap scrolls in .table-scroll. */
+.data-table__wrap { overflow-wrap: anywhere; min-width: 12ch; }
+
+.data-table__stack { white-space: nowrap; }
+
+/* The ticket and the title, in one link. */
+.cell-request { min-width: 22ch; }
+
+.cell-request__link {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cell-request__ticket {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+}
+
+.cell-request__title {
+  color: var(--brand-dark);
+  font-size: var(--text-base);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================================
+   7. Forms
+   ========================================================================== */
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.form-field__label {
+  font-size: var(--text-sm);
+  font-weight: 620;
+}
+
+.form-field input[type="text"],
+.form-field input[type="password"],
+.form-field input[type="search"],
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  min-height: var(--field-height);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-md);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.form-field select {
+  /* A select sizes to its widest option; capping it keeps a long option from
+     setting the width of a table column. */
+  max-width: 100%;
+  text-overflow: ellipsis;
+}
+
+.form-field input:hover, .form-field select:hover, .form-field textarea:hover {
+  border-color: var(--muted);
+}
+
+/* The global :focus-visible outline cannot carry the indicator here: this rule
+   is more specific than a bare pseudo-class, so it would win and the input would
+   have no outline at all. The shadow therefore has to be a real indicator rather
+   than a tint - a solid ring in the brand colour, one pixel proud of the border,
+   with a soft halo outside it. Two pixels of hard brand edge is what makes the
+   focused field findable; the 1px border colour change on its own is not. */
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+  border-color: var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--brand), 0 0 0 4px rgba(36, 107, 99, 0.18);
+}
+
+.form-field__hint {
+  color: var(--muted);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
+.form-field__error {
+  color: var(--tone-danger-ink);
+  font-size: var(--text-xs);
+  font-weight: 560;
+}
+/* th:errors renders nothing at all when a field is valid, so an empty error
+   span never takes up space. */
+.form-field__error:empty { display: none; }
+
+.form-field--invalid input,
+.form-field--invalid select {
+  border-color: var(--tone-danger-ink);
+}
+.form-field--invalid input:focus,
+.form-field--invalid select:focus {
+  box-shadow: 0 0 0 1px var(--tone-danger-ink), 0 0 0 4px rgba(155, 44, 44, 0.18);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-6);
+}
+
+.form-section {
+  padding: 0;
+  border: 0;
+  margin: 0;
+}
+.form-section + .form-section {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border);
+}
+
+.form-section legend {
+  padding: 0;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.inline-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The row-level controls in an administration table. They are the same control
+   as a form field, one density step down, because a 46px input inside a table
+   row stops the row reading as a row. Written as its own rule rather than by
+   widening the .form-field selectors, so the two densities stay two deliberate
+   choices instead of one rule that a later override has to fight. */
+.inline-form select,
+.inline-form input[type="text"] {
+  min-height: 34px;
+  max-width: 100%;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--text-sm);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.inline-form select:hover,
+.inline-form input[type="text"]:hover { border-color: var(--muted); }
+
+/* Same indicator as a form field, at the smaller radius. */
+.inline-form select:focus,
+.inline-form input[type="text"]:focus {
+  border-color: var(--brand);
+  outline: none;
+  box-shadow: 0 0 0 1px var(--brand), 0 0 0 3px rgba(36, 107, 99, 0.18);
+}
+
+/* ------------------------------------------------------- password reveal */
+
+.password-field { position: relative; }
+
+.password-field input { padding-right: 68px; }
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--brand-dark);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 620;
+  cursor: pointer;
+}
+.password-toggle:hover { background: var(--brand-tint); }
+
+/* ==========================================================================
+   8. Overview
+   ========================================================================== */
+
+/* The welcome band: a short region, not a marketing banner. It carries the
+   greeting, one line about the page and a small drawing, and it stops. */
+/* A band, not a banner. Its height is set by one line of greeting, one line of
+   explanation and the drawing beside them, and the vertical padding is what
+   holds it inside the 140-180px the design asks for; the min-height only stops
+   it collapsing when a role has a single short line. */
+.welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  min-height: 140px;
+  padding: var(--space-5) var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--brand-tint);
+  overflow: hidden;
+}
+
+.welcome__text { min-width: 0; }
+
+.welcome__title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.018em;
+  color: var(--brand-dark);
+  overflow-wrap: anywhere;
+}
+
+.welcome__subtitle {
+  margin-top: var(--space-2);
+  max-width: 52ch;
+  color: var(--muted-strong);   /* 6.9:1 on --brand-tint */
+}
+
+.welcome__art {
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 220px;
+}
+.welcome__art svg { display: block; width: 100%; height: auto; }
+
+/* Two columns: the work, and the standing facts about it. */
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+/* The narrow column. It is deliberately not a card: it explains the wide one,
+   so it sits on the canvas without a border or a shadow of its own. */
+.essentials { min-width: 0; }
+
+.essentials__title {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--text-xs);
+  font-weight: 640;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.essentials__list { list-style: none; }
+
+.essentials__item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+.essentials__icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  color: var(--brand);
+}
+
+.essentials__item strong {
+  display: block;
+  color: var(--text);
+  font-weight: 620;
+}
+
+.essentials__foot { padding-top: var(--space-4); }
+.essentials__meta {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* --------------------------------------------------------- action list */
+
+.action-list { list-style: none; }
+
+.action-list li + li { border-top: 1px solid var(--border); }
+
+.action-list__link {
+  display: block;
+  padding: var(--space-4) var(--space-6);
+  color: inherit;
+  transition: background-color var(--transition);
+}
+.action-list__link:hover { background: var(--canvas); text-decoration: none; }
+
+.action-list__label {
+  display: block;
+  font-size: var(--text-md);
+  font-weight: 620;
+  color: var(--brand-dark);
+}
+
+.action-list__desc {
+  display: block;
+  margin-top: 2px;
+  max-width: 74ch;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   9. Detail layout (request detail, administrator lookup)
+   ========================================================================== */
+
+/* The summary is first in the markup so the single-column reading order puts
+   the facts before the prose, and it is placed in the narrow column here. */
+.detail-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-6);
+}
+
+.detail-layout__main > .card:first-child { margin-top: 0; }
+
+/* The one search in the product. It sits on the page rather than inside a card:
+   a border around a single field and a button would weigh more than the result
+   it produces. A rule underneath separates the search from what it found, which
+   is the only separation the two need. */
+.lookup {
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--space-6);
+}
+
+.lookup__title {
+  font-size: var(--text-md);
+  margin-bottom: var(--space-4);
+}
+
+.lookup__form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+/* Wide enough to hold a ticket number without the field running the whole
+   content width, and shrinkable so the row wraps before it overflows. */
+.lookup__form .form-field {
+  flex: 0 1 22rem;
+  min-width: 0;
+}
+
+.lookup__hint {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* ==========================================================================
+   10. Sign in
+   ========================================================================== */
+
+/* One page, two halves. The split is the structure: the form is not boxed on
+   top of the brand panel, because a card around it would draw a second
+   vertical edge beside the one the split already draws. */
+.auth {
+  display: grid;
+  grid-template-columns: 54fr 46fr;
+  min-height: 100dvh;
+}
+
+.auth__intro {
+  display: flex;
+  flex-direction: column;
+  /* The teal has depth rather than being one flat fill: a slow tonal shift
+     from the brand to its darker end. No glass, no glow, no second hue. */
+  background-color: var(--brand-dark);
+  background-image: linear-gradient(158deg, #2A776E 0%, var(--brand) 46%, var(--brand-dark) 100%);
+  color: #fff;
+  padding: clamp(28px, 4vw, 52px) clamp(28px, 4.5vw, 64px) 0;
+  overflow: hidden;
+}
+
+.auth__brand { margin: 0 0 auto; }
+.auth__brand .brand__mark { background: rgba(255, 255, 255, 0.16); color: #fff; }
+.auth__brand .brand__name { color: #fff; }
+.auth__brand .brand__product { color: rgba(255, 255, 255, 0.72); }
+
+/* The two auto margins above and below this block split the free space
+   evenly, which is what keeps the statement optically centred between the
+   mark at the top and the drawing at the foot, whatever the height is. */
+.auth__intro-body { margin-block: auto; padding-block: var(--space-8); }
+
+.auth__statement {
+  font-size: var(--text-2xl);
+  font-weight: 650;
+  line-height: 1.22;
+  letter-spacing: -0.022em;
+  max-width: 20ch;
+  /* The measure does the breaking, and balance keeps the two lines close to
+     even instead of leaving one word alone on the second line. Where text-wrap
+     is not supported the sentence simply wraps as it would have. */
+  text-wrap: balance;
+}
+
+.auth__text {
+  margin-top: var(--space-4);
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--text-md);
+}
+/* On the deepest part of the panel the muted white still clears AA; this is
+   the one place the product sets text on the brand colour. */
+
+.auth__art { margin-top: auto; }
+.auth__art svg { display: block; width: 100%; max-width: 640px; height: auto; }
+
+/* The form half: a warm off-white, with the form set directly on it. */
+.auth__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-10);
+  background: var(--canvas-warm);
+}
+
+.auth__form {
+  width: 100%;
+  max-width: 400px;   /* within the 380-420px band */
+}
+
+.auth__form-title {
+  font-size: var(--text-xl);
+  letter-spacing: -0.018em;
+}
+
+.auth__form-subtitle {
+  margin-top: var(--space-2);
+  color: var(--muted);
+}
+
+/* Feedback sits directly under the description, above the fields, so a
+   failed attempt is read before the form is filled in again. */
+.auth__feedback { margin-top: var(--space-5); }
+
+.auth__form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  margin-top: var(--space-6);
+}
+
+.auth__footnote {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   11. Error page
+   ========================================================================== */
+
+.error-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: var(--space-8) var(--content-pad);
+  background: var(--canvas);
+}
+
+.error-card {
+  width: 100%;
+  max-width: 520px;
+  padding: var(--space-8);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.error-card__brand { margin-bottom: var(--space-6); }
+
+.error-card__title {
+  margin-top: var(--space-3);
+  font-size: var(--text-xl);
+  letter-spacing: -0.018em;
+}
+
+.error-card__text {
+  margin-top: var(--space-3);
+  color: var(--muted);
+}
+
+.error-card__reference {
+  margin-top: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--canvas);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* ==========================================================================
+   12. Illustration
+   Shared sizing for the three drawings in fragments/illustrations.html. The
+   SVGs carry their own colours; only their box is set here.
+   ========================================================================== */
+
+.campus-art { display: block; width: 100%; height: auto; }
+
+/* ==========================================================================
+   13. Motion and print
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media print {
+  .appbar, .sidebar, .site-footer, .nav-toggle, .nav-backdrop, .nav-close,
+  .auth__intro, .btn { display: none !important; }
+
+  body { background: #fff; }
+  .card { box-shadow: none; border-color: #ccc; break-inside: avoid; }
+  .content { max-width: none; padding: 0; }
+}
+
+/* ==========================================================================
+   14. Responsive
+   Breakpoints: 1180px (the overview drops to one column), 900px (navigation
+   collapses to a button and the sign-in split becomes one column), 760px
+   (tables become stacked rows), 520px (the last of the horizontal padding).
+   ========================================================================== */
+
+@media (max-width: 1180px) {
+  .overview-grid { grid-template-columns: minmax(0, 1fr); }
+  .essentials { margin-top: var(--space-2); }
+}
+
+@media (max-width: 1024px) {
+  .detail-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 900px) {
+  /* --- navigation ---------------------------------------------------- */
+
+  /* The rail becomes a drawer over the page. It is still the same element,
+     so the links, the account block and the sign-out form stay one copy. */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    width: min(84vw, 296px);
+    border-right: 0;
+    box-shadow: var(--shadow-md);
+    transform: translateX(-100%);
+    transition: transform 200ms ease;
+    overflow-y: auto;
+  }
+  .sidebar.is-open { transform: none; }
+
+  .nav-close { display: inline-flex; }
+
+  /* The bar is now the only navigation for everybody. For an administrator
+     it is the trigger for the rail rather than a container of its own links. */
+  .nav-toggle { display: inline-flex; }
+
+  /* The panel drops under the bar as a second row rather than floating over
+     the page: a floating menu would need its own width, its own scroll and
+     its own dismissal, and a second row needs none of them. */
+  .appbar__panel {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-1);
+    padding-bottom: var(--space-3);
     border-top: 1px solid var(--border);
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+  }
+  .appbar__panel.is-open { display: flex; }
+
+  .appbar__links { flex-direction: column; align-items: stretch; margin-right: 0; }
+  .appbar__link { padding: 11px var(--space-3); }
+
+  .appbar__panel .userbox {
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--border);
+  }
+  .appbar__panel .logout-form { margin-left: auto; }
+
+  /* --- sign in -------------------------------------------------------- */
+
+  /* One column, brand first as a short band. The drawing is dropped rather
+     than shrunk: at this width it would either push the form off the first
+     screen or reduce to a smudge, and the form is what the visitor came for. */
+  .auth { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .auth__intro { padding: var(--space-8) var(--space-6); }
+  .auth__intro-body { margin-block: 0; padding-block: 0; margin-top: var(--space-6); }
+  .auth__art { display: none; }
+  .auth__panel { padding: var(--space-8) var(--space-6) var(--space-12); background: var(--canvas); }
+  .auth__form { max-width: 440px; }
+
+  /* --- layout --------------------------------------------------------- */
+
+  .content { padding-top: var(--space-6); }
+
+  .page-head-row { flex-direction: column; gap: var(--space-4); }
+  .page-head-row__actions { padding-top: 0; }
+  .page-head-row__meta { padding-top: 0; }
+
+  .welcome { flex-direction: column; align-items: flex-start; gap: var(--space-5); padding: var(--space-6); }
+  .welcome__art { max-width: 200px; }
+
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
-.auth-card { max-width: 480px; padding-top: 2rem; }
-.inline-form { display: inline; margin-left: 1rem; }
-input, select, button { font: inherit; padding: 0.45rem 0.65rem; }
-input, select { max-width: 100%; border: 1px solid var(--border); border-radius: 4px; }
-button { cursor: pointer; }
-a { color: var(--accent); }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-[role="alert"] { border-left: 3px solid #b91c1c; padding-left: 0.8rem; }
+@media (max-width: 760px) {
+  :root { --content-pad: 16px; }
+
+  .card__header { padding-inline: var(--space-5); }
+  .card__body { padding-inline: var(--space-5); }
+
+  /* A table that keeps its header row on a phone means a horizontal scroll
+     for every row. Below this width each row becomes a small stack instead,
+     and each cell carries its column name from data-label. */
+  .table-scroll:has(.data-table--stack) { overflow-x: visible; }
+
+  .data-table--stack thead { display: none; }
+
+  .data-table--stack,
+  .data-table--stack tbody,
+  .data-table--stack tr,
+  .data-table--stack th,
+  .data-table--stack td { display: block; width: 100%; }
+
+  .data-table--stack tbody tr {
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table--stack tbody tr:last-child { border-bottom: 0; }
+
+  .data-table--stack th,
+  .data-table--stack td {
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  .data-table--stack .cell-request { margin-bottom: var(--space-3); }
+  .data-table--stack .cell-request__title { font-size: var(--text-md); }
+
+  .data-table--stack td {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: var(--space-3);
+    align-items: baseline;
+    padding-block: 5px;
+  }
+
+  .data-table--stack td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: var(--text-xs);
+    font-weight: 620;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* A grid cell stretches its children, so a badge or a button placed in one
+     would fill the whole line: a pill that spans the row stops reading as a
+     pill and starts reading as a band. Values sit at the start of their cell,
+     where the label above them already points. */
+  .data-table--stack td > .badge,
+  .data-table--stack td > a,
+  .data-table--stack td > button,
+  .data-table--stack td > .inline-form,
+  .data-table--stack td > .btn { justify-self: start; }
+
+  .data-table__nowrap { white-space: normal; }
+
+  .detail-layout { gap: var(--space-5); }
+}
+
+@media (max-width: 520px) {
+  .appbar__inner { gap: var(--space-3); }
+  .appbar__brand .brand__product { display: none; }
+
+  .userbox__name { max-width: 11ch; }
+
+  .welcome__art { display: none; }
+
+  .page-head__title { font-size: var(--text-lg); }
+  .auth__statement { font-size: 1.625rem; }
+
+  .data-table--stack td { grid-template-columns: 1fr; gap: 2px; }
+  .data-table--stack td::before { margin-bottom: 2px; }
+}

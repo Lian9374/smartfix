@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="SmartFix">
+  <rect width="32" height="32" rx="8" fill="#0F766E"/>
+  <path d="M20.4 7.6a6 6 0 0 0-5.2 8.6l-6.1 6.1a1.9 1.9 0 0 0 2.7 2.7l6.1-6.1a6 6 0 0 0 7.2-8.3l-3.4 3.4-2.9-2.9z"
+        fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

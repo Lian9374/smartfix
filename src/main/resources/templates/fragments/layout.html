@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<!--
+  Shared page shell for every signed-in screen.
+
+  There is one page skeleton, and which navigation it wears depends on how much
+  navigation the role actually has:
+
+    <head th:replace="~{fragments/layout :: head('My Requests')}"> ... </head>
+    <body>
+      <div class="app-shell">
+        <th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
+        <div class="app-main">
+          <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
+          <main id="main-content" class="content"> ... </main>
+          <footer th:replace="~{fragments/layout :: footer}"></footer>
+        </div>
+      </div>
+      <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+    </body>
+
+  sidebar(active) renders the administrative rail, or nothing at all for a role
+  that does not have one. appbar(active) renders the horizontal bar: the top
+  navigation for a requester or a technician, the mobile-only bar for an
+  administrator whose navigation is in the rail. Each fragment decides for itself
+  whether it applies, so a page asks for both and gets the right one - no page
+  has to know which layout its role uses.
+
+  Why two shapes at all, rather than one for everybody (the Atlassian navigation
+  guidance is the reference here): a rail earns its 240px when it holds enough
+  destinations to need scanning, and costs a permanent 240px when it holds two.
+  A requester has two, so they go in a bar and the content keeps the width. An
+  administrator has three management areas plus the overview and will gain more,
+  so the rail stays. Both wear the same brand, type, buttons, forms and status
+  labels - the layout differs, the product does not.
+
+  active = "overview" | "my-requests" | "user-management" | "request-lookup",
+  and it only decides which link carries aria-current="page". Which links exist
+  at all comes from ${navRole}, which NavigationAdvice adds from the
+  authenticated principal - see docs/ui-guide.md.
+
+  Sign out stays a POST form. Spring Security owns that endpoint and it is
+  CSRF-protected, so it must never become a plain GET link.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(pageTitle)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="|${pageTitle} · SmartFix|">SmartFix</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+  <link rel="stylesheet" th:href="@{/css/site.css}">
+  <!--
+    Marks the document as script-enabled before first paint. The stylesheet only
+    collapses navigation into a menu button for .js, so a browser that runs no
+    JavaScript keeps the navigation laid out in full and loses nothing.
+  -->
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+
+<!--
+  The product mark on its own, inserted into a sized wrapper so each context
+  supplies its own wrapper class:
+
+    <span class="brand__mark" th:insert="~{fragments/layout :: mark}"></span>
+-->
+<svg th:fragment="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  <path d="M15.6 3.2a5.6 5.6 0 0 0-4.7 8.6L3.6 19a2 2 0 0 0 2.8 2.8l7.2-7.2a5.6 5.6 0 0 0 7-7.4l-3.2 3.2-2.5-2.5z"/>
+</svg>
+
+<!--
+  Mark plus wordmark, used by the top bar, the rail, the sign-in page and the
+  error page. One fragment, so the product's name is spelled the same way in all
+  four and a change lands in one place. The link, where there is one, is wrapped
+  around this by the caller rather than baked in: the sign-in page's brand is not
+  a link, because there is nowhere for it to go.
+-->
+<span class="brand" th:fragment="brand">
+  <span class="brand__mark" th:insert="~{fragments/layout :: mark}"></span>
+  <span class="brand__text">
+    <span class="brand__name">SmartFix</span>
+    <span class="brand__product">Facility maintenance</span>
+  </span>
+</span>
+
+<!--
+  The account block: who is signed in, what they are, and the only way out.
+  Shared by the bar and by the rail, so both show the same three things in the
+  same order.
+
+  ${navUsername} is the account name from the principal - the session carries no
+  display name, so none is invented here. The avatar is its first letter, and it
+  is aria-hidden because the name beside it already says the same thing.
+
+  The role is the roleBadge fragment, which is the single place an enum becomes a
+  word. In the bar it is styled down to a quiet label rather than the filled pill
+  it is in a table, so the account block reads as one line of text.
+-->
+<div class="userbox" th:fragment="userArea">
+  <span class="userbox__avatar" aria-hidden="true"
+        th:text="${(navUsername != null and navUsername.length() > 0) ? #strings.substring(#strings.toUpperCase(navUsername), 0, 1) : '?'}">A</span>
+  <span class="userbox__who">
+    <span class="userbox__name" th:text="${navUsername} ?: 'Signed in'"
+          th:title="${navUsername}">alice</span>
+    <span th:replace="~{fragments/components :: roleBadge(${navRole})}">Requester</span>
+  </span>
+  <form class="logout-form" th:action="@{/logout}" method="post">
+    <button type="submit" class="link-button">Sign out</button>
+  </form>
+</div>
+
+<!--
+  Administrative rail. Present only for a role that has the destinations to fill
+  it; every other role gets nothing here and the content takes the full width.
+
+  The condition sits on an inner th:block rather than on the fragment's own root:
+  th:replace is applied before th:if, so a condition written on the root of a
+  fragment pulled in with th:replace is not reliably evaluated. A wrapper makes
+  the intent unambiguous.
+-->
+<th:block th:fragment="sidebar(active)">
+  <th:block th:if="${navRole == 'ADMINISTRATOR'}">
+    <aside class="sidebar" id="app-sidebar" data-nav-panel aria-label="Main navigation">
+      <div class="sidebar__top">
+        <a class="sidebar__brand" th:href="@{/}">
+          <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
+        </a>
+        <button type="button" class="nav-close" data-nav-close aria-label="Close navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true" focusable="false">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="nav" aria-label="Sections">
+        <span class="nav__group-label">Administration</span>
+
+        <a class="nav__link" th:href="@{/}"
+           th:attr="aria-current=${active == 'overview'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M3 10.5 12 3.2l9 7.3"/>
+            <path d="M5.5 9.4V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.4"/>
+          </svg>
+          <span>Overview</span>
+        </a>
+
+        <a class="nav__link" th:href="@{/admin/users}"
+           th:attr="aria-current=${active == 'user-management'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M15.5 20v-1.6a4 4 0 0 0-4-4h-5a4 4 0 0 0-4 4V20"/>
+            <circle cx="9" cy="7.5" r="3.6"/>
+            <path d="M17.5 4.6a3.6 3.6 0 0 1 0 6.8"/>
+            <path d="M19.5 20v-1.6a4 4 0 0 0-2.8-3.8"/>
+          </svg>
+          <span>User Management</span>
+        </a>
+
+        <a class="nav__link" th:href="@{/admin/requests/lookup}"
+           th:attr="aria-current=${active == 'request-lookup'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <circle cx="10.5" cy="10.5" r="6.5"/>
+            <path d="m15.6 15.6 5 5"/>
+          </svg>
+          <span>Request Lookup</span>
+        </a>
+      </nav>
+
+      <div class="sidebar__foot">
+        <div th:replace="~{fragments/layout :: userArea}">Account</div>
+      </div>
+    </aside>
+  </th:block>
+</th:block>
+
+<!--
+  The horizontal bar. Two jobs, one element, so a page never has to know which
+  layout its role uses:
+
+    * requester, technician - this is the whole navigation. Brand on the left,
+      the role's destinations in the middle, the account block on the right.
+    * administrator - the rail at the side is the navigation, so this is only the
+      narrow-screen bar: brand and a Menu button that opens the rail as a drawer.
+      It is display:none above the breakpoint, where the rail is already visible.
+
+  The panel is the collapsible region, identified by data-nav-panel and pointed
+  at by aria-controls, so one script drives both it and the rail. Exactly one
+  element carrying that attribute is rendered per page, which is what lets the
+  script find it without knowing which layout it is on.
+-->
+<th:block th:fragment="appbar(active)">
+  <header class="appbar" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'appbar--rail' : null">
+    <div class="appbar__inner">
+      <a class="appbar__brand" th:href="@{/}">
+        <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
+      </a>
+
+      <!--
+        aria-controls names the thing the button actually opens, which is not the
+        same element for both layouts: an administrator's navigation is the rail
+        (a drawer on a narrow screen), everybody else's is the panel below. The
+        script finds the same element either way, by its data attribute.
+      -->
+      <button type="button" class="nav-toggle" data-nav-toggle
+              aria-expanded="false"
+              th:attr="aria-controls=${navRole == 'ADMINISTRATOR'} ? 'app-sidebar' : 'app-nav-panel'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" aria-hidden="true" focusable="false">
+          <path d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+        <span>Menu</span>
+      </button>
+
+      <!--
+        Rendered only for the roles whose navigation lives in this bar. An
+        administrator's bar carries no panel: their links and their account block
+        are already in the rail, and a second copy here would be the same
+        destinations twice in one page - which is also why the toggle above opens
+        the rail for them instead.
+      -->
+      <div class="appbar__panel" id="app-nav-panel" data-nav-panel
+           th:unless="${navRole == 'ADMINISTRATOR'}">
+        <nav class="appbar__links" aria-label="Sections">
+          <a class="appbar__link" th:href="@{/}"
+             th:attr="aria-current=${active == 'overview'} ? 'page' : null">Home</a>
+          <a class="appbar__link" th:href="@{/requests/mine}" th:if="${navRole == 'REQUESTER'}"
+             th:attr="aria-current=${active == 'my-requests'} ? 'page' : null">My Requests</a>
+        </nav>
+
+        <div th:replace="~{fragments/layout :: userArea}">Account</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Only for the role whose open navigation is an overlay, and only ever
+       visible while that overlay is open. -->
+  <button type="button" class="nav-backdrop" data-nav-backdrop
+          tabindex="-1" aria-hidden="true"
+          th:if="${navRole == 'ADMINISTRATOR'}"></button>
+</th:block>
+
+<footer class="site-footer" th:fragment="footer">
+  <span>SmartFix &middot; Campus Facility Maintenance and Technician Dispatch System</span>
+</footer>
+
+<!--
+  Behaviour, not structure. Every navigation link, form and the sign-out button
+  works with this script absent, so nothing here is load-bearing:
+
+    * the collapsible navigation is an enhancement over the laid-out navigation
+    * the password reveal is an enhancement over typing into the field
+-->
+<th:block th:fragment="scripts">
+  <script>
+    (function () {
+      'use strict';
+
+      var NARROW = window.matchMedia('(max-width: 900px)');
+
+      /* ---- collapsible navigation ------------------------------------
+         One panel per page: the rail for an administrator, the bar's own
+         panel for everybody else. It is found by its data attribute rather
+         than by an id, so the same code drives both. */
+      var toggle = document.querySelector('[data-nav-toggle]');
+      var panel = document.querySelector('[data-nav-panel]');
+      var backdrop = document.querySelector('[data-nav-backdrop]');
+      var closeButton = panel && panel.querySelector('[data-nav-close]');
+
+      function panelIsOpen() {
+        return !!panel && panel.classList.contains('is-open');
+      }
+
+      function openPanel() {
+        if (!panel) { return; }
+        panel.classList.add('is-open');
+        if (backdrop) { backdrop.classList.add('is-open'); }
+        if (toggle) { toggle.setAttribute('aria-expanded', 'true'); }
+        /* Move focus to the first thing the panel offers, so a keyboard user
+           lands inside what just opened instead of having to tab back to it.
+           The close button is that first thing in the rail; in the bar it is
+           the first link. */
+        var first = closeButton || panel.querySelector('a[href], button');
+        if (first) { first.focus(); }
+      }
+
+      function closePanel(returnFocus) {
+        if (!panel) { return; }
+        var wasOpen = panelIsOpen();
+        panel.classList.remove('is-open');
+        if (backdrop) { backdrop.classList.remove('is-open'); }
+        if (toggle) { toggle.setAttribute('aria-expanded', 'false'); }
+        /* Focus must not be left on a control that is no longer visible. */
+        if (wasOpen && returnFocus && toggle) { toggle.focus(); }
+      }
+
+      if (toggle && panel) {
+        toggle.addEventListener('click', function () {
+          if (panelIsOpen()) { closePanel(true); } else { openPanel(); }
+        });
+      }
+      if (closeButton) {
+        closeButton.addEventListener('click', function () { closePanel(true); });
+      }
+      if (backdrop) {
+        backdrop.addEventListener('click', function () { closePanel(true); });
+      }
+      if (panel) {
+        /* Following a link should not leave the panel covering the page. */
+        panel.addEventListener('click', function (event) {
+          if (event.target.closest('a') && NARROW.matches) { closePanel(false); }
+        });
+      }
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && panelIsOpen()) {
+          closePanel(true);
+        }
+      });
+      /* Leaving the narrow layout resets the panel so it cannot reappear
+         mid-state when the viewport grows again. */
+      var onBreakpointChange = function (event) {
+        if (!event.matches) { closePanel(false); }
+      };
+      if (NARROW.addEventListener) { NARROW.addEventListener('change', onBreakpointChange); }
+      else if (NARROW.addListener) { NARROW.addListener(onBreakpointChange); }
+
+      /* ---- password reveal ------------------------------------------- */
+      var toggles = document.querySelectorAll('[data-password-toggle]');
+      Array.prototype.forEach.call(toggles, function (button) {
+        var input = document.getElementById(button.getAttribute('aria-controls'));
+        if (!input) { return; }
+        button.hidden = false;
+        button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', function () {
+          var revealed = input.type === 'text';
+          input.type = revealed ? 'password' : 'text';
+          button.setAttribute('aria-pressed', revealed ? 'false' : 'true');
+          button.textContent = revealed ? 'Show' : 'Hide';
+          input.focus();
+        });
+      });
+    }());
+  </script>
+</th:block>
+
+</body>
+</html>

@@ -1,85 +1,152 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>My Requests - SmartFix</title>
+<!--
+  Requester's own requests. Every column is a field the query actually returns;
+  nothing is derived, counted or estimated for display.
 
-  <link rel="stylesheet"
-        th:href="@{/css/site.css}">
+  The list leads with the ticket and the title, in one link, because those are
+  what a person is looking for; location, category, urgency and time follow at a
+  lower weight. One link per row rather than one on the ticket and another on the
+  title: two links to the same destination in the same row is two stops for a
+  keyboard and two announcements for a screen reader.
+
+  No column can widen the page. Long titles and location names wrap inside their
+  cell, and below 760px the table stops being a table and becomes a stack of
+  labelled rows, so every field survives on a phone instead of scrolling sideways.
+
+  There is no "New request" button: the submission form does not exist in this
+  build, so offering one would lead straight to a 404. Where the button would
+  have been, one quiet line says so instead.
+
+  The controller accepts ?page= and ?size=, and this page keeps accepting them,
+  but renders no paging controls - the query returns one page with no total, so a
+  "next page" link could not be shown honestly. For the same reason there are no
+  filters: the service takes none, and a control that only looked like it
+  filtered would be worse than no control.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Requests')}">
+  <title>My Requests · SmartFix</title>
 </head>
-
 <body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
 
-<header>
-  <h1>My Maintenance Requests</h1>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
 
-  <nav>
-    <a th:href="@{/}">Home</a>
-    <a th:href="@{/requests/new}">New Request</a>
-  </nav>
-</header>
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">My Requests</h1>
+          <p class="page-head__subtitle">
+            Track your maintenance requests and their status.
+          </p>
 
-<main>
+          <!--
+            Where a "New request" button would sit, and only while there is
+            nothing to list. Once the table has rows the note would be noise: the
+            reader's question has changed from "how do I submit one" to "what is
+            happening with mine".
 
-  <p th:if="${#lists.isEmpty(requests)}">
-    You have not submitted any maintenance requests yet.
-  </p>
+            It is written at page level rather than inside the empty state below,
+            so the two never say the same thing twice.
 
-  <table th:unless="${#lists.isEmpty(requests)}">
-    <thead>
-    <tr>
-      <th>Ticket</th>
-      <th>Title</th>
-      <th>Location</th>
-      <th>Category</th>
-      <th>Urgency</th>
-      <th>Status</th>
-      <th>Created</th>
-    </tr>
-    </thead>
+            Wrapper first: th:replace is applied before th:if, so a condition on
+            the same tag as the fragment would be dropped.
+          -->
+          <div th:if="${#lists.isEmpty(requests)}">
+            <p th:replace="~{fragments/components :: pageNote(
+                 'Online submission is currently unavailable. Please contact your facilities office.')}"></p>
+          </div>
+        </div>
 
-    <tbody>
-    <tr th:each="request : ${requests}">
-      <td>
-        <a th:href="@{/requests/{ticketNumber}
-                    (ticketNumber=${request.ticketNumber})}"
-           th:text="${request.ticketNumber}">
-          SF-2026-000001
-        </a>
-      </td>
+        <p class="page-head-row__meta" th:unless="${#lists.isEmpty(requests)}"
+           th:text="|${#lists.size(requests)} shown|">2 shown</p>
+      </div>
 
-      <td th:text="${request.title}">Title</td>
+      <!--
+        No visible card title: the page heading above already names this list, and
+        a second heading over the same table only restated it. The section keeps
+        an accessible name so it is still a labelled landmark.
+      -->
+      <section class="card" aria-label="Your maintenance requests">
+        <div class="card__body card__body--flush">
+          <div th:if="${#lists.isEmpty(requests)}">
+            <div th:replace="~{fragments/components :: requestEmptyState(
+                     'No requests yet',
+                     'Your maintenance requests will appear here.')}"></div>
+          </div>
 
-      <td th:text="${request.locationDisplayName}">
-        Location
-      </td>
+          <div class="table-scroll" tabindex="0" role="region"
+               aria-label="Your maintenance requests"
+               th:unless="${#lists.isEmpty(requests)}">
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Your maintenance requests, most recent first. Open a ticket to see the
+                full request.
+              </caption>
+              <thead>
+              <tr>
+                <th scope="col">Request</th>
+                <th scope="col">Location</th>
+                <th scope="col">Category</th>
+                <th scope="col">Status</th>
+                <th scope="col">Urgency</th>
+                <th scope="col">Submitted</th>
+              </tr>
+              </thead>
 
-      <td th:text="${request.category}">
-        Category
-      </td>
+              <tbody>
+              <tr th:each="request : ${requests}">
+                <!--
+                  The row's one link. The ticket number is the small line and the
+                  title the large one, both inside the same anchor, so the whole
+                  thing is a single stop and a single announcement.
+                -->
+                <th scope="row" class="cell-request">
+                  <a class="cell-request__link"
+                     th:href="@{/requests/{ticketNumber}(ticketNumber=${request.ticketNumber})}">
+                    <span class="cell-request__ticket" th:text="${request.ticketNumber}">SF-2026-000001</span>
+                    <span class="cell-request__title" th:text="${request.title}">Flickering ceiling light</span>
+                  </a>
+                </th>
 
-      <td th:text="${request.urgencyLevel}">
-        Urgency
-      </td>
+                <!--
+                  data-label is the column name each cell carries into the stacked
+                  phone layout, where the header row is gone and a value on its own
+                  would have nothing to say what it is. It is a plain static
+                  attribute: the label belongs to the column, not to the row, so
+                  there is nothing for Thymeleaf to compute.
+                -->
+                <td class="data-table__wrap" data-label="Location"
+                    th:text="${request.locationDisplayName}">Location</td>
 
-      <td th:text="${request.status}">
-        SUBMITTED
-      </td>
+                <td data-label="Category" th:text="${request.category}">Category</td>
 
-      <td th:text="${#temporals.format(
-                    request.createdAt,
-                    'yyyy-MM-dd HH:mm'
-                )}">
-        Created
-      </td>
-    </tr>
-    </tbody>
-  </table>
+                <td data-label="Status">
+                  <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
+                </td>
 
-</main>
+                <td data-label="Urgency">
+                  <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
+                </td>
 
+                <td class="data-table__nowrap" data-label="Submitted"
+                    th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 08:00
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>
