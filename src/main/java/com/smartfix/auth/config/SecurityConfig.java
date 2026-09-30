@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
 /**
- * Session authentication and the Sprint 2 route matrix. Resource ownership stays in D's service.
+ * Session authentication and explicit route authorization. Services enforce resource ownership.
  */
 @Configuration
 @EnableWebSecurity
@@ -43,6 +43,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole("TECHNICIAN")
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")
