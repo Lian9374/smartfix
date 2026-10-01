@@ -17,7 +17,8 @@
     <option value="">Select urgency</option><option th:each="urgency : ${urgencyLevels}" th:value="${urgency}" th:text="${urgency}"></option>
   </select>
   <label for="files">Photos (optional)</label><input id="files" name="files" type="file" accept="image/png,image/jpeg" multiple>
-  <p>Up to 3 PNG/JPEG images, 5 MB each and 15 MB in total. After a validation error, select the photos again.</p>
+  <p th:text="${'Up to ' + uploadLimits.maxFiles + ' PNG/JPEG images, ' + #numbers.formatDecimal(uploadLimits.maxFileSize / 1048576.0, 1, 2) + ' MiB each and ' + #numbers.formatDecimal(uploadLimits.maxTotalSize / 1048576.0, 1, 2) + ' MiB in total.'}"></p>
+  <p>After a validation error, select the photos again.</p>
   <button type="submit">Submit request</button><a th:href="@{/requests/mine}">My requests</a>
 </form>
 </main></body></html>

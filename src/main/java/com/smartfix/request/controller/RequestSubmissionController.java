@@ -3,6 +3,7 @@ package com.smartfix.request.controller;
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.common.exception.InputValidationException;
 import com.smartfix.facility.service.LocationService;
+import com.smartfix.request.config.AttachmentProperties;
 import com.smartfix.request.domain.*;
 import com.smartfix.request.dto.SubmitMaintenanceRequestCommand;
 import com.smartfix.request.service.RequestSubmissionService;
@@ -22,11 +23,20 @@ import java.util.List;
 public class RequestSubmissionController {
     private final RequestSubmissionService submissions;
     private final LocationService locations;
+    private final AttachmentProperties uploadLimits;
 
     public RequestSubmissionController(
-            RequestSubmissionService submissions, LocationService locations) {
+            RequestSubmissionService submissions,
+            LocationService locations,
+            AttachmentProperties uploadLimits) {
         this.submissions = submissions;
         this.locations = locations;
+        this.uploadLimits = uploadLimits;
+    }
+
+    @ModelAttribute("uploadLimits")
+    public AttachmentProperties uploadLimits() {
+        return uploadLimits;
     }
 
     @ModelAttribute("categories")

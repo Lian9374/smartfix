@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.common.exception.*;
+import com.smartfix.request.config.AttachmentProperties;
 import com.smartfix.request.config.RequestWorkflowProperties;
 import com.smartfix.request.domain.*;
 import com.smartfix.request.dto.*;
@@ -80,6 +81,7 @@ class RequestWorkflowTest {
     @Autowired RequestStatusHistoryRepository history;
     @Autowired WorkOrderService workorders;
     @Autowired RequestWorkflowProperties properties;
+    @Autowired AttachmentProperties uploadLimits;
     @Autowired AssignmentFixture assignments;
     @Autowired CommittedEvents committed;
     @Autowired MockMvc mvc;
@@ -168,6 +170,58 @@ class RequestWorkflowTest {
                         get("/requests/" + result.ticketNumber())
                                 .with(user(principal(2, Role.REQUESTER))))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void configuredUploadLimitsAppearOnTheFormAndRejectExcessFilesWithoutLosingInput()
+            throws Exception {
+        int previous = uploadLimits.getMaxFiles();
+        try {
+            uploadLimits.setMaxFiles(1);
+            mvc.perform(get("/requests/new").with(user(principal(1, Role.REQUESTER))))
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            content()
+                                    .string(
+                                            org.hamcrest.Matchers.containsString(
+                                                    "Up to 1 PNG/JPEG images")));
+            mvc.perform(
+                            multipart("/requests")
+                                    .file(image())
+                                    .file(image())
+                                    .param("locationId", "1")
+                                    .param("title", "Keep this title")
+                                    .param("description", "Keep this description")
+                                    .param("category", "ELECTRICAL")
+                                    .param("urgencyLevel", "MEDIUM")
+                                    .with(user(principal(1, Role.REQUESTER)))
+                                    .with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(model().attributeHasErrors("command"))
+                    .andExpect(
+                            content()
+                                    .string(
+                                            org.hamcrest.Matchers.containsString(
+                                                    "Keep this title")))
+                    .andExpect(
+                            content()
+                                    .string(
+                                            org.hamcrest.Matchers.containsString(
+                                                    "Keep this description")))
+                    .andExpect(
+                            content()
+                                    .string(
+                                            org.hamcrest.Matchers.containsString(
+                                                    "Up to 1 PNG/JPEG images")));
+            assertThat(requests.count()).isZero();
+            assertThat(history.count()).isZero();
+            assertThat(committed.events).isEmpty();
+            try (var files = Files.list(UPLOADS)) {
+                assertThat(files.count()).isZero();
+            }
+        } finally {
+            uploadLimits.setMaxFiles(previous);
+        }
     }
 
     @Test

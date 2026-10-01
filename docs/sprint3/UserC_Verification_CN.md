@@ -18,3 +18,20 @@ H2 的 C 流程测试复用真实 Service、持久化、文件存储和模板。
 已提供 `RequestMigrationIT` 与 `RequestWorkflowPostgresIT`，可用 `TEST_DB_*` 和 `mvn -Ppostgres-it clean verify` 在专用 `_test` 数据库上执行；B 的真实派单、E 的 SLA/通知/审计和 A 的最终 UI 也需要联合验证。
 
 迁移编号和 D-08 重新打开窗口仍是团队确认事项。请先处理独立的 V5 修复，再按迁移顺序拆分正式 PR；本分支用于 C 整体代码联调，不表示所有团队验收项已完成。
+
+## 后续补充验证（2026-10-01）
+
+- 修改提交页，使附件限制提示读取 AttachmentProperties；新增一个 MockMvc 工作流回归用例。
+- 新 Controller 使用既有可运行 JAR 中的依赖通过 javac 编译检查。
+- 使用真实 SpringTemplateEngine 对修改的提示模板独立渲染；默认及修改后的数量/大小配置检查通过。
+- 尝试运行 RequestWorkflowTest、RequestTransitionTest、RequestSubmissionServiceTest、RequestQueryControllerTest、SecurityConfigTest。Maven 在解析父 POM 时失败：先前依赖缓存已不存在，且当前无法解析 repo.maven.apache.org；本轮测试未进入编译/执行阶段。
+- 原生 PostgreSQL 可执行文件存在，但原安装包截断、缺少 postgres.bki 等初始化资源，不能建立测试集群；未运行 PostgreSQL IT。
+- 上面的 226 项通过结果属于补充修改之前的版本，不代表本轮新回归用例已经通过。
+
+恢复依赖后先执行：
+
+```bash
+mvn -Dtest=RequestWorkflowTest,RequestTransitionTest,RequestSubmissionServiceTest,RequestQueryControllerTest,SecurityConfigTest test
+```
+
+随后在独立原生测试库运行 postgres-it，并与 B/E 进行真实模块联调。
