@@ -1,4 +1,4 @@
-s<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
   Sign-in page: the product's front door, composed as one page rather than as a
   white card dropped onto a coloured background.
@@ -94,11 +94,16 @@ s<!DOCTYPE html>
         than putting a submitted secret into the HTML of the response.
       -->
       <form class="auth__form-fields" th:action="@{/login}" method="post">
+        <!--
+          No autofocus. It moves a screen-reader or keyboard user on load to a
+          place they did not choose, and it buys nothing here: the username field
+          is the first control in the form, so it is one Tab away regardless.
+        -->
         <div class="form-field">
           <label class="form-field__label" for="username">Username</label>
           <input type="text" id="username" name="username"
                  autocomplete="username" autocapitalize="none" spellcheck="false"
-                 required autofocus>
+                 required>
         </div>
 
         <div class="form-field">

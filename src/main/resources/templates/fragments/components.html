@@ -2,28 +2,19 @@
 <!--
   Reusable UI pieces, and the single place where a backend enum is mapped to a
   visual tone. A page that needs a status label calls one of these instead of
-  inventing its own colours, so the same status looks the same everywhere:
-
-    <span th:replace="~{fragments/components :: statusBadge(${request.status})}"></span>
-    <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}"></span>
-    <span th:replace="~{fragments/components :: roleBadge(${user.role})}"></span>
-    <span th:replace="~{fragments/components :: accountStatusBadge(${user.accountStatus})}"></span>
+  inventing its own colours, so the same status looks the same everywhere.
+  statusBadge, urgencyBadge, roleBadge and accountStatusBadge cover the four
+  backend enums between them.
 
   Every badge prints the status name as text, so the state never depends on
-  colour alone. See docs/ui-guide.md.
+  colour alone. docs/ui-guide.md lists each fragment with the arguments it takes.
 
-  Two empty states live here on purpose rather than one with a switch:
-
-    emptyState(title, message)          a quiet line of icon and text, for a
-                                        region inside a page that already has
-                                        its own heading (a status history, a
-                                        list of accounts).
-    requestEmptyState(title, message)   the illustrated one, for the moment a
-                                        requester's own list has nothing in it.
-                                        That is the one empty state in the
-                                        product a person meets on their first
-                                        visit, so it is the one that earns a
-                                        drawing.
+  Two empty states live here on purpose rather than one with a switch.
+  emptyState is the quiet line of icon and text, for a region inside a page that
+  already has its own heading (a status history, a list of accounts).
+  requestEmptyState is the illustrated one, for the moment a requester's own
+  list has nothing in it: that is the one empty state in the product a person
+  meets on their first visit, so it is the one that earns a drawing.
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <body>

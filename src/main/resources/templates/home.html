@@ -81,9 +81,15 @@
                        'Your maintenance requests will appear here.')}"></div>
             </div>
 
-            <div class="table-scroll" tabindex="0" role="region"
-                 aria-label="Your most recent maintenance requests"
-                 th:unless="${#lists.isEmpty(recentRequests)}">
+            <!--
+              A plain overflow container, not a landmark. The card section above
+              already names this list and the table carries its own caption, so a
+              region here would only repeat a name that is on the page twice
+              already. No tabindex either: every row holds a link, so the table is
+              reachable and scrollable from the keyboard exactly as it stands, and
+              a stop on a non-interactive element would announce nothing.
+            -->
+            <div class="table-scroll" th:unless="${#lists.isEmpty(recentRequests)}">
               <table class="data-table data-table--stack">
                 <caption class="visually-hidden">
                   Your most recent maintenance requests. Open a ticket number to see the

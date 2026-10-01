@@ -1362,7 +1362,13 @@ hr {
 }
 
 .auth__brand { margin: 0 0 auto; }
-.auth__brand .brand__mark { background: rgba(255, 255, 255, 0.16); color: #fff; }
+/* Opaque, and dark on light. The tile here was a 16% white wash under a white
+   glyph, which works out at roughly 3.9:1 over the gradient's light end - short
+   of the 4.5:1 body text needs, and a translucent fill is not a value a checker
+   can resolve against the gradient behind it anyway. The tile stays the lighter
+   element it was: the palette's light teal (--brand-tint) carrying the dark one
+   (--brand-dark) for the glyph, at about 8.4:1. */
+.auth__brand .brand__mark { background: #E7F2ED; color: #164D47; }
 .auth__brand .brand__name { color: #fff; }
 .auth__brand .brand__product { color: rgba(255, 255, 255, 0.72); }
 

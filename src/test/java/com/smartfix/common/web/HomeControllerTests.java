@@ -25,7 +25,6 @@ import com.smartfix.user.dto.UserAccessResponse;
 import com.smartfix.user.dto.UserAuthenticationData;
 import com.smartfix.user.service.UserService;
 import java.util.List;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -75,7 +74,9 @@ class HomeControllerTests {
                 // A requester's overview asks for their own five most recent
                 // requests - the caller's own id, no wider.
                 .andExpect(content().string(containsString("No requests yet")));
-        verify(requestQueryService).listMyRequests(eq(7L), eq(0), eq(5));
+        // Plain values: every argument is a literal, so there is nothing for a
+        // matcher to express that the value itself does not already say.
+        verify(requestQueryService).listMyRequests(7L, 0, 5);
     }
 
     @Test

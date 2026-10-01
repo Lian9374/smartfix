@@ -77,9 +77,13 @@
                      'Your maintenance requests will appear here.')}"></div>
           </div>
 
-          <div class="table-scroll" tabindex="0" role="region"
-               aria-label="Your maintenance requests"
-               th:unless="${#lists.isEmpty(requests)}">
+          <!--
+            A plain overflow container, not a second landmark: the card section
+            above is already the named landmark for this list, and the table
+            carries its own caption. No tabindex - every row holds a link, so the
+            table is reachable and scrollable from the keyboard as it stands.
+          -->
+          <div class="table-scroll" th:unless="${#lists.isEmpty(requests)}">
             <table class="data-table data-table--stack">
               <caption class="visually-hidden">
                 Your maintenance requests, most recent first. Open a ticket to see the

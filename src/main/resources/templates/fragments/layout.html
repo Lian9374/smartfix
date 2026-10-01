@@ -3,20 +3,10 @@
   Shared page shell for every signed-in screen.
 
   There is one page skeleton, and which navigation it wears depends on how much
-  navigation the role actually has:
-
-    <head th:replace="~{fragments/layout :: head('My Requests')}"> ... </head>
-    <body>
-      <div class="app-shell">
-        <th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
-        <div class="app-main">
-          <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
-          <main id="main-content" class="content"> ... </main>
-          <footer th:replace="~{fragments/layout :: footer}"></footer>
-        </div>
-      </div>
-      <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
-    </body>
+  navigation the role actually has. A page pulls in head() for the document
+  head, then sidebar() and appbar(), then footer() and scripts().
+  docs/ui-guide.md carries that skeleton in full. The order matters, because
+  th:replace runs before th:if.
 
   sidebar(active) renders the administrative rail, or nothing at all for a role
   that does not have one. appbar(active) renders the horizontal bar: the top
@@ -59,9 +49,8 @@
 
 <!--
   The product mark on its own, inserted into a sized wrapper so each context
-  supplies its own wrapper class:
-
-    <span class="brand__mark" th:insert="~{fragments/layout :: mark}"></span>
+  supplies its own wrapper class, and therefore its own size and colour. The
+  glyph strokes with currentColor, so the wrapper's colour is the mark's colour.
 -->
 <svg th:fragment="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">

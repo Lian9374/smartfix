@@ -183,10 +183,15 @@
                altogether: each account becomes a stack of labelled lines
                instead, because eight columns on a 390px screen is a table no
                one can read, and the two controls in each row have to stay
-               reachable to be useful. -->
-          <div class="table-scroll" tabindex="0" role="region"
-               aria-label="Accounts"
-               th:unless="${#lists.isEmpty(users)}">
+               reachable to be useful.
+
+               A plain overflow container, not a landmark of its own: the card
+               section above is named by its heading and the table carries its
+               own caption, so a region here would only say "Accounts" a third
+               time. No tabindex either - the two controls in every row already
+               put this table on the keyboard's path, and the wrapper itself has
+               nothing to announce. -->
+          <div class="table-scroll" th:unless="${#lists.isEmpty(users)}">
             <table class="data-table data-table--stack">
               <caption class="visually-hidden">
                 Accounts, with per-account controls to change role and account status.
