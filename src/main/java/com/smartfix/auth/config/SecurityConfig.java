@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.SecurityContextHolderFilter;
 
 /**
- * Session authentication and the Sprint 2 route matrix. Resource ownership stays in D's service.
+ * Session authentication and the Sprint 3 route matrix. Object ownership stays in business services.
  */
 @Configuration
 @EnableWebSecurity
@@ -47,8 +47,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.POST, "/requests").hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/requests/*/review").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/requests/*/review", "/requests/*/close").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/requests/*/confirm", "/requests/*/feedback", "/requests/*/reopen", "/requests/*/cancel")
+                            .hasRole("REQUESTER")
+                        .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.POST, "/workorders/*/accept", "/workorders/*/records", "/workorders/*/complete")
+                            .hasRole("TECHNICIAN")
                         .requestMatchers(HttpMethod.GET, "/requests/*", "/requests/*/attachments/*")
-                            .hasAnyRole("REQUESTER", "ADMINISTRATOR")
+                            .hasAnyRole("REQUESTER", "ADMINISTRATOR", "TECHNICIAN")
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
                         .anyRequest().denyAll())

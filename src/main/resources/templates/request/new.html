@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Submit Maintenance Request - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
+<body><header><h1>Submit Maintenance Request</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
+<form th:action="@{/requests}" th:object="${command}" method="post" enctype="multipart/form-data">
+  <ul th:if="${#fields.hasAnyErrors()}"><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
+  <label for="locationId">Location</label><select id="locationId" th:field="*{locationId}" required>
+    <option value="">Select an active location</option><option th:each="location : ${locations}" th:value="${location.id}" th:text="${location.displayName}"></option>
+  </select>
+  <label for="title">Title</label><input id="title" th:field="*{title}" maxlength="120" required>
+  <label for="description">Description</label><textarea id="description" th:field="*{description}" maxlength="2000" required></textarea>
+  <label for="category">Category</label><select id="category" th:field="*{category}" required>
+    <option value="">Select a category</option><option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option>
+  </select>
+  <label for="urgencyLevel">Reported urgency</label><select id="urgencyLevel" th:field="*{urgencyLevel}" required>
+    <option value="">Select urgency</option><option th:each="urgency : ${urgencyLevels}" th:value="${urgency}" th:text="${urgency}"></option>
+  </select>
+  <label for="files">Photos (optional)</label><input id="files" name="files" type="file" accept="image/png,image/jpeg" multiple>
+  <p>Up to 3 PNG/JPEG images, 5 MB each and 15 MB in total. After a validation error, select the photos again.</p>
+  <button type="submit">Submit request</button><a th:href="@{/requests/mine}">My requests</a>
+</form>
+</main></body></html>

@@ -23,11 +23,15 @@
 </header>
 
 <main>
+  <form th:action="@{/requests/mine}" method="get"><label>Status <select name="status">
+    <option value="">All statuses</option><option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == selectedStatus}"></option>
+  </select></label><button>Filter</button></form>
 
-  <p th:if="${#lists.isEmpty(requests)}">
+  <p th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
     You have not submitted any maintenance requests yet.
   </p>
 
+  <p th:if="${#lists.isEmpty(requests) and (selectedStatus != null or page > 0)}">No requests match this page or filter.</p>
   <table th:unless="${#lists.isEmpty(requests)}">
     <thead>
     <tr>
@@ -79,6 +83,11 @@
     </tbody>
   </table>
 
+  <nav th:if="${pagination != null}">
+    <a th:if="${pagination.hasPrevious()}" th:href="@{/requests/mine(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
+    <span th:text="${pagination.totalElements + ' requests'}"></span>
+    <a th:if="${pagination.hasNext()}" th:href="@{/requests/mine(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a>
+  </nav>
 </main>
 
 </body>

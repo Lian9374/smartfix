@@ -70,6 +70,30 @@
       </dd>
 
     </dl>
+
+    <section th:if="${presentation != null}">
+      <h3>Photos</h3><p th:if="${#lists.isEmpty(presentation.attachments)}">No photos attached.</p>
+      <ul><li th:each="attachment : ${presentation.attachments}">
+        <a th:href="@{/requests/{ticket}/attachments/{id}(ticket=${request.ticketNumber},id=${attachment.id})}" th:text="${attachment.originalFilename}"></a>
+      </li></ul>
+      <h3>Operational details</h3><dl th:each="item : ${presentation.operationalDetails}">
+        <dt th:text="${item.label}"></dt><dd class="prose" th:text="${item.value}"></dd>
+      </dl>
+      <p th:if="${presentation.rating != null}">Rating: <span th:text="${presentation.rating}"></span> / 5</p>
+      <p class="prose" th:if="${presentation.feedbackComment != null}" th:text="${presentation.feedbackComment}"></p>
+      <a th:if="${presentation.availableActions.contains('review')}" th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
+      <a th:if="${presentation.availableActions.contains('dispatch')}" th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
+      <form th:if="${presentation.availableActions.contains('cancel')}" th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post"><button>Cancel request</button></form>
+      <form th:if="${presentation.availableActions.contains('confirm')}" th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post"><button>Confirm solution</button></form>
+      <form th:if="${presentation.availableActions.contains('close')}" th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post"><button>Close request</button></form>
+      <form th:if="${presentation.availableActions.contains('reopen')}" th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}" method="post">
+        <label>Reopen reason (optional)<textarea name="comment" maxlength="500"></textarea></label><button>Reopen request</button>
+      </form>
+      <form th:if="${presentation.availableActions.contains('feedback')}" th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}" method="post">
+        <label>Rating (1–5)<input name="rating" type="number" min="1" max="5" required></label>
+        <label>Feedback (optional)<textarea name="comment" maxlength="500"></textarea></label><button>Submit feedback</button>
+      </form>
+    </section>
   </section>
 
 
@@ -86,7 +110,7 @@
         <th>From</th>
         <th>To</th>
         <th>Changed By</th>
-        <th>Changed At</th>
+        <th>Changed At</th><th>Comment</th>
         <th>Comment</th>
       </tr>
       </thead>
@@ -121,6 +145,7 @@
           -
         </td>
 
+        <td class="prose" th:text="${history.comment}"></td>
       </tr>
       </tbody>
     </table>
