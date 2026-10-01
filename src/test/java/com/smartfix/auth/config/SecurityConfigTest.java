@@ -4,6 +4,7 @@ import com.smartfix.auth.controller.LoginController;
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.auth.service.SmartFixUserDetailsService;
 import com.smartfix.common.web.HomeController;
+import com.smartfix.request.service.RequestQueryService;
 import com.smartfix.user.config.PasswordConfig;
 import com.smartfix.user.controller.UserManagementController;
 import com.smartfix.user.domain.AccountStatus;
@@ -43,6 +44,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SecurityConfigTest {
     @Autowired private MockMvc mvc;
     @MockitoBean private UserService users;
+    // HomeController reads a requester's recent requests to render the overview.
+    // This slice deliberately loads controllers without the service layer, so the
+    // collaborator is mocked like every other one here; the route matrix this test
+    // exists for is unaffected by what the overview chooses to list.
+    @MockitoBean private RequestQueryService requestQueryService;
 
     static Stream<Arguments> routes() {
         List<Arguments> cases = new ArrayList<>();
