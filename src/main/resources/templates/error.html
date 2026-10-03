@@ -1,25 +1,128 @@
 <!DOCTYPE html>
+<!--
+  The one page for every unhandled outcome. Two things reach it:
+
+    * GlobalExceptionHandler, which renders this view with a status and - for an
+      unexpected failure - a support reference;
+    * Spring Boot's own error controller, which renders it for a status raised by
+      the servlet container, such as the 403 SecurityConfig sends when access is
+      denied.
+
+  Nothing from the exception is rendered: no message, no stack trace, no SQL, no
+  filesystem path, no request path. The only variable text besides the status is
+  the generated reference, which identifies this failure in the log without
+  describing it.
+
+  It stands alone - no rail, no bar - because it is also reached by visitors who
+  are not signed in, and ${navUsername} is not always available. Where it is
+  available the page says so; where it is not, it offers the sign-in page.
+
+  It wears the same brand fragment as every other page, so a dead end still
+  looks like SmartFix rather than like a generic apology.
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request unsuccessful · SmartFix</title>
-    <link rel="stylesheet" th:href="@{/css/site.css}">
+<head th:replace="~{fragments/layout :: head('Request unsuccessful')}">
+  <title>Request unsuccessful · SmartFix</title>
 </head>
 <body>
-<header class="site-header"><span class="brand">SmartFix</span></header>
-<main class="content">
-    <h1 th:text="|Request unsuccessful (${status})|">Request unsuccessful</h1>
+<main class="error-shell" id="main-content">
+  <div class="error-card">
+    <p class="error-card__brand">
+      <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
+    </p>
+
+    <span class="badge"
+          th:classappend="${status != null and status >= 500} ? 'badge--warning' : 'badge--neutral'"
+          th:text="${status != null ? 'Error ' + status : 'Error'}">Error 404</span>
+
+    <!--
+      One heading and one explanation per status, each wrapped in a single
+      element: th:case is written once per branch, with the heading and its text
+      inside it. Every explanation says what happened and what the reader can do
+      next, and none of them guesses at a cause it cannot know.
+    -->
     <div th:switch="${status}">
-        <p th:case="400">Please check the information you entered and try again.</p>
-        <p th:case="403">You cannot perform this action. If you were submitting a form, refresh the page and try again.</p>
-        <p th:case="404">The requested resource could not be found.</p>
-        <p th:case="409">This action conflicts with the current data. Refresh the page and try again.</p>
-        <p th:case="413">The uploaded files exceed the allowed size.</p>
-        <p th:case="*">We could not complete this request. Please try again later.</p>
+      <div th:case="400">
+        <h1 class="error-card__title">That request could not be processed</h1>
+        <p class="error-card__text">
+          Please check the information you entered and try again.
+        </p>
+      </div>
+
+      <div th:case="403">
+        <h1 class="error-card__title">Not permitted</h1>
+        <p class="error-card__text">
+          You cannot perform this action. Your account does not have permission to
+          open this page. If you were submitting a form, refresh the page and try
+          again.
+        </p>
+      </div>
+
+      <div th:case="404">
+        <h1 class="error-card__title">Page not found</h1>
+        <p class="error-card__text">
+          The page or record you asked for does not exist, or it is not one you can
+          open. Check the address, or go back and try again from the menu.
+        </p>
+      </div>
+
+      <div th:case="405">
+        <h1 class="error-card__title">That action is not available here</h1>
+        <p class="error-card__text">
+          The page does not accept this kind of request. Start again from the menu.
+        </p>
+      </div>
+
+      <div th:case="409">
+        <h1 class="error-card__title">That action conflicts with the current data</h1>
+        <p class="error-card__text">
+          Something changed while you were working, so the change was not applied.
+          Refresh the page to see the current state, then try again.
+        </p>
+      </div>
+
+      <div th:case="413">
+        <h1 class="error-card__title">That upload is too large</h1>
+        <p class="error-card__text">
+          The files you selected exceed the size this system accepts. Try again with
+          smaller files.
+        </p>
+      </div>
+
+      <div th:case="415">
+        <h1 class="error-card__title">That file type is not accepted</h1>
+        <p class="error-card__text">
+          The file you selected is not one this system accepts.
+        </p>
+      </div>
+
+      <div th:case="*">
+        <h1 class="error-card__title">Something went wrong</h1>
+        <p class="error-card__text">
+          The problem is on our side, not yours, and your data has not been changed
+          by it. Please try again in a moment.
+        </p>
+      </div>
     </div>
-    <p th:if="${reference}" th:text="|Support reference: ${reference}|" class="hint"></p>
-    <a th:href="@{/}">Go to home</a> · <a th:href="@{/login}">Sign in</a>
+
+    <!-- Only ever present for an unexpected failure, where it ties this page to
+         one line in the server log. -->
+    <p class="error-card__reference" th:if="${reference}">
+      If you report this, quote this reference: <code th:text="${reference}">reference</code>
+    </p>
+
+    <p class="error-card__text" th:if="${navUsername != null}" th:text="|Signed in as ${navUsername}.|">
+      Signed in.
+    </p>
+
+    <div class="form-actions" th:if="${navUsername != null}">
+      <a class="btn btn--primary" th:href="@{/}">Back to overview</a>
+    </div>
+
+    <div class="form-actions" th:unless="${navUsername != null}">
+      <a class="btn btn--primary" th:href="@{/login}">Go to sign in</a>
+    </div>
+  </div>
 </main>
 </body>
 </html>

@@ -1,166 +1,205 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-
-  <title>Request Details - SmartFix</title>
-
-  <link rel="stylesheet"
-        th:href="@{/css/site.css}">
+<!-- Request detail uses the shared UI layout and optional C3 presentation data. -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(
+    ${navRole == 'ADMINISTRATOR'}
+        ? |Request lookup / ${request.ticketNumber}|
+        : |My Requests / ${request.ticketNumber}|)}">
+  <title>Request details · SmartFix</title>
 </head>
-
 <body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar(
+      ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
 
-<header>
-  <h1>Maintenance Request</h1>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar(
+        ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
 
-  <nav>
-    <a th:href="@{/}">Home</a>
-    <a th:href="@{/requests/mine}">My Requests</a>
-  </nav>
-</header>
+    <main id="main-content" class="content">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a class="crumbs__link" th:if="${navRole == 'ADMINISTRATOR'}"
+           th:href="@{/admin/requests/lookup}">Request lookup</a><!--
+     --><a class="crumbs__link" th:unless="${navRole == 'ADMINISTRATOR'}"
+           th:href="@{/requests/mine}">My Requests</a><!--
+     --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
+     --><span class="crumbs__here" aria-current="page"
+              th:text="${request.ticketNumber}">SF-2026-000001</span>
+      </nav>
 
-<main>
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title" th:text="${request.title}">Broken light</h1>
+          <p class="page-head__subtitle">
+            <span class="page-head__eyebrow" th:text="|Ticket ${request.ticketNumber}|">Ticket SF-2026-000001</span>
+            <span aria-hidden="true"> &middot; </span>
+            <span th:text="|submitted ${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}|">
+              submitted 2026-09-19 08:00
+            </span>
+          </p>
+        </div>
 
-  <section>
-    <h2 th:text="${request.ticketNumber}">
-      SF-2026-000001
-    </h2>
+        <div class="page-head-row__actions">
+          <!-- The current state, beside the title, so it is the first thing read.
+               It is repeated in the summary column only as part of that list. -->
+          <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
 
-    <dl>
+          <a class="btn btn--secondary" th:if="${navRole == 'ADMINISTRATOR'}"
+             th:href="@{/admin/requests/lookup}">Back to request lookup</a>
+          <a class="btn btn--secondary" th:unless="${navRole == 'ADMINISTRATOR'}"
+             th:href="@{/requests/mine}">Back to my requests</a>
+        </div>
+      </div>
 
-      <dt>Title</dt>
-      <dd th:text="${request.title}">Title</dd>
+      <div class="detail-layout">
+        <!-- Summary. First in the markup so the phone layout reads it first. -->
+        <aside class="detail-layout__aside" aria-labelledby="request-summary-title">
+          <section class="card">
+            <div class="card__header">
+              <h2 class="card__title" id="request-summary-title">Request summary</h2>
+            </div>
+            <div class="card__body">
+              <dl class="detail-list">
+                <dt>Ticket number</dt>
+                <dd class="data-table__id" th:text="${request.ticketNumber}">SF-2026-000001</dd>
 
-      <dt>Location</dt>
-      <dd th:text="${request.locationDisplayName}">
-        Location
-      </dd>
+                <dt>Status</dt>
+                <dd>
+                  <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
+                </dd>
 
-      <dt>Category</dt>
-      <dd th:text="${request.category}">
-        Category
-      </dd>
+                <dt>Location</dt>
+                <dd th:text="${request.locationDisplayName}">COM1 Level 1</dd>
 
-      <dt>Urgency</dt>
-      <dd th:text="${request.urgencyLevel}">
-        MEDIUM
-      </dd>
+                <dt>Category</dt>
+                <dd th:text="${request.category}">ELECTRICAL</dd>
 
-      <dt>Status</dt>
-      <dd th:text="${request.status}">
-        SUBMITTED
-      </dd>
+                <dt>Urgency</dt>
+                <dd>
+                  <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
+                </dd>
 
-      <dt>Description</dt>
-      <dd th:text="${request.description}">
-        Description
-      </dd>
+                <dt>Submitted</dt>
+                <dd th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
 
-      <dt>Created</dt>
-      <dd th:text="${#temporals.format(
-                    request.createdAt,
-                    'yyyy-MM-dd HH:mm'
-                )}">
-        Created
-      </dd>
+                <dt>Last updated</dt>
+                <dd th:text="${#temporals.format(request.updatedAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</dd>
 
-    </dl>
+                <!-- Shown to administrators only: a requester already knows this
+                     request is theirs, so the account id would be noise. -->
+                <th:block th:if="${navRole == 'ADMINISTRATOR'}">
+                  <dt>Requester</dt>
+                  <dd th:text="|Account #${request.requesterId}|">Account #10</dd>
+                </th:block>
+              </dl>
+            </div>
+          </section>
+        </aside>
 
-    <section th:if="${presentation != null}">
-      <h3>Photos</h3><p th:if="${#lists.isEmpty(presentation.attachments)}">No photos attached.</p>
-      <ul><li th:each="attachment : ${presentation.attachments}">
-        <a th:href="@{/requests/{ticket}/attachments/{id}(ticket=${request.ticketNumber},id=${attachment.id})}" th:text="${attachment.originalFilename}"></a>
-      </li></ul>
-      <h3>Operational details</h3><dl th:each="item : ${presentation.operationalDetails}">
-        <dt th:text="${item.label}"></dt><dd class="prose" th:text="${item.value}"></dd>
-      </dl>
-      <p th:if="${presentation.rating != null}">Rating: <span th:text="${presentation.rating}"></span> / 5</p>
-      <p class="prose" th:if="${presentation.feedbackComment != null}" th:text="${presentation.feedbackComment}"></p>
-      <a th:if="${presentation.availableActions.contains('review')}" th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
-      <a th:if="${presentation.availableActions.contains('dispatch')}" th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
-      <form th:if="${presentation.availableActions.contains('cancel')}" th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post"><button>Cancel request</button></form>
-      <form th:if="${presentation.availableActions.contains('confirm')}" th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post"><button>Confirm solution</button></form>
-      <form th:if="${presentation.availableActions.contains('close')}" th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post"><button>Close request</button></form>
-      <form th:if="${presentation.availableActions.contains('reopen')}" th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}" method="post">
-        <label>Reopen reason (optional)<textarea name="comment" maxlength="500"></textarea></label><button>Reopen request</button>
-      </form>
-      <form th:if="${presentation.availableActions.contains('feedback')}" th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}" method="post">
-        <label>Rating (1–5)<input name="rating" type="number" min="1" max="5" required></label>
-        <label>Feedback (optional)<textarea name="comment" maxlength="500"></textarea></label><button>Submit feedback</button>
-      </form>
-    </section>
-  </section>
+        <div class="detail-layout__main">
+          <section class="card" aria-labelledby="description-title">
+            <div class="card__header">
+              <h2 class="card__title" id="description-title">Description</h2>
+            </div>
+            <div class="card__body">
+              <p class="prose" th:text="${request.description}">Description</p>
+            </div>
+          </section>
 
+          <!-- C3 presentation data is supplied by RequestPresentationService. -->
+          <section class="card" th:if="${presentation != null}" aria-labelledby="request-actions-title">
+            <div class="card__header">
+              <h2 class="card__title" id="request-actions-title">Request actions and details</h2>
+            </div>
+            <div class="card__body">
+              <h3>Photos</h3>
+              <p th:if="${#lists.isEmpty(presentation.attachments)}">No photos attached.</p>
+              <ul>
+                <li th:each="attachment : ${presentation.attachments}">
+                  <a th:href="@{/requests/{ticket}/attachments/{id}(ticket=${request.ticketNumber},id=${attachment.id})}"
+                     th:text="${attachment.originalFilename}">Download attachment</a>
+                </li>
+              </ul>
 
-  <section>
-    <h2>Status History</h2>
+              <th:block th:unless="${#lists.isEmpty(presentation.operationalDetails)}">
+                <h3>Operational details</h3>
+                <dl class="detail-list">
+                  <th:block th:each="item : ${presentation.operationalDetails}">
+                    <dt th:text="${item.label}">Detail</dt>
+                    <dd class="prose" th:text="${item.value}">Value</dd>
+                  </th:block>
+                </dl>
+              </th:block>
 
-    <p th:if="${#lists.isEmpty(request.statusHistory)}">
-      No status history is available.
-    </p>
+              <p th:if="${presentation.rating != null}">
+                Rating: <span th:text="${presentation.rating}">5</span> / 5
+              </p>
+              <p class="prose" th:if="${presentation.feedbackComment != null}"
+                 th:text="${presentation.feedbackComment}">Feedback</p>
 
-    <table th:unless="${#lists.isEmpty(request.statusHistory)}">
-      <thead>
-      <tr>
-        <th>From</th>
-        <th>To</th>
-        <th>Changed By</th>
-        <th>Changed At</th><th>Comment</th>
-        <th>Comment</th>
-      </tr>
-      </thead>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
+                 th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
+                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
 
-      <tbody>
-      <tr th:each="history : ${request.statusHistory}">
+              <form th:if="${presentation.availableActions.contains('cancel')}"
+                    th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--secondary" type="submit">Cancel request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('confirm')}"
+                    th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--primary" type="submit">Confirm solution</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('close')}"
+                    th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--secondary" type="submit">Close request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('reopen')}"
+                    th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}" method="post">
+                <label for="reopen-comment">Reopen reason (optional)</label>
+                <textarea id="reopen-comment" name="comment" maxlength="500"></textarea>
+                <button class="btn btn--secondary" type="submit">Reopen request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('feedback')}"
+                    th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}" method="post">
+                <label for="feedback-rating">Rating (1–5)</label>
+                <input id="feedback-rating" name="rating" type="number" min="1" max="5" required>
+                <label for="feedback-comment">Feedback (optional)</label>
+                <textarea id="feedback-comment" name="comment" maxlength="500"></textarea>
+                <button class="btn btn--primary" type="submit">Submit feedback</button>
+              </form>
+            </div>
+          </section>
 
-        <td th:text="${history.fromStatus != null
-                        ? history.fromStatus
-                        : '-'}">
-          -
-        </td>
+          <section class="card" aria-labelledby="history-title">
+            <div class="card__header">
+              <h2 class="card__title" id="history-title">Status history</h2>
+              <span class="card__hint"
+                    th:if="${#lists.size(request.statusHistory) == 1}">1 entry</span>
+              <span class="card__hint"
+                    th:if="${#lists.size(request.statusHistory) > 1}"
+                    th:text="|${#lists.size(request.statusHistory)} entries|">2 entries</span>
+            </div>
+            <div class="card__body">
+              <div th:if="${#lists.isEmpty(request.statusHistory)}">
+                <div th:replace="~{fragments/components :: emptyState(
+                         'No status history is recorded for this request.',
+                         null)}"></div>
+              </div>
 
-        <td th:text="${history.toStatus}">
-          SUBMITTED
-        </td>
+              <div th:unless="${#lists.isEmpty(request.statusHistory)}">
+                <div th:replace="~{fragments/components :: timeline(${request.statusHistory})}"></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
 
-        <td th:text="${history.changedByUserId}">
-          1
-        </td>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
 
-        <td th:text="${#temporals.format(
-                        history.changedAt,
-                        'yyyy-MM-dd HH:mm'
-                    )}">
-          Time
-        </td>
-
-        <td th:text="${history.comment != null
-                        ? history.comment
-                        : '-'}">
-          -
-        </td>
-
-        <td class="prose" th:text="${history.comment}"></td>
-      </tr>
-      </tbody>
-    </table>
-
-  </section>
-
-
-  <!--
-      Category E mount point.
-
-      E may append the attachment list below this comment.
-      D must not implement attachment storage/download logic here.
-  -->
-
-</main>
-
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

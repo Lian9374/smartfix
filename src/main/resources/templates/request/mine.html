@@ -1,94 +1,148 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1">
-  <title>My Requests - SmartFix</title>
-
-  <link rel="stylesheet"
-        th:href="@{/css/site.css}">
+<!-- Request list uses shared UI components with C3 filtering and pagination. -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Requests')}">
+  <title>My Requests · SmartFix</title>
 </head>
-
 <body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
 
-<header>
-  <h1>My Maintenance Requests</h1>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
 
-  <nav>
-    <a th:href="@{/}">Home</a>
-    <a th:href="@{/requests/new}">New Request</a>
-  </nav>
-</header>
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">My Requests</h1>
+          <p class="page-head__subtitle">
+            Track your maintenance requests and their status.
+          </p>
 
-<main>
-  <form th:action="@{/requests/mine}" method="get"><label>Status <select name="status">
-    <option value="">All statuses</option><option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == selectedStatus}"></option>
-  </select></label><button>Filter</button></form>
 
-  <p th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
-    You have not submitted any maintenance requests yet.
-  </p>
+        </div>
 
-  <p th:if="${#lists.isEmpty(requests) and (selectedStatus != null or page > 0)}">No requests match this page or filter.</p>
-  <table th:unless="${#lists.isEmpty(requests)}">
-    <thead>
-    <tr>
-      <th>Ticket</th>
-      <th>Title</th>
-      <th>Location</th>
-      <th>Category</th>
-      <th>Urgency</th>
-      <th>Status</th>
-      <th>Created</th>
-    </tr>
-    </thead>
+        <div class="page-head-row__actions">
+          <a class="btn btn--primary" th:href="@{/requests/new}">New request</a>
+        </div>
 
-    <tbody>
-    <tr th:each="request : ${requests}">
-      <td>
-        <a th:href="@{/requests/{ticketNumber}
-                    (ticketNumber=${request.ticketNumber})}"
-           th:text="${request.ticketNumber}">
-          SF-2026-000001
-        </a>
-      </td>
+        <p class="page-head-row__meta" th:unless="${#lists.isEmpty(requests)}"
+           th:text="|${#lists.size(requests)} shown|">2 shown</p>
+      </div>
 
-      <td th:text="${request.title}">Title</td>
+      <form class="card" th:action="@{/requests/mine}" method="get">
+        <div class="card__body">
+          <label for="request-status">Status</label>
+          <select id="request-status" name="status">
+            <option value="">All statuses</option>
+            <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"
+                    th:selected="${status == selectedStatus}">SUBMITTED</option>
+          </select>
+          <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
+          <button class="btn btn--secondary" type="submit">Filter</button>
+        </div>
+      </form>
 
-      <td th:text="${request.locationDisplayName}">
-        Location
-      </td>
+      <!--
+        No visible card title: the page heading above already names this list, and
+        a second heading over the same table only restated it. The section keeps
+        an accessible name so it is still a labelled landmark.
+      -->
+      <section class="card" aria-label="Your maintenance requests">
+        <div class="card__body card__body--flush">
+          <div th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
+            <div th:replace="~{fragments/components :: requestEmptyState(
+                     'No requests yet',
+                     'Your maintenance requests will appear here.')}"></div>
+          </div>
 
-      <td th:text="${request.category}">
-        Category
-      </td>
+          <div th:if="${#lists.isEmpty(requests) and (selectedStatus != null or page > 0)}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No requests match this page or filter.',
+                     'Try another status or return to the first page.')}"></div>
+          </div>
 
-      <td th:text="${request.urgencyLevel}">
-        Urgency
-      </td>
+          <!--
+            A plain overflow container, not a second landmark: the card section
+            above is already the named landmark for this list, and the table
+            carries its own caption. No tabindex - every row holds a link, so the
+            table is reachable and scrollable from the keyboard as it stands.
+          -->
+          <div class="table-scroll" th:unless="${#lists.isEmpty(requests)}">
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Your maintenance requests, most recent first. Open a ticket to see the
+                full request.
+              </caption>
+              <thead>
+              <tr>
+                <th scope="col">Request</th>
+                <th scope="col">Location</th>
+                <th scope="col">Category</th>
+                <th scope="col">Status</th>
+                <th scope="col">Urgency</th>
+                <th scope="col">Submitted</th>
+              </tr>
+              </thead>
 
-      <td th:text="${request.status}">
-        SUBMITTED
-      </td>
+              <tbody>
+              <tr th:each="request : ${requests}">
+                <!--
+                  The row's one link. The ticket number is the small line and the
+                  title the large one, both inside the same anchor, so the whole
+                  thing is a single stop and a single announcement.
+                -->
+                <th scope="row" class="cell-request">
+                  <a class="cell-request__link"
+                     th:href="@{/requests/{ticketNumber}(ticketNumber=${request.ticketNumber})}">
+                    <span class="cell-request__ticket" th:text="${request.ticketNumber}">SF-2026-000001</span>
+                    <span class="cell-request__title" th:text="${request.title}">Flickering ceiling light</span>
+                  </a>
+                </th>
 
-      <td th:text="${#temporals.format(
-                    request.createdAt,
-                    'yyyy-MM-dd HH:mm'
-                )}">
-        Created
-      </td>
-    </tr>
-    </tbody>
-  </table>
+                <!--
+                  data-label is the column name each cell carries into the stacked
+                  phone layout, where the header row is gone and a value on its own
+                  would have nothing to say what it is. It is a plain static
+                  attribute: the label belongs to the column, not to the row, so
+                  there is nothing for Thymeleaf to compute.
+                -->
+                <td class="data-table__wrap" data-label="Location"
+                    th:text="${request.locationDisplayName}">Location</td>
 
-  <nav th:if="${pagination != null}">
-    <a th:if="${pagination.hasPrevious()}" th:href="@{/requests/mine(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
-    <span th:text="${pagination.totalElements + ' requests'}"></span>
-    <a th:if="${pagination.hasNext()}" th:href="@{/requests/mine(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a>
-  </nav>
-</main>
+                <td data-label="Category" th:text="${request.category}">Category</td>
 
+                <td data-label="Status">
+                  <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
+                </td>
+
+                <td data-label="Urgency">
+                  <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
+                </td>
+
+                <td class="data-table__nowrap" data-label="Submitted"
+                    th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 08:00
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <nav th:if="${pagination != null}" aria-label="Request pagination">
+        <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
+           th:href="@{/requests/mine(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
+        <span th:text="|${pagination.totalElements} requests|">0 requests</span>
+        <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
+           th:href="@{/requests/mine(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a>
+      </nav>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>
