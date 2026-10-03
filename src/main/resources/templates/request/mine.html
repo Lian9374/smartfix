@@ -1,28 +1,5 @@
 <!DOCTYPE html>
-<!--
-  Requester's own requests. Every column is a field the query actually returns;
-  nothing is derived, counted or estimated for display.
-
-  The list leads with the ticket and the title, in one link, because those are
-  what a person is looking for; location, category, urgency and time follow at a
-  lower weight. One link per row rather than one on the ticket and another on the
-  title: two links to the same destination in the same row is two stops for a
-  keyboard and two announcements for a screen reader.
-
-  No column can widen the page. Long titles and location names wrap inside their
-  cell, and below 760px the table stops being a table and becomes a stack of
-  labelled rows, so every field survives on a phone instead of scrolling sideways.
-
-  There is no "New request" button: the submission form does not exist in this
-  build, so offering one would lead straight to a 404. Where the button would
-  have been, one quiet line says so instead.
-
-  The controller accepts ?page= and ?size=, and this page keeps accepting them,
-  but renders no paging controls - the query returns one page with no total, so a
-  "next page" link could not be shown honestly. For the same reason there are no
-  filters: the service takes none, and a control that only looked like it
-  filtered would be worse than no control.
--->
+<!-- Request list uses shared UI components with C3 filtering and pagination. -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('My Requests')}">
   <title>My Requests · SmartFix</title>
@@ -42,27 +19,29 @@
             Track your maintenance requests and their status.
           </p>
 
-          <!--
-            Where a "New request" button would sit, and only while there is
-            nothing to list. Once the table has rows the note would be noise: the
-            reader's question has changed from "how do I submit one" to "what is
-            happening with mine".
 
-            It is written at page level rather than inside the empty state below,
-            so the two never say the same thing twice.
+        </div>
 
-            Wrapper first: th:replace is applied before th:if, so a condition on
-            the same tag as the fragment would be dropped.
-          -->
-          <div th:if="${#lists.isEmpty(requests)}">
-            <p th:replace="~{fragments/components :: pageNote(
-                 'Online submission is currently unavailable. Please contact your facilities office.')}"></p>
-          </div>
+        <div class="page-head-row__actions">
+          <a class="btn btn--primary" th:href="@{/requests/new}">New request</a>
         </div>
 
         <p class="page-head-row__meta" th:unless="${#lists.isEmpty(requests)}"
            th:text="|${#lists.size(requests)} shown|">2 shown</p>
       </div>
+
+      <form class="card" th:action="@{/requests/mine}" method="get">
+        <div class="card__body">
+          <label for="request-status">Status</label>
+          <select id="request-status" name="status">
+            <option value="">All statuses</option>
+            <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"
+                    th:selected="${status == selectedStatus}">SUBMITTED</option>
+          </select>
+          <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
+          <button class="btn btn--secondary" type="submit">Filter</button>
+        </div>
+      </form>
 
       <!--
         No visible card title: the page heading above already names this list, and
@@ -71,10 +50,16 @@
       -->
       <section class="card" aria-label="Your maintenance requests">
         <div class="card__body card__body--flush">
-          <div th:if="${#lists.isEmpty(requests)}">
+          <div th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
             <div th:replace="~{fragments/components :: requestEmptyState(
                      'No requests yet',
                      'Your maintenance requests will appear here.')}"></div>
+          </div>
+
+          <div th:if="${#lists.isEmpty(requests) and (selectedStatus != null or page > 0)}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No requests match this page or filter.',
+                     'Try another status or return to the first page.')}"></div>
           </div>
 
           <!--
@@ -145,6 +130,13 @@
           </div>
         </div>
       </section>
+      <nav th:if="${pagination != null}" aria-label="Request pagination">
+        <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
+           th:href="@{/requests/mine(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
+        <span th:text="|${pagination.totalElements} requests|">0 requests</span>
+        <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
+           th:href="@{/requests/mine(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a>
+      </nav>
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>

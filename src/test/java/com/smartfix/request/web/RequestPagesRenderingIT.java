@@ -165,8 +165,10 @@ class RequestPagesRenderingIT {
                 // The card no longer restates the heading above it.
                 .andExpect(content().string(not(containsString("Submitted requests"))))
                 .andExpect(content().string(not(containsString("No requests yet"))))
-                // Nothing here points at a submission form this build does not have.
-                .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
+                // C3 supplies submission, filtering and real pagination metadata.
+                .andExpect(content().string(containsString("href=\"/requests/new\"")))
+                .andExpect(content().string(containsString("name=\"status\"")))
+                .andExpect(content().string(containsString("1 requests")));
     }
 
     @Test
@@ -176,14 +178,13 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("No requests yet")))
                 .andExpect(content().string(containsString(
                         "Your maintenance requests will appear here.")))
-                // One quiet line about the missing form - not a second box under
-                // the empty state saying the same thing again.
-                .andExpect(content().string(containsString(
-                        "Online submission is currently unavailable. Please contact your facilities office.")))
+                // The C3 submission form is available even when there are no requests.
+                .andExpect(content().string(containsString("href=\"/requests/new\"")))
+                .andExpect(content().string(not(containsString("Online submission is currently unavailable."))))
                 .andExpect(content().string(not(containsString("Submitted requests"))))
                 // An empty list has no count to show.
                 .andExpect(content().string(not(containsString("0 shown"))))
-                .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
+                .andExpect(content().string(containsString("0 requests")));
     }
 
     @Test
@@ -202,8 +203,8 @@ class RequestPagesRenderingIT {
                 // The history reads as a transition in words, not as a bare dot.
                 .andExpect(content().string(containsString("Recorded as")))
                 .andExpect(content().string(containsString("1 entry")))
-                // The only page with a real parent says so in the account bar.
-                .andExpect(content().string(containsString("Requests / SF-2026-000102")))
+                // The shared UI states the request's parent in its title and breadcrumb.
+                .andExpect(content().string(containsString("My Requests / SF-2026-000102")))
                 // A requester already knows the request is theirs.
                 .andExpect(content().string(not(containsString("<dt>Requester</dt>"))))
                 // The way back is the requester's own list.

@@ -60,9 +60,13 @@ smartfix:
     password: ${SMARTFIX_BOOTSTRAP_ADMIN_PASSWORD:}
     display-name: ${SMARTFIX_BOOTSTRAP_ADMIN_DISPLAY_NAME:SmartFix Administrator}
 
+  request:
+    workflow:
+      reopen-window: ${SMARTFIX_REQUEST_REOPEN_WINDOW:0s}
+
   uploads:
     dir: ${SMARTFIX_UPLOAD_DIR:uploads}
-    max-size: ${SMARTFIX_UPLOAD_MAX_FILE_SIZE:5242880}
+    max-file-size: ${SMARTFIX_UPLOAD_MAX_FILE_SIZE:5242880}
     max-files: ${SMARTFIX_UPLOAD_MAX_FILES:3}
     max-total-size: ${SMARTFIX_UPLOAD_MAX_TOTAL_SIZE:15728640}
     max-dimension: ${SMARTFIX_UPLOAD_MAX_DIMENSION:10000}

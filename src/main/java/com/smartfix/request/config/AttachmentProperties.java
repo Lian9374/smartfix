@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Path;
 
 @Component
-@ConfigurationProperties(prefix = "smartfix.upload")
+@ConfigurationProperties(prefix = "smartfix.uploads")
 public class AttachmentProperties {
 
     private Path dir = Path.of("./uploads");

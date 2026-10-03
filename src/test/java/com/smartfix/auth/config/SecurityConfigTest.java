@@ -57,7 +57,13 @@ class SecurityConfigTest {
                 cases.add(Arguments.of(role, route, role == Role.REQUESTER ? 200 : 403));
             }
             for (String route : List.of("/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1")) {
-                cases.add(Arguments.of(role, route, role == Role.TECHNICIAN ? 403 : 200));
+                cases.add(Arguments.of(role, route, 200));
+            }
+            for (String route : List.of("/requests/SF-2026-000001/review")) {
+                cases.add(Arguments.of(role, route, role == Role.ADMINISTRATOR ? 200 : 403));
+            }
+            for (String route : List.of("/workorders/mine", "/workorders/1")) {
+                cases.add(Arguments.of(role, route, role == Role.TECHNICIAN ? 200 : 403));
             }
             for (String route : List.of("/admin/users", "/admin/users/new", "/admin/requests/lookup")) {
                 cases.add(Arguments.of(role, route, role == Role.ADMINISTRATOR ? 200 : 403));
@@ -103,6 +109,24 @@ class SecurityConfigTest {
     }
 
     @Test
+    void sprint3WritesEnforceRolesAndCsrf() throws Exception {
+        for (Role role : Role.values()) {
+            for (String action : List.of("confirm", "feedback", "reopen", "cancel", "review", "close")) {
+                String route = "/requests/SF-2026-000001/" + action;
+                boolean administratorAction = action.equals("review") || action.equals("close");
+                boolean permitted = administratorAction ? role == Role.ADMINISTRATOR : role == Role.REQUESTER;
+                mvc.perform(post(route).with(account(role)).with(csrf())).andExpect(status().is(permitted ? 200 : 403));
+                mvc.perform(post(route).with(account(role))).andExpect(status().isForbidden());
+            }
+            for (String action : List.of("accept", "records", "complete")) {
+                String route = "/workorders/1/" + action;
+                mvc.perform(post(route).with(account(role)).with(csrf())).andExpect(status().is(role == Role.TECHNICIAN ? 200 : 403));
+                mvc.perform(post(route).with(account(role))).andExpect(status().isForbidden());
+            }
+        }
+    }
+
+    @Test
     void unlistedRoutesAndUnsafeMethodsStayClosed() throws Exception {
         mvc.perform(get("/actuator/env").with(account(Role.ADMINISTRATOR))).andExpect(status().isForbidden());
         mvc.perform(delete("/requests/anything").with(account(Role.ADMINISTRATOR)).with(csrf()))
@@ -120,10 +144,13 @@ class SecurityConfigTest {
     @RestController
     static class RequestRouteProbes {
         @GetMapping({"/requests/new", "/requests/mine", "/requests/{ticket}",
-                "/requests/{ticket}/attachments/{id}", "/admin/requests/lookup"})
+                "/requests/{ticket}/attachments/{id}", "/admin/requests/lookup", "/requests/{ticket}/review",
+                "/workorders/mine", "/workorders/{id}"})
         String read() { return "authorized route probe"; }
 
-        @PostMapping("/requests")
+        @PostMapping({"/requests", "/requests/{ticket}/confirm", "/requests/{ticket}/feedback",
+                "/requests/{ticket}/reopen", "/requests/{ticket}/cancel", "/requests/{ticket}/review",
+                "/requests/{ticket}/close", "/workorders/{id}/accept", "/workorders/{id}/records", "/workorders/{id}/complete"})
         String submit() { return "authorized route probe"; }
     }
 }

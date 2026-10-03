@@ -1,35 +1,5 @@
 <!DOCTYPE html>
-<!--
-  One maintenance request. Two columns on desktop (description and history in the
-  wide column, the identifying facts in the narrow one) collapsing to a single
-  column on phones, where the summary is read first.
-
-  Only fields this page is actually given are shown: MaintenanceRequestDetailsResponse
-  carries the ticket, requester, location, title, description, category, urgency,
-  status, two timestamps and the status history, and that is the whole list.
-
-  Attachments are deliberately absent. AttachmentService can read a stored file,
-  but nothing maps it to a URL - the download controller was never written - so
-  there is no protected route to link to, and the details response carries no
-  attachment list. When that endpoint lands, its links belong in the wide column
-  under the description, and must use that route rather than any filesystem path.
-
-  The breadcrumb is the one place in the product with a real parent to show, so
-  it is the one place a trail is drawn. It replaces the account bar's old
-  "Requests / SF-..." label: the same hierarchy, stated in the content where a
-  reader can also follow it, instead of in a bar that every page shares. Which
-  parent it links to depends on how the reader arrived, and only the route that
-  matches the role is offered.
-
-  The document title carries the same trail, which is why it is passed to head()
-  as one string rather than as the bare ticket number. A tab or a history entry
-  reads as "My Requests / <ticket>", which says where the page sits without the
-  reader having to open it.
-
-  The trailing comments on the breadcrumb suppress the whitespace between the
-  link and the separators: the pieces are separate elements, so without them the
-  trail would be announced with a gap around the slash.
--->
+<!-- Request detail uses the shared UI layout and optional C3 presentation data. -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head(
     ${navRole == 'ADMINISTRATOR'}
@@ -133,6 +103,71 @@
             </div>
             <div class="card__body">
               <p class="prose" th:text="${request.description}">Description</p>
+            </div>
+          </section>
+
+          <!-- C3 presentation data is supplied by RequestPresentationService. -->
+          <section class="card" th:if="${presentation != null}" aria-labelledby="request-actions-title">
+            <div class="card__header">
+              <h2 class="card__title" id="request-actions-title">Request actions and details</h2>
+            </div>
+            <div class="card__body">
+              <h3>Photos</h3>
+              <p th:if="${#lists.isEmpty(presentation.attachments)}">No photos attached.</p>
+              <ul>
+                <li th:each="attachment : ${presentation.attachments}">
+                  <a th:href="@{/requests/{ticket}/attachments/{id}(ticket=${request.ticketNumber},id=${attachment.id})}"
+                     th:text="${attachment.originalFilename}">Download attachment</a>
+                </li>
+              </ul>
+
+              <th:block th:unless="${#lists.isEmpty(presentation.operationalDetails)}">
+                <h3>Operational details</h3>
+                <dl class="detail-list">
+                  <th:block th:each="item : ${presentation.operationalDetails}">
+                    <dt th:text="${item.label}">Detail</dt>
+                    <dd class="prose" th:text="${item.value}">Value</dd>
+                  </th:block>
+                </dl>
+              </th:block>
+
+              <p th:if="${presentation.rating != null}">
+                Rating: <span th:text="${presentation.rating}">5</span> / 5
+              </p>
+              <p class="prose" th:if="${presentation.feedbackComment != null}"
+                 th:text="${presentation.feedbackComment}">Feedback</p>
+
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
+                 th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
+                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
+
+              <form th:if="${presentation.availableActions.contains('cancel')}"
+                    th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--secondary" type="submit">Cancel request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('confirm')}"
+                    th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--primary" type="submit">Confirm solution</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('close')}"
+                    th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post">
+                <button class="btn btn--secondary" type="submit">Close request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('reopen')}"
+                    th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}" method="post">
+                <label for="reopen-comment">Reopen reason (optional)</label>
+                <textarea id="reopen-comment" name="comment" maxlength="500"></textarea>
+                <button class="btn btn--secondary" type="submit">Reopen request</button>
+              </form>
+              <form th:if="${presentation.availableActions.contains('feedback')}"
+                    th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}" method="post">
+                <label for="feedback-rating">Rating (1–5)</label>
+                <input id="feedback-rating" name="rating" type="number" min="1" max="5" required>
+                <label for="feedback-comment">Feedback (optional)</label>
+                <textarea id="feedback-comment" name="comment" maxlength="500"></textarea>
+                <button class="btn btn--primary" type="submit">Submit feedback</button>
+              </form>
             </div>
           </section>
 

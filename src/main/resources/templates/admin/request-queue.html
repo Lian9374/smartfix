@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maintenance Requests - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
+<body><header><h1>Maintenance Requests</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
+<a th:href="@{/admin/requests/lookup}">Look up a ticket</a>
+<form th:action="@{/admin/requests}" method="get"><label>Status <select name="status"><option value="">All statuses</option>
+<option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == selectedStatus}"></option></select></label><button>Filter</button></form>
+<p th:if="${pagination.empty}">No requests match this page or filter.</p>
+<table th:unless="${pagination.empty}"><thead><tr><th>Ticket</th><th>Title</th><th>Status</th><th>Location</th></tr></thead><tbody>
+<tr th:each="request : ${pagination.content}"><td><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.ticketNumber}"></a></td>
+<td th:text="${request.title}"></td><td th:text="${request.status}"></td><td th:text="${request.locationDisplayName}"></td></tr></tbody></table>
+<nav><a th:if="${pagination.hasPrevious()}" th:href="@{/admin/requests(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
+<span th:text="${pagination.totalElements + ' requests'}"></span>
+<a th:if="${pagination.hasNext()}" th:href="@{/admin/requests(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a></nav>
+</main></body></html>
