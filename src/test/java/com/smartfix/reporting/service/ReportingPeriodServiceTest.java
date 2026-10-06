@@ -30,10 +30,14 @@ class ReportingPeriodServiceTest {
 
     @Test
     void rejectsEndDateBeforeStartDate() {
+        LocalDate start =
+            LocalDate.of(2026, 10, 10);
+
+        LocalDate end =
+            LocalDate.of(2026, 10, 1);
+
         assertThrows(
             IllegalArgumentException.class,
-            () -> service.toPeriod(
-                LocalDate.of(2026, 10, 10),
-                LocalDate.of(2026, 10, 1)));
+            () -> service.toPeriod(start, end));
     }
 }

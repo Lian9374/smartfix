@@ -26,12 +26,11 @@
         </p>
       </div>
 
-      <div class="alert alert--success"
-           role="status"
-           th:if="${successMessage}"
-           th:text="${successMessage}">
+      <output class="alert alert--success"
+              th:if="${successMessage}"
+              th:text="${successMessage}">
         Facility status updated successfully.
-      </div>
+      </output>
 
       <section class="card" aria-label="Facility management">
         <div class="card__body card__body--flush">
@@ -95,12 +94,14 @@
                         method="post">
 
                     <label class="visually-hidden"
+                           for="facility-status"
                            th:for="|facility-status-${facility.id}|">
                       Status for
                       <span th:text="${facility.name}">facility</span>
                     </label>
 
-                    <select th:id="|facility-status-${facility.id}|"
+                    <select id="facility-status"
+                            th:id="|facility-status-${facility.id}|"
                             name="status">
 
                       <option th:each="status : ${facilityStatuses}"
