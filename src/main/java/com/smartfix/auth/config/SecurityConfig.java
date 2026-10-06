@@ -41,7 +41,7 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.HEAD, "/css/**", "/js/**", "/images/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/home").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")

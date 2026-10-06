@@ -53,6 +53,8 @@ class SecurityConfigTest {
     static Stream<Arguments> routes() {
         List<Arguments> cases = new ArrayList<>();
         for (Role role : Role.values()) {
+            cases.add(Arguments.of(role, "/campus-map", 200));
+
             for (String route : List.of("/requests/new", "/requests/mine")) {
                 cases.add(Arguments.of(role, route, role == Role.REQUESTER ? 200 : 403));
             }
@@ -65,8 +67,15 @@ class SecurityConfigTest {
             for (String route : List.of("/workorders/mine", "/workorders/1")) {
                 cases.add(Arguments.of(role, route, role == Role.TECHNICIAN ? 200 : 403));
             }
-            for (String route : List.of("/admin/users", "/admin/users/new", "/admin/requests/lookup")) {
-                cases.add(Arguments.of(role, route, role == Role.ADMINISTRATOR ? 200 : 403));
+            for (String route : List.of(
+                "/admin/users",
+                "/admin/users/new",
+                "/admin/requests/lookup",
+                "/admin/facilities")) {
+                cases.add(Arguments.of(
+                    role,
+                    route,
+                    role == Role.ADMINISTRATOR ? 200 : 403));
             }
         }
         return cases.stream();
@@ -79,8 +88,8 @@ class SecurityConfigTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/", "/home", "/requests/new", "/requests/mine", "/admin/users",
-            "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1"})
+    @ValueSource(strings = {"/", "/home", "/campus-map", "/requests/new", "/requests/mine", "/admin/users",
+        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1"})
     void anonymousPageAccessRedirectsToLogin(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isFound()).andExpect(redirectedUrl("http://localhost/login"));
     }
@@ -143,10 +152,21 @@ class SecurityConfigTest {
     /** Route-only probes for C/D/E's contracts; these do not claim their business logic exists. */
     @RestController
     static class RequestRouteProbes {
-        @GetMapping({"/requests/new", "/requests/mine", "/requests/{ticket}",
-                "/requests/{ticket}/attachments/{id}", "/admin/requests/lookup", "/requests/{ticket}/review",
-                "/workorders/mine", "/workorders/{id}"})
-        String read() { return "authorized route probe"; }
+        @GetMapping({
+            "/requests/new",
+            "/requests/mine",
+            "/requests/{ticket}",
+            "/requests/{ticket}/attachments/{id}",
+            "/admin/requests/lookup",
+            "/requests/{ticket}/review",
+            "/workorders/mine",
+            "/workorders/{id}",
+            "/campus-map",
+            "/admin/facilities"
+        })
+        String read() {
+            return "authorized route probe";
+        }
 
         @PostMapping({"/requests", "/requests/{ticket}/confirm", "/requests/{ticket}/feedback",
                 "/requests/{ticket}/reopen", "/requests/{ticket}/cancel", "/requests/{ticket}/review",

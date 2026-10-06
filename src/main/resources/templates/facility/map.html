@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Campus Map')}">
+  <title>Campus Map | SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('campus-map')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('campus-map')}"></th:block>
+
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Campus Map</h1>
+          <p class="page-head__subtitle">
+            Find facilities by building, floor and room.
+          </p>
+        </div>
+
+        <p class="page-head-row__meta"
+           th:unless="${#lists.isEmpty(facilities)}"
+           th:text="|${#lists.size(facilities)} facilities|">
+          0 facilities
+        </p>
+      </div>
+
+      <section class="card" aria-label="Campus facilities">
+        <div class="card__body card__body--flush">
+
+          <div th:if="${#lists.isEmpty(facilities)}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No facilities available.',
+                     'Campus facility information will appear here when available.')}">
+            </div>
+          </div>
+
+          <div class="table-scroll"
+               th:unless="${#lists.isEmpty(facilities)}">
+
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Campus facilities grouped by their physical location.
+              </caption>
+
+              <thead>
+              <tr>
+                <th scope="col">Facility</th>
+                <th scope="col">Location</th>
+                <th scope="col">Building</th>
+                <th scope="col">Floor</th>
+                <th scope="col">Room</th>
+                <th scope="col">Status</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="facility : ${facilities}">
+                <th scope="row"
+                    data-label="Facility"
+                    th:text="${facility.name}">
+                  Facility
+                </th>
+
+                <td data-label="Location"
+                    class="data-table__wrap"
+                    th:text="${facility.locationDisplayName}">
+                  Location
+                </td>
+
+                <td data-label="Building"
+                    th:text="${facility.building != null
+                              ? facility.building
+                              : '—'}">
+                  Building
+                </td>
+
+                <td data-label="Floor"
+                    th:text="${facility.floor != null
+                              ? facility.floor
+                              : '—'}">
+                  Floor
+                </td>
+
+                <td data-label="Room"
+                    th:text="${facility.room != null
+                              ? facility.room
+                              : '—'}">
+                  Room
+                </td>
+
+                <td data-label="Status">
+                  <span th:replace="~{fragments/components :: statusBadge(${facility.status})}">
+                    OPERATIONAL
+                  </span>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
