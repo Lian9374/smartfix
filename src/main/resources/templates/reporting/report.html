@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Operational Reports')}">
+  <title>Operational Reports | SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('reports')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('reports')}"></th:block>
+
+    <main id="main-content" class="content">
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Operational Reports</h1>
+          <p class="page-head__subtitle">
+            Review maintenance request performance using real request data.
+          </p>
+        </div>
+      </div>
+
+      <form class="card"
+            method="get"
+            th:action="@{/admin/reports}">
+        <div class="card__body">
+
+          <label for="report-start">Start date</label>
+          <input id="report-start"
+                 type="date"
+                 name="start"
+                 th:value="${startDate}"
+                 required>
+
+          <label for="report-end">End date</label>
+          <input id="report-end"
+                 type="date"
+                 name="end"
+                 th:value="${endDate}"
+                 required>
+
+          <button class="btn btn--primary"
+                  type="submit">
+            Generate report
+          </button>
+        </div>
+      </form>
+
+      <section class="card" aria-labelledby="summary-heading">
+        <div class="card__body">
+          <h2 id="summary-heading">Summary</h2>
+
+          <p>
+            <strong>Total requests:</strong>
+            <span th:text="${report.totalRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Open requests:</strong>
+            <span th:text="${report.openRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Resolved requests:</strong>
+            <span th:text="${report.resolvedRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Closed requests:</strong>
+            <span th:text="${report.closedRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Resolution rate:</strong>
+            <span th:text="${#numbers.formatDecimal(
+                    report.resolutionRatePercent, 1, 1)}">
+              0.0
+            </span>%
+          </p>
+
+          <p>
+            <strong>Average resolution time:</strong>
+            <span th:text="${#numbers.formatDecimal(
+                    report.averageResolutionHours, 1, 1)}">
+              0.0
+            </span>
+            hours
+          </p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="status-heading">
+        <div class="card__body card__body--flush">
+          <h2 id="status-heading">Requests by status</h2>
+
+          <div class="table-scroll">
+            <table class="data-table data-table--stack">
+              <thead>
+              <tr>
+                <th scope="col">Status</th>
+                <th scope="col">Requests</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="entry : ${report.requestsByStatus}">
+                <th scope="row"
+                    data-label="Status"
+                    th:text="${entry.key}">
+                  SUBMITTED
+                </th>
+
+                <td data-label="Requests"
+                    th:text="${entry.value}">
+                  0
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="category-heading">
+        <div class="card__body card__body--flush">
+          <h2 id="category-heading">Requests by category</h2>
+
+          <div class="table-scroll">
+            <table class="data-table data-table--stack">
+              <thead>
+              <tr>
+                <th scope="col">Category</th>
+                <th scope="col">Requests</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="entry : ${report.requestsByCategory}">
+                <th scope="row"
+                    data-label="Category"
+                    th:text="${entry.key}">
+                  ELECTRICAL
+                </th>
+
+                <td data-label="Requests"
+                    th:text="${entry.value}">
+                  0
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="urgency-heading">
+        <div class="card__body card__body--flush">
+          <h2 id="urgency-heading">Requests by urgency</h2>
+
+          <div class="table-scroll">
+            <table class="data-table data-table--stack">
+              <thead>
+              <tr>
+                <th scope="col">Urgency</th>
+                <th scope="col">Requests</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="entry : ${report.requestsByUrgency}">
+                <th scope="row"
+                    data-label="Urgency"
+                    th:text="${entry.key}">
+                  HIGH
+                </th>
+
+                <td data-label="Requests"
+                    th:text="${entry.value}">
+                  0
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="definition-heading">
+        <div class="card__body">
+          <h2 id="definition-heading">Metric definitions</h2>
+
+          <p>
+            Requests are included when they were created during the selected
+            Singapore calendar date range.
+          </p>
+
+          <p>
+            Open requests exclude CLOSED, REJECTED and CANCELLED requests.
+          </p>
+
+          <p>
+            Resolved requests include RESOLVED, CONFIRMED and CLOSED requests.
+          </p>
+
+          <p>
+            Average resolution time uses requests that have a recorded
+            resolved time.
+          </p>
+        </div>
+      </section>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
