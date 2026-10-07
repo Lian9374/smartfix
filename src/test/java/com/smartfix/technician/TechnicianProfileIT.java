@@ -1,8 +1,6 @@
 package com.smartfix.technician;
 
 import com.smartfix.auth.security.SmartFixUserDetails;
-import com.smartfix.common.exception.BusinessConflictException;
-import com.smartfix.dispatch.service.TechnicianRecommendationService;
 import com.smartfix.request.domain.MaintenanceCategory;
 import com.smartfix.technician.domain.AvailabilityStatus;
 import com.smartfix.technician.dto.UpdateTechnicianProfileCommand;
@@ -54,7 +52,6 @@ class TechnicianProfileIT {
     @Autowired MockMvc mvc;
     @Autowired UserService users;
     @Autowired TechnicianDirectoryService directory;
-    @Autowired TechnicianRecommendationService recommendations;
     @Autowired JdbcTemplate jdbc;
     private Long technicianId;
     private Long otherTechnicianId;
@@ -66,13 +63,6 @@ class TechnicianProfileIT {
         createUser("requester", Role.REQUESTER);
         createUser("administrator", Role.ADMINISTRATOR);
         jdbc.update("INSERT INTO locations (id, location_code, display_name) VALUES (10, 'LIB', 'Library'), (20, 'LAB', 'Lab')");
-    }
-
-    @Test
-    void recommendationsReportMissingAssignmentIntegrationInsteadOfZeroWorkload() {
-        directory.updateProfile(technicianId, preferences(MaintenanceCategory.ELECTRICAL));
-        assertThatThrownBy(() -> recommendations.recommend(MaintenanceCategory.ELECTRICAL, 10L))
-                .isInstanceOf(BusinessConflictException.class).hasMessageContaining("assignment lookup");
     }
 
     @Test

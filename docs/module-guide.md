@@ -174,12 +174,21 @@ API (never write emails from here).
   `TechnicianWorkloadService`. Ranking is AVAILABLE before BUSY, then workload ascending,
   then **profile id** ascending. Failures propagate; no partial recommendation is returned.
   This is an internal read API, not an HTTP endpoint or a reservation. Assignment must
-  revalidate eligibility. Assignment persistence and the production `ActiveAssignmentLookup`
-  adapter are subsequent S3-B-03 work; dispatch pages follow in S3-B-04.
-- **Likely future domain objects:** `Assignment`, and — only after design —
-  matching/ranking concepts.
-- **Likely services:** `DispatchService`/`AssignmentService`.
-- **Likely repository responsibility:** `AssignmentRepository` (assignment state).
+  revalidate eligibility. Dispatch pages follow in S3-B-04.
+- **Assignment API (S3-B-03):** `AssignmentService.assign`, `reassign`, `withdraw` and
+  `findActiveAssignment`; writes require an active administrator. Reassign/withdraw
+  commands carry `expectedAssignmentId` to reject stale forms, plus a 1–500 character reason.
+  One transaction updates assignment history and calls C's lifecycle; C's participant
+  synchronizes the work order. Failed steps roll back together.
+- **Persistence:** V11 creates `assignments`; its partial unique index permits only one
+  active assignment per request. Old rows remain as history; optimistic versions reject
+  concurrent edits. `technician_id` references the account, not the profile.
+- **Read integration:** `RequestAssignmentLookupAdapter` implements C's
+  `ActiveAssignmentLookup` through a separate `AssignmentReadService`, keeping the write
+  orchestrator out of the callback dependency chain. Recommendations now use real assignments.
+- **Events:** `AssignmentCreatedEvent` (including the previous technician on reassignment)
+  and `AssignmentWithdrawnEvent`; notification/audit consumers must subscribe AFTER_COMMIT.
+- **Implementation and validation:** [S3-B-03 handoff](sprint3/B_Assignment_Handoff_CN.md).
 - **May reasonably depend on:** `technician` (eligible profiles), `user` (accounts), `request` (the request to
   dispatch), `facility` (location/service area), `sla` (deadlines) — **via their public
   services**, so it can read what it needs without coupling to their repositories.
@@ -190,7 +199,7 @@ API (never write emails from here).
   only if dispatch analysis demonstrates interchangeable/changing matching strategies
   (README §31).
 
-**Example scenario:** "admin dispatches the best available technician" → `DispatchService`
+**Example scenario:** "admin dispatches the best available technician" → `AssignmentService`
 asks `technician`'s public API for candidates, `request`'s public API for the request, applies
 (designed) matching logic, and persists the assignment in `dispatch`.
 

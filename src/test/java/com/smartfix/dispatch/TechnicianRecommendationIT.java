@@ -19,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
@@ -194,7 +195,7 @@ class TechnicianRecommendationIT {
 
     @TestConfiguration
     static class Collaboration {
-        @Bean AssignmentFixture assignmentFixture() { return new AssignmentFixture(); }
+        @Bean @Primary AssignmentFixture assignmentFixture() { return new AssignmentFixture(); }
     }
 
     /** Test-only active assignments; production persistence/adapter belongs to S3-B-03. */

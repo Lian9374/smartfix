@@ -49,7 +49,12 @@ class RequestMigrationIT {
                                 .defaultSchema(schema)
                                 .locations("classpath:db/migration")
                                 .load();
-                assertThat(latest.migrate().migrationsExecuted).isEqualTo(4);
+                // V6-V9 are C's required upgrade; subsequent team migrations must also be allowed.
+                assertThat(latest.migrate().migrationsExecuted).isGreaterThanOrEqualTo(4);
+                assertThat(java.util.Arrays.stream(latest.info().applied())
+                        .filter(migration -> migration.getVersion() != null)
+                        .map(migration -> migration.getVersion().getVersion()))
+                        .contains("6", "7", "8", "9");
                 latest.validate();
                 assertThat(latest.migrate().migrationsExecuted).isZero();
                 try (ResultSet result =
