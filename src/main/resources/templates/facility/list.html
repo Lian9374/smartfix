@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Facilities')}">
+  <title>Facilities | SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('facilities')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('facilities')}"></th:block>
+
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Facilities</h1>
+          <p class="page-head__subtitle">
+            Monitor facilities and update their operational status.
+          </p>
+        </div>
+
+        <p class="page-head-row__meta"
+           th:unless="${#lists.isEmpty(facilities)}"
+           th:text="|${#lists.size(facilities)} facilities|">
+          0 facilities
+        </p>
+      </div>
+
+      <output class="alert alert--success"
+              th:if="${successMessage}"
+              th:text="${successMessage}">
+        Facility status updated successfully.
+      </output>
+
+      <section class="card" aria-label="Facility management">
+        <div class="card__body card__body--flush">
+
+          <div th:if="${#lists.isEmpty(facilities)}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No facilities available.',
+                     'Facilities will appear here after they are added to the system.')}">
+            </div>
+          </div>
+
+          <div class="table-scroll"
+               th:unless="${#lists.isEmpty(facilities)}">
+
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Facilities and their current operational status.
+              </caption>
+
+              <thead>
+              <tr>
+                <th scope="col">Facility</th>
+                <th scope="col">Location</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+                <th scope="col">Update status</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="facility : ${facilities}">
+                <th scope="row"
+                    data-label="Facility"
+                    th:text="${facility.name}">
+                  Facility
+                </th>
+
+                <td data-label="Location"
+                    class="data-table__wrap"
+                    th:text="${facility.locationDisplayName}">
+                  Location
+                </td>
+
+                <td data-label="Description"
+                    class="data-table__wrap"
+                    th:text="${facility.description != null
+                              ? facility.description
+                              : '—'}">
+                  Description
+                </td>
+
+                <td data-label="Status">
+                  <span th:replace="~{fragments/components :: statusBadge(${facility.status})}">
+                    OPERATIONAL
+                  </span>
+                </td>
+
+                <td data-label="Update status">
+                  <form th:action="@{/admin/facilities/{facilityId}/status(
+                                    facilityId=${facility.id})}"
+                        method="post">
+
+                    <label class="visually-hidden"
+                           for="facility-status"
+                           th:for="|facility-status-${facility.id}|">
+                      Status for
+                      <span th:text="${facility.name}">facility</span>
+                    </label>
+
+                    <select id="facility-status"
+                            th:id="|facility-status-${facility.id}|"
+                            name="status">
+
+                      <option th:each="status : ${facilityStatuses}"
+                              th:value="${status}"
+                              th:text="${status}"
+                              th:selected="${status == facility.status}">
+                        OPERATIONAL
+                      </option>
+                    </select>
+
+                    <button class="btn btn--secondary"
+                            type="submit">
+                      Update
+                    </button>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

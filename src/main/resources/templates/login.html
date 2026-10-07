@@ -1,27 +1,139 @@
 <!DOCTYPE html>
+<!--
+  Sign-in page: the product's front door, composed as one page rather than as a
+  white card dropped onto a coloured background.
+
+  Desktop is a 54:46 split. The brand side holds the mark, the statement and the
+  campus drawing; the form side is a warm off-white panel the form sits directly
+  on, with no card, no border and no shadow around it - the split itself is the
+  structure, and boxing the form as well would draw a second, competing edge next
+  to the one that is already there.
+
+  On phones the brand side collapses to a short band: the mark, the statement and
+  the sentence, with the drawing dropped. The form is the only thing a visitor
+  came for, so it stays within the first screen rather than below a full-height
+  illustration.
+
+  The form posts to Spring Security's own /login with the field names it expects,
+  and th:action is what makes Thymeleaf inject the CSRF token - POST /login is
+  CSRF-protected, so the token is required, not decorative.
+
+  The failure message is deliberately generic: it must not reveal whether the
+  username exists, or whether the account is allowed to sign in at all.
+-->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign in · SmartFix</title>
-    <link rel="stylesheet" th:href="@{/css/site.css}">
+<head th:replace="~{fragments/layout :: head('Sign in')}">
+  <title>Sign in · SmartFix</title>
 </head>
 <body>
-<header class="site-header"><span class="brand">SmartFix</span></header>
-<main class="content auth-card">
-    <h1>Sign in</h1>
-    <p>Campus Facility Maintenance and Technician Dispatch System</p>
-    <p role="alert" th:if="${param.error}">Invalid username or password.</p>
-    <p role="status" th:if="${param.logout}">You have signed out.</p>
-    <p role="status" th:if="${param.expired}">Your session is no longer valid. Please sign in again.</p>
-    <form th:action="@{/login}" method="post">
-        <p><label for="username">Username</label><br>
-            <input id="username" name="username" autocomplete="username" required autofocus></p>
-        <p><label for="password">Password</label><br>
-            <input id="password" name="password" type="password" autocomplete="current-password" required></p>
-        <button type="submit">Sign in</button>
-    </form>
-    <p class="hint">Contact your administrator if you need an account.</p>
-</main>
+<div class="auth">
+
+  <!--
+    Brand side. The mark is pinned to the top with the panel's own padding, the
+    statement sits in the middle, and the drawing fills the space below it -
+    a single column with one shared left edge, so the three parts read as one
+    composition instead of three centred objects.
+  -->
+  <section class="auth__intro">
+    <p class="auth__brand">
+      <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
+    </p>
+
+    <div class="auth__intro-body">
+      <!--
+        One sentence, broken by the measure and not by a <br>: a forced break
+        has to be right at every width, and it is not - it survives into the
+        narrow layout, where the copy wraps on its own anyway, and it turns the
+        sentence into two fragments for anything reading the text as a string.
+        The measure below balances the two lines instead.
+      -->
+      <p class="auth__statement">
+        A better campus, one fix at a time.
+      </p>
+      <p class="auth__text">
+        Keep track of facility issues and your maintenance requests.
+      </p>
+    </div>
+
+    <!--
+      Decorative. The drawing is aria-hidden inside the fragment, and the
+      statement above it carries the meaning, so nothing here is announced.
+    -->
+    <div class="auth__art" th:insert="~{fragments/illustrations :: campusHero}">
+      <span class="visually-hidden">Campus illustration</span>
+    </div>
+  </section>
+
+  <div class="auth__panel">
+    <main class="auth__form" id="main-content">
+      <h1 class="auth__form-title">Welcome back</h1>
+      <p class="auth__form-subtitle">Sign in to your SmartFix account.</p>
+
+      <!--
+        Query-parameter feedback from Spring Security's redirects. The condition
+        sits on a wrapper and the fragment on a child: th:replace is applied
+        before th:if, so a condition written on the same tag would be dropped
+        along with the tag itself and the message would always show.
+      -->
+      <div class="auth__feedback"
+           th:if="${param.error != null or param.logout != null or param.expired != null}">
+        <div th:if="${param.error}">
+          <div th:replace="~{fragments/components :: alert('error', null, 'Invalid username or password.')}"></div>
+        </div>
+        <div th:if="${param.logout}">
+          <div th:replace="~{fragments/components :: alert('success', null, 'You have signed out.')}"></div>
+        </div>
+        <div th:if="${param.expired}">
+          <div th:replace="~{fragments/components :: alert('warning', null, 'Your session is no longer valid. Please sign in again.')}"></div>
+        </div>
+      </div>
+
+      <!--
+        No password value is ever written back into this form, and the username
+        is not echoed either: a failed attempt leaves both fields empty rather
+        than putting a submitted secret into the HTML of the response.
+      -->
+      <form class="auth__form-fields" th:action="@{/login}" method="post">
+        <!--
+          No autofocus. It moves a screen-reader or keyboard user on load to a
+          place they did not choose, and it buys nothing here: the username field
+          is the first control in the form, so it is one Tab away regardless.
+        -->
+        <div class="form-field">
+          <label class="form-field__label" for="username">Username</label>
+          <input type="text" id="username" name="username"
+                 autocomplete="username" autocapitalize="none" spellcheck="false"
+                 required>
+        </div>
+
+        <div class="form-field">
+          <label class="form-field__label" for="password">Password</label>
+          <div class="password-field">
+            <input type="password" id="password" name="password"
+                   autocomplete="current-password" required>
+            <!--
+              Reveal control. type="button" is load-bearing: inside a form the
+              default type is submit, so a reveal button without it would post the
+              credentials the moment it was pressed. Rendered hidden and unhidden
+              by the layout script, so it only ever appears when it works; its
+              accessible name is the text it carries and aria-pressed reports the
+              current state.
+            -->
+            <button type="button" class="password-toggle" id="password-toggle"
+                    data-password-toggle aria-controls="password" hidden>Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block">Sign in</button>
+      </form>
+
+      <p class="auth__footnote">
+        Need an account or help signing in? Contact your administrator.
+      </p>
+    </main>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

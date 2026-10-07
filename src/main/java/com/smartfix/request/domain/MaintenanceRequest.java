@@ -8,6 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -16,9 +17,9 @@ import java.util.regex.Pattern;
 /**
  * Aggregate root for a submitted campus-facility maintenance request.
  *
- * <p>References to the {@code user} and {@code facility} modules are scalar ids,
- * not cross-module JPA associations. The database foreign keys retain referential
- * integrity while the Java modules remain independently maintainable.</p>
+ * <p>References to the {@code user} and {@code facility} modules are scalar ids, not cross-module
+ * JPA associations. The database foreign keys retain referential integrity while the Java modules
+ * remain independently maintainable.
  */
 @Entity
 @Table(name = "maintenance_requests")
@@ -34,8 +35,12 @@ public class MaintenanceRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "ticket_number", nullable = false, unique = true,
-            length = TICKET_NUMBER_LENGTH, updatable = false)
+    @Column(
+            name = "ticket_number",
+            nullable = false,
+            unique = true,
+            length = TICKET_NUMBER_LENGTH,
+            updatable = false)
     private String ticketNumber;
 
     @Column(name = "requester_id", nullable = false, updatable = false)
@@ -68,19 +73,43 @@ public class MaintenanceRequest {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Version
+    @Column(nullable = false)
+    private long version;
+
+    @Column(name = "reviewed_at")
+    private Instant reviewedAt;
+
+    @Column(name = "reviewed_by_user_id")
+    private Long reviewedByUserId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "final_urgency_level", length = 20)
+    private UrgencyLevel finalUrgencyLevel;
+
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
+    @Column(name = "confirmed_at")
+    private Instant confirmedAt;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
     /** Required by JPA. Application code must use {@link #submit}. */
     protected MaintenanceRequest() {
         // no-op
     }
 
-    private MaintenanceRequest(String ticketNumber,
-                               Long requesterId,
-                               Long locationId,
-                               String title,
-                               String description,
-                               MaintenanceCategory category,
-                               UrgencyLevel urgencyLevel,
-                               Instant submittedAt) {
+    private MaintenanceRequest(
+            String ticketNumber,
+            Long requesterId,
+            Long locationId,
+            String title,
+            String description,
+            MaintenanceCategory category,
+            UrgencyLevel urgencyLevel,
+            Instant submittedAt) {
         this.ticketNumber = ticketNumber;
         this.requesterId = requesterId;
         this.locationId = locationId;
@@ -96,23 +125,26 @@ public class MaintenanceRequest {
     /**
      * Creates a request in its only Sprint 2 initial state.
      *
-     * <p>{@code requesterId} is supplied by the trusted authenticated principal in
-     * the service layer; it is deliberately absent from the browser command DTO.</p>
+     * <p>{@code requesterId} is supplied by the trusted authenticated principal in the service
+     * layer; it is deliberately absent from the browser command DTO.
      */
-    public static MaintenanceRequest submit(String ticketNumber,
-                                            Long requesterId,
-                                            Long locationId,
-                                            String title,
-                                            String description,
-                                            MaintenanceCategory category,
-                                            UrgencyLevel urgencyLevel,
-                                            Instant submittedAt) {
-        String normalizedTicketNumber = requireText(ticketNumber, TICKET_NUMBER_LENGTH, "ticketNumber");
+    public static MaintenanceRequest submit(
+            String ticketNumber,
+            Long requesterId,
+            Long locationId,
+            String title,
+            String description,
+            MaintenanceCategory category,
+            UrgencyLevel urgencyLevel,
+            Instant submittedAt) {
+        String normalizedTicketNumber =
+                requireText(ticketNumber, TICKET_NUMBER_LENGTH, "ticketNumber");
         if (!TICKET_NUMBER_PATTERN.matcher(normalizedTicketNumber).matches()) {
             throw new IllegalArgumentException("ticketNumber must use the SF-YYYY-NNNNNN format");
         }
         String normalizedTitle = requireText(title, TITLE_MAX_LENGTH, "title");
-        String normalizedDescription = requireText(description, DESCRIPTION_MAX_LENGTH, "description");
+        String normalizedDescription =
+                requireText(description, DESCRIPTION_MAX_LENGTH, "description");
         Objects.requireNonNull(requesterId, "requesterId");
         Objects.requireNonNull(locationId, "locationId");
         Objects.requireNonNull(category, "category");
@@ -180,6 +212,72 @@ public class MaintenanceRequest {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    /** Called only by RequestLifecycleService after permission and prerequisite checks. */
+    public void transitionTo(RequestStatus target, Instant at) {
+        Objects.requireNonNull(target, "target");
+        Objects.requireNonNull(at, "at");
+        if (status.isTerminal()
+                || status == target
+                || RequestTransition.rules().stream()
+                        .noneMatch(rule -> rule.from() == status && rule.to() == target)) {
+            throw new com.smartfix.common.exception.BusinessConflictException(
+                    "Request state has changed.");
+        }
+        status = target;
+        updatedAt = at;
+        if (target == RequestStatus.RESOLVED) resolvedAt = at;
+        if (target == RequestStatus.CONFIRMED) confirmedAt = at;
+        if (target == RequestStatus.CLOSED) closedAt = at;
+        if (target == RequestStatus.REOPENED) {
+            resolvedAt = null;
+            confirmedAt = null;
+            closedAt = null;
+        }
+    }
+
+    public void recordReview(Long actorId, UrgencyLevel priority, Instant at) {
+        if (status != RequestStatus.UNDER_REVIEW) {
+            throw new com.smartfix.common.exception.BusinessConflictException(
+                    "Request is not under review.");
+        }
+        reviewedByUserId = Objects.requireNonNull(actorId, "actorId");
+        finalUrgencyLevel = Objects.requireNonNull(priority, "priority");
+        reviewedAt = Objects.requireNonNull(at, "at");
+        updatedAt = at;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public Instant getReviewedAt() {
+        return reviewedAt;
+    }
+
+    public Long getReviewedByUserId() {
+        return reviewedByUserId;
+    }
+
+    public UrgencyLevel getFinalUrgencyLevel() {
+        return finalUrgencyLevel;
+    }
+
+    public UrgencyLevel getEffectiveUrgencyLevel() {
+        return finalUrgencyLevel == null ? urgencyLevel : finalUrgencyLevel;
+    }
+
+    public Instant getResolvedAt() {
+        return resolvedAt;
+    }
+
+    public Instant getConfirmedAt() {
+        return confirmedAt;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
     }
 
     @Override

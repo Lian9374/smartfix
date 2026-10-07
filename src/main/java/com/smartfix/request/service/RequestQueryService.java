@@ -3,14 +3,19 @@ package com.smartfix.request.service;
 import com.smartfix.facility.dto.LocationResponse;
 import com.smartfix.facility.service.LocationService;
 import com.smartfix.request.domain.MaintenanceRequest;
+import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.domain.RequestStatusHistory;
 import com.smartfix.request.dto.MaintenanceRequestDetailsResponse;
 import com.smartfix.request.dto.MaintenanceRequestSummaryResponse;
 import com.smartfix.request.dto.RequestStatusHistoryResponse;
 import com.smartfix.request.repository.MaintenanceRequestRepository;
 import com.smartfix.request.repository.RequestStatusHistoryRepository;
+import com.smartfix.user.domain.Role;
+
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,11 +34,10 @@ public class RequestQueryService {
     private final LocationService locationService;
 
     public RequestQueryService(
-        MaintenanceRequestRepository maintenanceRequestRepository,
-        RequestStatusHistoryRepository requestStatusHistoryRepository,
-        RequestAccessService requestAccessService,
-        LocationService locationService
-    ) {
+            MaintenanceRequestRepository maintenanceRequestRepository,
+            RequestStatusHistoryRepository requestStatusHistoryRepository,
+            RequestAccessService requestAccessService,
+            LocationService locationService) {
         this.maintenanceRequestRepository = maintenanceRequestRepository;
         this.requestStatusHistoryRepository = requestStatusHistoryRepository;
         this.requestAccessService = requestAccessService;
@@ -41,14 +45,9 @@ public class RequestQueryService {
     }
 
     public List<MaintenanceRequestSummaryResponse> listMyRequests(
-        Long actorUserId,
-        int page,
-        int size
-    ) {
+            Long actorUserId, int page, int size) {
         int safePage = Math.max(page, 0);
-        int safeSize = size <= 0
-            ? DEFAULT_PAGE_SIZE
-            : Math.min(size, MAX_PAGE_SIZE);
+        int safeSize = size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
 
         Pageable pageable = PageRequest.of(safePage, safeSize);
 
@@ -58,74 +57,90 @@ public class RequestQueryService {
          * Never findAll() and filter in Java.
          */
         return maintenanceRequestRepository
-            .findAllByRequesterIdOrderByCreatedAtDesc(actorUserId, pageable)
-            .stream()
-            .map(this::toSummaryResponse)
-            .toList();
+                .findAllByRequesterIdOrderByCreatedAtDesc(actorUserId, pageable)
+                .stream()
+                .map(this::toSummaryResponse)
+                .toList();
     }
 
     public MaintenanceRequestDetailsResponse getRequestDetails(
-        String ticketNumber,
-        Long actorUserId
-    ) {
+            String ticketNumber, Long actorUserId) {
         MaintenanceRequest request =
-            requestAccessService.requireReadableRequest(
-                ticketNumber,
-                actorUserId
-            );
+                requestAccessService.requireReadableRequest(ticketNumber, actorUserId);
 
-        LocationResponse location =
-            locationService.getLocation(request.getLocationId());
+        LocationResponse location = locationService.getLocation(request.getLocationId());
 
         List<RequestStatusHistoryResponse> history =
-            requestStatusHistoryRepository
-                .findAllByRequestIdOrderByChangedAtAsc(request.getId())
-                .stream()
-                .map(this::toHistoryResponse)
-                .toList();
+                requestStatusHistoryRepository
+                        .findAllByRequestIdOrderByChangedAtAsc(request.getId())
+                        .stream()
+                        .map(this::toHistoryResponse)
+                        .toList();
 
         return new MaintenanceRequestDetailsResponse(
-            request.getTicketNumber(),
-            request.getRequesterId(),
-            request.getLocationId(),
-            location.displayName(),
-            request.getTitle(),
-            request.getDescription(),
-            request.getCategory(),
-            request.getUrgencyLevel(),
-            request.getStatus(),
-            request.getCreatedAt(),
-            request.getUpdatedAt(),
-            history
-        );
+                request.getTicketNumber(),
+                request.getRequesterId(),
+                request.getLocationId(),
+                location.displayName(),
+                request.getTitle(),
+                request.getDescription(),
+                request.getCategory(),
+                request.getUrgencyLevel(),
+                request.getStatus(),
+                request.getCreatedAt(),
+                request.getUpdatedAt(),
+                history);
     }
 
-    private MaintenanceRequestSummaryResponse toSummaryResponse(
-        MaintenanceRequest request
-    ) {
-        LocationResponse location =
-            locationService.getLocation(request.getLocationId());
+    public Page<MaintenanceRequestSummaryResponse> listMyRequestsPage(
+            Long actorId, RequestStatus status, int page, int size) {
+        requestAccessService.requireRole(actorId, Role.REQUESTER);
+        Pageable pageable = pageRequest(page, size);
+        Page<MaintenanceRequest> result =
+                status == null
+                        ? maintenanceRequestRepository.findByRequesterId(actorId, pageable)
+                        : maintenanceRequestRepository.findByRequesterIdAndStatus(
+                                actorId, status, pageable);
+        return result.map(this::toSummaryResponse);
+    }
+
+    public Page<MaintenanceRequestSummaryResponse> listForReview(
+            Long actorId, RequestStatus status, int page, int size) {
+        requestAccessService.requireRole(actorId, Role.ADMINISTRATOR);
+        Page<MaintenanceRequest> result =
+                status == null
+                        ? maintenanceRequestRepository.findAll(pageRequest(page, size))
+                        : maintenanceRequestRepository.findByStatus(
+                                status, pageRequest(page, size));
+        return result.map(this::toSummaryResponse);
+    }
+
+    private Pageable pageRequest(int page, int size) {
+        return PageRequest.of(
+                Math.max(page, 0),
+                size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE),
+                Sort.by(Sort.Direction.DESC, "createdAt", "id"));
+    }
+
+    private MaintenanceRequestSummaryResponse toSummaryResponse(MaintenanceRequest request) {
+        LocationResponse location = locationService.getLocation(request.getLocationId());
 
         return new MaintenanceRequestSummaryResponse(
-            request.getTicketNumber(),
-            request.getTitle(),
-            request.getCategory(),
-            request.getUrgencyLevel(),
-            request.getStatus(),
-            location.displayName(),
-            request.getCreatedAt()
-        );
+                request.getTicketNumber(),
+                request.getTitle(),
+                request.getCategory(),
+                request.getUrgencyLevel(),
+                request.getStatus(),
+                location.displayName(),
+                request.getCreatedAt());
     }
 
-    private RequestStatusHistoryResponse toHistoryResponse(
-        RequestStatusHistory history
-    ) {
+    private RequestStatusHistoryResponse toHistoryResponse(RequestStatusHistory history) {
         return new RequestStatusHistoryResponse(
-            history.getFromStatus(),
-            history.getToStatus(),
-            history.getChangedByUserId(),
-            history.getChangedAt(),
-            history.getComment()
-        );
+                history.getFromStatus(),
+                history.getToStatus(),
+                history.getChangedByUserId(),
+                history.getChangedAt(),
+                history.getComment());
     }
 }

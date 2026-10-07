@@ -48,12 +48,13 @@ public class RequestStatusHistory {
         // no-op
     }
 
-    private RequestStatusHistory(Long requestId,
-                                 RequestStatus fromStatus,
-                                 RequestStatus toStatus,
-                                 Long changedByUserId,
-                                 Instant changedAt,
-                                 String comment) {
+    private RequestStatusHistory(
+            Long requestId,
+            RequestStatus fromStatus,
+            RequestStatus toStatus,
+            Long changedByUserId,
+            Instant changedAt,
+            String comment) {
         this.requestId = requestId;
         this.fromStatus = fromStatus;
         this.toStatus = toStatus;
@@ -63,9 +64,8 @@ public class RequestStatusHistory {
     }
 
     /** Creates the mandatory {@code NULL -> SUBMITTED} audit entry. */
-    public static RequestStatusHistory initialSubmission(Long requestId,
-                                                         Long changedByUserId,
-                                                         Instant changedAt) {
+    public static RequestStatusHistory initialSubmission(
+            Long requestId, Long changedByUserId, Instant changedAt) {
         return new RequestStatusHistory(
                 Objects.requireNonNull(requestId, "requestId"),
                 null,
@@ -73,6 +73,26 @@ public class RequestStatusHistory {
                 Objects.requireNonNull(changedByUserId, "changedByUserId"),
                 Objects.requireNonNull(changedAt, "changedAt"),
                 null);
+    }
+
+    public static RequestStatusHistory transition(
+            Long requestId,
+            RequestStatus from,
+            RequestStatus to,
+            Long actorId,
+            Instant at,
+            String comment) {
+        if (from == to || from == null || to == null)
+            throw new IllegalArgumentException("A status change is required");
+        if (comment != null && comment.length() > COMMENT_MAX_LENGTH)
+            throw new IllegalArgumentException("Comment too long");
+        return new RequestStatusHistory(
+                Objects.requireNonNull(requestId),
+                from,
+                to,
+                Objects.requireNonNull(actorId),
+                Objects.requireNonNull(at),
+                comment);
     }
 
     public Long getId() {
