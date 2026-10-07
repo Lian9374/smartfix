@@ -138,19 +138,25 @@ API (never write emails from here).
 
 ## `technician`
 
-- **Purpose:** technician preferences and the eligible technician directory (S3-B-01).
+- **Purpose:** technician preferences, the eligible technician directory and workload reads
+  (S3-B-01 / S3-B-02).
 - **Owns:** `TechnicianProfile`, skills, service-area ids, availability and profile status.
 - **Public API:** `TechnicianDirectoryService.getProfile`, `updateProfile` and
-  `findCandidates`. The directory filters eligibility; recommendation ranking and
-  work-order counts are subsequent S3-B-02 work, not implemented by this change.
+  `findCandidates`. The directory filters eligibility; `dispatch` owns ranking.
+  `TechnicianWorkloadService.countOpenWorkOrders(technicianUserId)` delegates to C's
+  `WorkOrderService`: CREATED / IN_PROGRESS / ON_HOLD / REOPENED with a current active
+  assignment to that account. Its argument is **users.id**, not the profile id.
+  Missing assignment integration raises a business conflict instead of returning zero.
 - **Entry point:** `GET/POST /technician/profile`, restricted to the current active
   technician. The account id comes from the authenticated principal, never the form.
 - **Persistence:** V10 creates `technician_profiles`, `technician_skills` and
   `technician_service_areas`; apply after the earlier Sprint 3 migrations are coordinated.
-- **Dependencies:** public `UserService` and `LocationService`; reuse the existing
+- **Dependencies:** public `UserService`, `LocationService`, `WorkOrderService` and
+  `RequestAssignmentAccessService`; reuse the existing
   `MaintenanceCategory` enum. No cross-module repository access or JPA entity relationships.
 - **Does not own:** account creation, assignment decisions, work orders or notifications.
-- **Implementation and verification status:** [S3-B-01 handoff](sprint3/B_Technician_Profile_Handoff_CN.md).
+- **Implementation and verification status:** [S3-B-01 handoff](sprint3/B_Technician_Profile_Handoff_CN.md)
+  and [S3-B-02 handoff](sprint3/B_Technician_Recommendation_Handoff_CN.md).
 
 ---
 
@@ -161,6 +167,15 @@ API (never write emails from here).
   reasons. This is where a technician-*matching* concern lives **when analysis justifies
   it**.
 - **Does not own:** the request itself, the work order, the technician's personal data.
+- **Current public API:** `TechnicianRecommendationService.recommend(category, locationId)`
+  returns immutable candidate DTOs with account/profile ids, display name, skills,
+  service areas, availability and open work-order count. It delegates F1-F5 eligibility
+  to `TechnicianDirectoryService` and reads workload once per eligible account through
+  `TechnicianWorkloadService`. Ranking is AVAILABLE before BUSY, then workload ascending,
+  then **profile id** ascending. Failures propagate; no partial recommendation is returned.
+  This is an internal read API, not an HTTP endpoint or a reservation. Assignment must
+  revalidate eligibility. Assignment persistence and the production `ActiveAssignmentLookup`
+  adapter are subsequent S3-B-03 work; dispatch pages follow in S3-B-04.
 - **Likely future domain objects:** `Assignment`, and — only after design —
   matching/ranking concepts.
 - **Likely services:** `DispatchService`/`AssignmentService`.
