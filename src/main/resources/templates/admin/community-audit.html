@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Community audit')}"><title>Community audit</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('community-reports')}"></th:block>
+<div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('community-reports')}"></th:block>
+<main id="main-content" class="content">
+<section class="card page-context"><div class="page-head-row"><div class="page-head">
+<h1 class="page-head__title">Community audit</h1><p class="page-head__subtitle">A permanent record of moderation decisions.</p></div>
+<a class="btn btn--secondary" th:href="@{/admin/community/reports(view='ALL')}">Back to reports</a></div></section>
+<section class="card discussion-feed">
+<header class="module-header"><h2>Moderation history</h2><span class="result-count" th:text="|${pagination.totalElements} records|"></span></header>
+<div th:if="${#lists.isEmpty(entries)}"><div th:replace="~{fragments/components :: emptyState('No moderation actions yet.', 'Actions appear here when a moderator changes content or decides a report.')}"></div></div>
+<article class="audit-entry" th:each="entry : ${entries}">
+<div><h3 th:text="${entry.action == 'CONTENT_HIDDEN' ? 'Content hidden' : (entry.action == 'CONTENT_RESTORED' ? 'Content restored' : 'Report resolved')}"></h3>
+<p class="meta" th:text="|${#strings.capitalize(#strings.toLowerCase(entry.targetType))} #${entry.targetId} · ${entry.outcome}|"></p></div>
+<div class="audit-meta"><span th:text="|By Account #${entry.actorUserId}|"></span><time th:datetime="${entry.occurredAt}" th:text="${#temporals.format(entry.occurredAt, 'yyyy-MM-dd HH:mm')}"></time></div>
+</article>
+<nav class="list-pagination" th:if="${pagination.hasPrevious() or pagination.hasNext()}" aria-label="Audit pages">
+<a class="btn btn--secondary" th:if="${pagination.hasPrevious()}" th:href="@{/admin/community/audit(page=${pagination.number - 1},size=${pagination.size})}">Previous</a>
+<span th:text="|Page ${pagination.number + 1} of ${pagination.totalPages}|"></span>
+<a class="btn btn--secondary" th:if="${pagination.hasNext()}" th:href="@{/admin/community/audit(page=${pagination.number + 1},size=${pagination.size})}">Next</a>
+</nav></section>
+</main><footer th:replace="~{fragments/layout :: footer}"></footer></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

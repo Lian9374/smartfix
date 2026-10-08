@@ -26,7 +26,7 @@
           <a class="btn btn--secondary" th:href="@{/requests/{ticket}(ticket=${page.request.ticketNumber})}">View request</a>
         </div>
       </div>
-      <div class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
+      <output class="alert alert--success" th:if="${successMessage}" th:text="${successMessage}"></output>
       <div class="alert alert--error" role="alert" th:if="${errorMessage}">
         <div class="alert__body">
           <p th:text="${errorMessage}"></p>
@@ -61,9 +61,9 @@
             <div class="card__header"><h2 class="card__title" id="candidates-title">Recommended technicians</h2></div>
             <div class="card__body">
               <p class="meta">Eligible technicians are ranked by availability, then open work orders. Your selection is checked again when submitted.</p>
-              <p th:if="${page.recommendationNotice}" th:text="${page.recommendationNotice}" role="status"></p>
-              <p th:if="${page.recommendationNotice == null and #lists.isEmpty(page.candidates)}" role="status">
-                No eligible technicians match this category and location. Check technician skills, service areas and availability before trying again.
+              <p th:if="${page.recommendationNotice}"><output th:text="${page.recommendationNotice}"></output></p>
+              <p th:if="${page.recommendationNotice == null and #lists.isEmpty(page.candidates)}">
+                <output>No eligible technicians match this category and location. Check technician skills, service areas and availability before trying again.</output>
               </p>
             </div>
             <form th:unless="${#lists.isEmpty(page.candidates)}" method="post" th:object="${reassignCommand}"

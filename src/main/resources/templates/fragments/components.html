@@ -39,8 +39,11 @@
       th:text="${text}">Label</span>
 
 <!--
-  RequestStatus. SUBMITTED is the only value Sprint 2 can produce; anything added
-  later needs a tone here, which is the point of keeping the mapping in one file.
+  RequestStatus. The lifecycle carries ten values now, but only SUBMITTED has a
+  tone of its own so far: the rest fall through to neutral and still read
+  correctly, because the badge prints the name rather than relying on colour.
+  Giving them distinct tones is a palette change and belongs with the rest of
+  the palette, not scattered across the pages that show a status.
 -->
 <span class="badge" th:fragment="statusBadge(status)"
       th:classappend="${status != null and status.name() == 'SUBMITTED'} ? 'badge--info' : 'badge--neutral'"
@@ -131,9 +134,10 @@
   slip: same geometry, same palette, same 1.5px detail, so a person who has seen
   the product's artwork once recognises it here.
 
-  There is no action button under it. The submission form does not exist in this
-  build, so a "New request" button would be a control that cannot do anything;
-  what is missing is stated once, in the page's own note, instead.
+  There is no action button under it. The submission form exists, but its entry
+  point belongs to the page, not to the empty state: the overview puts it in the
+  essentials column, and My Requests puts it in the page heading row. A copy
+  inside this fragment would put the same control on a page twice.
 -->
 <div class="empty-state empty-state--illustrated" th:fragment="requestEmptyState(title, message)">
   <span class="empty-state__art" th:insert="~{fragments/illustrations :: requestEmpty}"></span>

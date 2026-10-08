@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!--
+  Self-service sign-up for a requester account.
+
+  Composed as the sign-in page's sibling rather than as a second design: the same
+  54:46 split, the same brand side, the same warm panel with the form set directly
+  on it and no card around it. The two pages are two halves of one visit - a
+  visitor arrives at the wrong one about half the time - so they must not look
+  like two products, and each links to the other.
+
+  This page is reachable signed out, which is why its CSRF token has to be
+  resolved before the view starts writing: see CsrfTokens in the auth controller
+  package. Without that, the drawing fills the response buffer, the response is
+  committed, and the form renders with no fields in it.
+
+  What the page may ask for is exactly what RegistrationCommand has fields for.
+  There is no role control, no status control and no email field - not because
+  they are hidden, but because the form has nothing to bind them to and the
+  service takes the role from its own code.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Create a requester account')}">
+  <title>Create a requester account · SmartFix</title>
+</head>
+<body>
+<div class="auth">
+
+  <!-- Same brand side as the sign-in page, same three parts in the same order. -->
+  <section class="auth__intro">
+    <p class="auth__brand">
+      <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
+    </p>
+
+    <div class="auth__intro-body">
+      <p class="auth__statement">
+        A better campus, one fix at a time.
+      </p>
+      <p class="auth__text">
+        Create an account to report a facility issue and follow it to completion.
+      </p>
+    </div>
+
+    <div class="auth__art" th:insert="~{fragments/illustrations :: campusHero}">
+      <span class="visually-hidden">Campus illustration</span>
+    </div>
+  </section>
+
+  <div class="auth__panel">
+    <main class="auth__form" id="main-content">
+      <h1 class="auth__form-title">Create a requester account</h1>
+      <p class="auth__form-subtitle">
+        Technician and administrator accounts are created by an administrator.
+      </p>
+
+      <form class="auth__form-fields" th:action="@{/register}" method="post"
+            th:object="${registrationCommand}">
+        <!--
+          The page-level refusal: a rule the form's fields cannot carry, reported once
+          above them. It has to sit *inside* the form, because #fields reads the form
+          context that th:object establishes - outside it, Thymeleaf cannot bind form
+          errors and the whole template fails to render, which a GET would hit too.
+
+          The condition sits on this wrapper and the fragment on a child, because
+          th:replace is applied before th:if.
+        -->
+        <div class="auth__feedback" th:if="${#fields.hasGlobalErrors()}">
+          <div th:each="error : ${#fields.globalErrors()}">
+            <div th:replace="~{fragments/components :: alert('error', null, ${error})}"></div>
+          </div>
+        </div>
+
+        <div class="form-field"
+             th:classappend="${#fields.hasErrors('username')} ? 'form-field--invalid'">
+          <label class="form-field__label" for="username">Username</label>
+          <input type="text" id="username" th:field="*{username}"
+                 autocomplete="username" autocapitalize="none" spellcheck="false"
+                 aria-describedby="username-hint username-error"
+                 th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : null">
+          <!--
+            Stated here and enforced in User.USERNAME_PATTERN; the database check
+            constraint backs both. Case does not matter: "Alice" is stored as "alice".
+          -->
+          <span class="form-field__hint" id="username-hint">
+            3-50 characters: letters, digits, '.', '_' or '-'. Sign-in is not case sensitive.
+          </span>
+          <span class="form-field__error" id="username-error" th:errors="*{username}">Username is required.</span>
+        </div>
+
+        <div class="form-field"
+             th:classappend="${#fields.hasErrors('displayName')} ? 'form-field--invalid'">
+          <label class="form-field__label" for="displayName">Display name</label>
+          <input type="text" id="displayName" th:field="*{displayName}"
+                 autocomplete="name"
+                 aria-describedby="displayName-hint displayName-error"
+                 th:attr="aria-invalid=${#fields.hasErrors('displayName')} ? 'true' : null">
+          <span class="form-field__hint" id="displayName-hint">Shown to other users.</span>
+          <span class="form-field__error" id="displayName-error" th:errors="*{displayName}">Display name is required.</span>
+        </div>
+
+        <div class="form-field"
+             th:classappend="${#fields.hasErrors('password')} ? 'form-field--invalid'">
+          <label class="form-field__label" for="password">Password</label>
+          <div class="password-field">
+            <!--
+              Deliberately NOT th:field. Binding the password back into the page
+              would echo the submitted secret into the HTML of a refused attempt,
+              where it would sit in the browser cache, in a screenshot and in any
+              page dump. th:errors still renders, because it reads the
+              BindingResult rather than the object.
+            -->
+            <input type="password" id="password" name="password"
+                   autocomplete="new-password"
+                   th:attr="minlength=${passwordMinLength},
+                            aria-invalid=${#fields.hasErrors('password')} ? 'true' : null"
+                   aria-describedby="password-hint password-error">
+            <button type="button" class="password-toggle" id="password-toggle"
+                    data-password-toggle aria-controls="password" hidden>Show</button>
+          </div>
+          <!-- The number comes from PasswordPolicy, so the hint cannot drift from the rule. -->
+          <span class="form-field__hint" id="password-hint"
+                th:text="|At least ${passwordMinLength} characters, including at least one letter and one digit.|">
+            At least 12 characters, including at least one letter and one digit.
+          </span>
+          <span class="form-field__error" id="password-error" th:errors="*{password}">Password is required.</span>
+        </div>
+
+        <div class="form-field"
+             th:classappend="${#fields.hasErrors('confirmPassword')} ? 'form-field--invalid'">
+          <label class="form-field__label" for="confirmPassword">Confirm password</label>
+          <!-- Not bound either, for the same reason, and never compared to anything stored. -->
+          <input type="password" id="confirmPassword" name="confirmPassword"
+                 autocomplete="new-password"
+                 aria-describedby="confirmPassword-error"
+                 th:attr="aria-invalid=${#fields.hasErrors('confirmPassword')} ? 'true' : null">
+          <span class="form-field__error" id="confirmPassword-error"
+                th:errors="*{confirmPassword}">Confirm your password.</span>
+        </div>
+
+        <button type="submit" class="btn btn--primary btn--block">Create account</button>
+      </form>
+
+      <p class="auth__footnote">
+        Already have an account? <a th:href="@{/login}">Sign in</a>.
+      </p>
+    </main>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

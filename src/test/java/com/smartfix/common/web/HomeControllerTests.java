@@ -11,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -97,5 +99,39 @@ class HomeControllerTests {
     void anonymousHomeRedirectsToLogin() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isFound()).andExpect(redirectedUrl("http://localhost/login"));
+    }
+
+    /**
+     * The community board is the one destination every signed-in role shares, so the
+     * home page offers it with no {@code navRole} condition and each role's navigation
+     * carries the link.
+     *
+     * <p>Asserted for all three roles, not one, because that navigation is built by two
+     * different fragments - the administrator's rail and everybody else's bar - and a
+     * link added to only one of them would still pass a single-role check. The two
+     * layouts spell their link text differently, which is why the expected string
+     * depends on the role: the rail wraps it in a {@code <span>} beside its icon, the
+     * bar writes it as plain text. Asserting one spelling for all three roles is exactly
+     * how the rail would have been missed.</p>
+     */
+    @ParameterizedTest
+    @EnumSource(Role.class)
+    void everyRoleIsOfferedTheCommunityBoard(Role role) throws Exception {
+        when(userService.getUserAccess(7L)).thenReturn(
+                new UserAccessResponse(7L, role, AccountStatus.ACTIVE, 0L));
+        SmartFixUserDetails principal = new SmartFixUserDetails(new UserAuthenticationData(
+                7L, "alice", "hash", role, AccountStatus.ACTIVE, 0L));
+        String navLink = role == Role.ADMINISTRATOR
+                ? "<span>Community</span>"
+                : ">Community</a>";
+        mockMvc.perform(get("/").with(user(principal)))
+                .andExpect(status().isOk())
+                // The navigation link, in whichever of the two layouts this role uses.
+                .andExpect(content().string(containsString(navLink)))
+                // The card, and the three destinations that actually work today.
+                .andExpect(content().string(containsString("id=\"community-tasks-title\"")))
+                .andExpect(content().string(containsString("href=\"/community\"")))
+                .andExpect(content().string(containsString("href=\"/community/questions/new\"")))
+                .andExpect(content().string(containsString("href=\"/community/mine\"")));
     }
 }

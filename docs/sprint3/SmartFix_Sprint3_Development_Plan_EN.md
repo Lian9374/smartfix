@@ -1737,18 +1737,23 @@ sequenceDiagram
 > **In practice:** a member who is about to write their first migration asks C for a number,
 > and C allocates it as the **actual current maximum merged version + 1** and registers it here.
 
+> **Registry checked by C on 2026-10-08:** main `754b9b4` and fetched remote branches.
+> "Merged into main" means the SQL file has been committed and merged; it does not certify execution or acceptance on any local database.
+> V13 and V15 are reserved for the existing E task allocation; final filenames await E submission. New allocations must skip registered reservations.
+> If V13 arrives after V14, databases that already applied V14 need an agreed upgrade strategy; registration alone does not resolve migration ordering.
+
 | Version | Contents | Owner | Depends on | Status |
 |---|---|---|---|---|
-| **V6** | `create_request_status_history` | **C** | none | **the only number formally reserved by the `V4` header** 【team to confirm — D-01】 |
-| V7 | `maintenance_requests` extension (status CHECK, `version`, `reviewed_*`, `final_urgency_level`, `resolved_at`, `closed_at`) | C | V6 | to be allocated |
-| V8 | `work_orders` + `repair_records` | C | V7 | to be allocated |
-| V9 | `request_feedback` | C | V7 | to be allocated |
-| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | to be allocated |
-| V11 | `assignments` | B | V10, V7 | to be allocated |
-| V12 | `facilities` (including the FK to `locations`) | D | V3 | to be allocated |
-| V13 | `sla_policies` + `request_sla_states` | E | V7 | to be allocated |
-| V14 | `notifications` | E | V2 | to be allocated |
-| V15 | `audit_entries` | E | V2 | to be allocated |
+| **V6** | `create_request_status_history` | **C** | none | Merged into main; `V6__create_request_status_history.sql` (originally reserved by V4) |
+| V7 | `maintenance_requests` extension (status CHECK, `version`, `reviewed_*`, `final_urgency_level`, `resolved_at`, `closed_at`) | C | V6 | Merged into main; `V7__extend_request_lifecycle.sql` |
+| V8 | `work_orders` + `repair_records` | C | V7 | Merged into main; `V8__create_work_orders.sql` |
+| V9 | `request_feedback` | C | V7 | Merged into main; `V9__create_request_feedback.sql` |
+| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | Merged into main; `V10__create_technician_profiles.sql` |
+| V11 | `assignments` | B | V10, V7 | Merged into main; `V11__create_assignments.sql` |
+| V12 | `facilities` (including the FK to `locations`) | D | V3 | Merged into main; `V12__create_facilities.sql` |
+| V13 | `sla_policies` + `request_sla_states` | E | V7 | Reserved by C on 2026-10-08; SQL not found on checked remote branches, awaiting E submission |
+| V14 | `notifications` | E | V2 | Merged into main; `V14__create_notifications.sql` (PR #21) |
+| V15 | `audit_entries` | E | V2 | Reserved by C on 2026-10-08; SQL not found on checked remote branches, awaiting E submission |
 | V16 | `announcements` | D | V2, V12 | to be allocated |
 | V17 | `community_questions` + `community_answers` | A | V2 | to be allocated |
 | V18 | `community_reports` | A | V17 | to be allocated |
@@ -3504,17 +3509,17 @@ Recorded by:
 | **D-02** | **Where is the transaction boundary for submission and attachments?** | ① One transaction for everything ② Files written first, DB transaction separate, compensation on failure | ② (§16.2's eight steps) | C / E | ____ |
 | **D-03** | **Relationship between Location and Facility** | ① Facility belongs to Location (1:N) ② Independent | ① (§14.4) | D / B | ____ |
 | **D-04** | **Is facility status derived from requests?** | ① Auto-rewritten ② **Not** auto-rewritten; maintained manually | ② (avoids multiple open requests fighting over the status) | D | ____ |
-| **D-05** | **May a question author accept their own answer?** | ① Allowed ② Forbidden | **② Forbidden** (prevents self-marking as solved) | A | ____ |
+| **D-05** | **May a question author accept their own answer?** | ① Allowed ② Forbidden | **② Forbidden** (prevents self-marking as solved) | A | Forbidden (ADR-003, 2026-10-08) |
 | **D-06** | **How is the invalid `V5` repaired?** | ① Add the comment prefixes and merge (checksum mismatch for anyone who applied it) ② Add a V5.1 / V19 repair migration | ① (V5 **cannot** be applied from a clean checkout today, which suggests nobody applied it), **after confirming** whether any local database did | C / All | ____ |
 | **D-07** | **Are the ten statuses and T01–T13 frozen?** | ① Freeze ② Adjust | ① Freeze (§6.3 / §6.4) | All | ____ |
 | **D-08** | **Reopen window and whether rating is required** | ① No window; rating optional ② N-day window; rating required | ① (no window, rating optional); a window would have to be written into T13 | C | ____ |
-| **D-09** | **Introduce a "close answers" concept?** | ① Yes (the author stops new answers) ② **No** | ② No: `accepted_answer_id` already expresses "solved" | A | ____ |
-| **D-10** | **Community images: do them, and how?** | ① Not this Sprint (v1 is text only) ② A new `community_attachments` table ③ Reuse `request_attachments` | **① or ②**; **never ③** (`request_id` is NOT NULL) | A / E | ____ |
+| **D-09** | **Introduce a "close answers" concept?** | ① Yes (the author stops new answers) ② **No** | ② No: `accepted_answer_id` already expresses "solved" | A | No independent close-answers switch (ADR-003, 2026-10-08) |
+| **D-10** | **Community images: do them, and how?** | ① Not this Sprint (v1 is text only) ② A new `community_attachments` table ③ Reuse `request_attachments` | **① or ②**; **never ③** (`request_id` is NOT NULL) | A / E | Text only this Sprint; no community attachments (ADR-003, 2026-10-08) |
 | **D-11** | **Map data source and presentation** | ① Static SVG floor plan + coordinates ② An external map SDK ③ A list plus building/floor text positioning | ③ (no external dependency, lowest cost, cannot fail on network) | D | ____ |
 | **D-12** | **Introduce `TechnicianMatchingStrategy` now?** | ① Abstract now ② Ship one implementation; extract when a real variant appears | ② (§8.3: do not abstract ahead of a real variation point) | B | ____ |
-| **D-13** | **"The accepted answer must belong to the question": DB constraint or service-layer only?** | ① Composite FK `(accepted_answer_id, id) → (id, question_id)` ② Service-layer check only | ① **plus** a friendly service-layer check | A | ____ |
+| **D-13** | **"The accepted answer must belong to the question": DB constraint or service-layer only?** | ① Composite FK `(accepted_answer_id, id) → (id, question_id)` ② Service-layer check only | ① **plus** a friendly service-layer check | A | Composite FK plus service ownership checks and conditional updates (ADR-003, 2026-10-08) |
 | **D-14** | **SLA: natural time or working time? Which pause points?** | ① Natural time ② Working time (needs a working calendar) | ① natural time for v1; pause points per §14.8 | E | ____ |
-| **D-15** | **How is community anti-duplicate implemented?** | ① Reject identical title+body from the same author inside a window ② No limit | ① (window configurable, default 2 minutes) | A | ____ |
+| **D-15** | **How is community anti-duplicate implemented?** | ① Reject identical title+body from the same author inside a window ② No limit | ① (window configurable, default 2 minutes) | A | 2-minute duplicate-question window; separate 20-per-rolling-24h question/answer caps; no additional 30s interval (ADR-003, 2026-10-08) |
 | **D-16** | **Which fields are "restricted"?** | An explicit column list | See §14.4: exact room numbers, internal notes, reporter identity | D | ____ |
 | **D-17** | **NUS SSO?** | ① This Sprint ② **No**; local accounts | ② No (as with D-18 / D-19) | All | ____ |
 | **D-18** | **Public registration and password reset?** | ① Yes ② **No** | ② No (out of Sprint 3 scope, §4.5) | All | ____ |
@@ -3881,3 +3886,5 @@ Try next time (start):
 
 
 
+
+> 2026-10-08: D-05, D-09, D-10, D-13 and D-15 are now resolved under user authorization. [ADR-003](../decisions/ADR-003-community-completion.md) supersedes earlier pending-decision prose.

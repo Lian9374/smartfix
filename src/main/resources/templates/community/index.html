@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Community')}"><title>Community · SmartFix</title></head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('community')}"></th:block>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
+    <main id="main-content" class="content community-page">
+      <section class="community-hero">
+        <div><h1>Community</h1><p>Questions and answers from across the campus.</p>
+          <div class="hero-actions"><a class="btn btn--primary" th:href="@{/community/questions/new}"><svg th:replace="~{fragments/ui-icons :: plus}"></svg> Ask a question</a></div>
+        </div>
+        <div class="conversation-art" aria-hidden="true"><span class="conversation-art__bubble">···</span><span class="conversation-art__reply">✓</span><span class="conversation-art__spark">✦</span></div>
+      </section>
+      <div class="community-workspace">
+        <div class="community-main-column">
+          <form class="card community-filters" method="get" th:action="@{/community}">
+        <div class="card__body">
+          <div class="community-filter-grid">
+            <div class="form-field community-search-field">
+              <label class="form-field__label" for="community-q">Search</label>
+              <input id="community-q" name="q" type="search" th:value="${query}"
+                     maxlength="100" placeholder="Title or details"
+                     aria-describedby="community-q-hint" autocomplete="off">
+            </div>
+
+            <div class="form-field community-topic-field">
+              <label class="form-field__label" for="community-category">Topic</label>
+              <select id="community-category" name="category">
+                <option value="">All topics</option>
+                <option th:each="topic : ${categories}" th:value="${topic}"
+                        th:text="${#strings.capitalize(#strings.toLowerCase(topic.name()))}" th:selected="${topic == selectedCategory}">HARDWARE</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="form-field__label" for="community-filter">Show</label>
+              <select id="community-filter" name="filter">
+                <option th:each="option : ${filters}" th:value="${option}"
+                        th:selected="${option == selectedFilter}"
+                        th:text="${option.name() == 'LATEST'
+                                    ? 'Latest'
+                                    : (option.name() == 'UNANSWERED' ? 'Unanswered' : 'Solved')}">Latest</option>
+              </select>
+            </div>
+          </div>
+
+          <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
+
+          <div class="form-actions">
+            <button class="btn btn--primary search-submit" type="submit" aria-label="Search discussions"><svg th:replace="~{fragments/ui-icons :: search}"></svg></button>
+            <a class="btn btn--secondary" th:href="@{/community}">Reset</a>
+          </div>
+        </div>
+      </form>
+          <span class="visually-hidden" id="community-q-hint">Search question titles and details.</span>
+          <section class="card discussion-feed" aria-labelledby="discussions-heading">
+            <header class="module-header">
+              <h2 id="discussions-heading" th:text="${selectedFilter.name() == 'LATEST' ? 'Latest discussions' : (selectedFilter.name() == 'UNANSWERED' ? 'Unanswered' : 'Solved discussions')}">Latest discussions</h2>
+              <span class="result-count" th:with="total=${pagination != null ? pagination.totalElements : #lists.size(questions)}" th:text="${total + (total == 1 ? ' discussion' : ' discussions')}"></span>
+            </header>
+            <div th:if="${#lists.isEmpty(questions)
+                        and unfiltered
+                        and selectedFilter.name() == 'LATEST'
+                        and page == 0}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No questions yet',
+                     'Questions asked by anyone on campus will appear here. Ask the first one.')}">
+            </div>
+          </div>
+
+          <div th:if="${#lists.isEmpty(questions)
+                        and not (unfiltered
+                                 and selectedFilter.name() == 'LATEST'
+                                 and page == 0)}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No questions match this page or filter.',
+                     'Try a different topic, another tab, or a broader search.')}">
+            </div>
+          </div>
+
+
+            <div class="discussion-list" th:unless="${#lists.isEmpty(questions)}">
+              <article class="discussion" th:each="question : ${questions}">
+                <span class="discussion__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: chat}"></svg></span>
+                <div class="discussion__body">
+                  <div class="discussion__meta"><span th:text="|Account #${question.authorId}|"></span><span aria-hidden="true">·</span><time th:datetime="${question.createdAt}" th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}"></time></div>
+                  <h3><a class="discussion__title-link" th:href="@{/community/questions/{id}(id=${question.id})}"><span th:text="${question.title}"></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></h3>
+                  <p class="discussion__excerpt" th:text="${question.excerpt}"></p>
+                  <div class="discussion__tags"><span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}"></span><span class="badge" th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'" th:text="${question.solved} ? 'Solved' : 'Open'">Open</span></div>
+                </div>
+              </article>
+            </div>
+            <nav class="list-pagination" th:if="${pagination != null and (pagination.hasPrevious() or pagination.hasNext())}" aria-label="Community pagination">
+        <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
+           th:href="@{/community(page=${pagination.number - 1},
+                                 size=${pagination.size},
+                                 category=${selectedCategory},
+                                 filter=${selectedFilter},
+                                 q=${query})}">Previous</a>
+        <span th:text="|Page ${pagination.number + 1} of ${pagination.totalPages}|">Page 1</span>
+        <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
+           th:href="@{/community(page=${pagination.number + 1},
+                                 size=${pagination.size},
+                                 category=${selectedCategory},
+                                 filter=${selectedFilter},
+                                 q=${query})}">Next</a>
+      </nav>
+          </section>
+        </div>
+        <aside class="community-rail" aria-label="Community tools">
+          <section class="card rail-module">
+            <h2>Your activity</h2>
+            <a class="rail-link" th:href="@{/community/mine}"><svg th:replace="~{fragments/ui-icons :: list}"></svg><span>My questions</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+            <a class="rail-link" th:href="@{/community/mine(tab='ANSWERS')}"><svg th:replace="~{fragments/ui-icons :: reply}"></svg><span>My answers</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+          </section>
+          <section class="card rail-module">
+            <h2>Browse topics</h2>
+            <nav class="topic-directory" aria-label="Discussion topics">
+              <a class="community-topic" th:classappend="${selectedCategory == null} ? 'is-selected'" th:href="@{/community(q=${query},filter=${selectedFilter},size=${pagination.size})}"><span>All topics</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+              <a class="community-topic" th:each="topic : ${categories}" th:classappend="${topic == selectedCategory} ? 'is-selected'" th:href="@{/community(category=${topic},q=${query},filter=${selectedFilter},size=${pagination.size})}"><span th:text="${#strings.capitalize(#strings.toLowerCase(topic.name()))}"></span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+            </nav>
+          </section>
+          <section class="card rail-module rail-module--maintenance" th:if="${navRole == 'REQUESTER'}">
+            <span class="rail-module__mark" th:insert="~{fragments/layout :: mark}"></span><h2>Something needs fixing?</h2><p>Send a maintenance request to the facility team.</p><a class="btn btn--secondary" th:href="@{/requests/new}">Report an issue</a>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

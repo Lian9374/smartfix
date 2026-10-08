@@ -11,6 +11,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Collection;
 import java.util.Set;
 
 @Service
@@ -36,9 +37,10 @@ public class RequestAssignmentAccessService {
                 .orElse(false);
     }
 
-    public Set<Long> findActiveRequestIdsForTechnician(Long technicianId) {
+    public Set<Long> findActiveRequestIds(Long technicianId, Collection<Long> candidateRequestIds) {
         ActiveAssignmentLookup adapter = lookup.getIfAvailable();
-        return adapter == null ? Set.of() : Set.copyOf(adapter.findActiveRequestIdsForTechnician(technicianId));
+        if (adapter == null || candidateRequestIds.isEmpty()) return Set.of();
+        return Set.copyOf(adapter.findActiveRequestIds(technicianId, candidateRequestIds));
     }
 
     public ActiveAssignment requireActiveAssignment(Long requestId) {

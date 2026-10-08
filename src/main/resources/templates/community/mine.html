@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<!--
+  My content: everything the signed-in account has asked, and everything it has
+  answered, under one tab each.
+
+  This is the one community list that shows content which is not publicly
+  visible. A member's own withdrawn or hidden questions and answers belong here,
+  marked as such, because the alternative is a page that silently drops them and
+  leaves the author unable to tell whether withdrawing worked.
+
+  It is also the only list with a Status column: on the public board every row is
+  published, so a status there would be the same word ten times.
+
+  The answers tab names a question only where the reader may read that question -
+  which is the question's own detail-page rule. An answer to somebody else's
+  withdrawn question shows the reader their own text and says nothing about the
+  question: not its title, not its body, and not whether it was withdrawn or
+  hidden by a moderator. The answers column is where an answer list could leak a
+  question, so it is where the rule is written down.
+
+  The two tabs are two URLs, not client-side state. Both lists page, and a page
+  of answers has to survive a reload and a bookmark like every other list here.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${tab.name() == 'ANSWERS'} ? 'My answers' : 'My questions')}">
+  <title>My questions · SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('my-questions')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('my-questions')}"></th:block>
+
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <!--
+          The heading follows the tab. Each is a th:if on a wrapper with the
+          th:replace inside it, never both on one element: th:replace is processed
+          first, so a th:if beside it would never run and both headings - and both
+          h1s - would render.
+        -->
+        <th:block th:if="${tab.name() == 'ANSWERS'}">
+          <div th:replace="~{fragments/components :: pageHeading(
+               'My answers',
+               'Everything you have answered, including anything you have withdrawn.')}">
+            <h1 class="page-head__title">My answers</h1>
+          </div>
+        </th:block>
+
+        <th:block th:if="${tab.name() == 'QUESTIONS'}">
+          <div th:replace="~{fragments/components :: pageHeading(
+               'My questions',
+               'Everything you have asked, including anything you have withdrawn.')}">
+            <h1 class="page-head__title">My questions</h1>
+          </div>
+        </th:block>
+
+        <div class="page-head-row__actions">
+          <a class="btn btn--primary" th:href="@{/community/questions/new}">Ask a question</a>
+          <a class="btn btn--secondary" th:href="@{/community}">Community</a>
+        </div>
+
+        <p class="page-head-row__meta" th:if="${tab.name() == 'QUESTIONS'}"
+           th:unless="${#lists.isEmpty(questions)}"
+           th:text="|${#lists.size(questions)} shown|">10 shown</p>
+        <p class="page-head-row__meta" th:if="${tab.name() == 'ANSWERS'}"
+           th:unless="${#lists.isEmpty(answers)}"
+           th:text="|${#lists.size(answers)} shown|">10 shown</p>
+      </div>
+
+      <!--
+        The tab switcher. The tab that is showing is a primary button and the other
+        is a secondary one, and the current tab is also marked with aria-current so
+        the difference is not carried by colour alone. Both are links to the same
+        page, so switching tabs is a navigation and not a form submission.
+      -->
+      <nav class="form-actions" aria-label="My community content">
+        <a class="btn" th:classappend="${tab.name() == 'QUESTIONS'}
+                                          ? 'btn--primary' : 'btn--secondary'"
+           th:href="@{/community/mine(tab='QUESTIONS')}"
+           th:attr="aria-current=${tab.name() == 'QUESTIONS'} ? 'page' : null">My questions</a>
+        <a class="btn" th:classappend="${tab.name() == 'ANSWERS'}
+                                          ? 'btn--primary' : 'btn--secondary'"
+           th:href="@{/community/mine(tab='ANSWERS')}"
+           th:attr="aria-current=${tab.name() == 'ANSWERS'} ? 'page' : null">My answers</a>
+      </nav>
+
+      <!-- ==================================================== my questions -->
+
+      <section class="card" th:if="${tab.name() == 'QUESTIONS'}"
+               aria-label="Your community questions">
+        <div class="card__body card__body--flush">
+          <div th:if="${#lists.isEmpty(questions) and page == 0}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'You have not asked anything yet',
+                     'Questions you post on the community board will be listed here.')}">
+            </div>
+          </div>
+
+          <div th:if="${#lists.isEmpty(questions) and page > 0}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No questions on this page.',
+                     'Return to the first page to see your questions.')}"></div>
+          </div>
+
+          <div class="table-scroll" th:unless="${#lists.isEmpty(questions)}">
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Your community questions, most recent first. Open a question to read it.
+              </caption>
+              <thead>
+              <tr>
+                <th scope="col">Question</th>
+                <th scope="col">Topic</th>
+                <th scope="col">Status</th>
+                <th scope="col">Answers</th>
+                <th scope="col">Posted</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="question : ${questions}">
+                <th scope="row" class="cell-request">
+                  <a class="cell-request__link"
+                     th:href="@{/community/questions/{id}(id=${question.id})}">
+                    <span class="cell-request__title" th:text="${question.title}">
+                      Wifi is down in the library
+                    </span>
+                    <span class="cell-request__ticket" th:text="${question.excerpt}">
+                      The wireless network has been unreachable since this morning.
+                    </span>
+                  </a>
+                </th>
+
+                <td data-label="Topic">
+                  <span th:replace="~{fragments/components :: badge(${question.category}, 'neutral')}">
+                    NETWORK
+                  </span>
+                </td>
+
+                <!--
+                  Printed as words rather than as the constants the backend stores,
+                  and sized by tone so a withdrawn question does not read as a
+                  published one at a glance.
+                -->
+                <td data-label="Status">
+                  <span class="badge"
+                        th:classappend="${question.status.name() == 'VISIBLE'
+                                            ? 'badge--info'
+                                            : 'badge--neutral'}"
+                        th:text="${question.status.name() == 'VISIBLE'
+                                    ? 'Visible'
+                                    : (question.status.name() == 'WITHDRAWN'
+                                        ? 'Withdrawn'
+                                        : 'Hidden by a moderator')}">Visible</span>
+                </td>
+
+                <td data-label="Answers">
+                  <span class="badge"
+                        th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
+                        th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
+                </td>
+
+                <td class="data-table__nowrap" data-label="Posted"
+                    th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 08:00
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================== my answers -->
+
+      <section class="card" th:if="${tab.name() == 'ANSWERS'}"
+               aria-label="Your community answers">
+        <div class="card__body card__body--flush">
+          <div th:if="${#lists.isEmpty(answers) and page == 0}">
+            <!--
+              No apostrophe in either argument: inside a fragment expression a
+              doubled quote is not an escape, and 'people''s' makes the whole
+              expression unparseable rather than merely printing oddly.
+            -->
+            <div th:replace="~{fragments/components :: emptyState(
+                     'You have not answered anything yet',
+                     'Answers you post on the questions of others will be listed here.')}">
+            </div>
+          </div>
+
+          <div th:if="${#lists.isEmpty(answers) and page > 0}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No answers on this page.',
+                     'Return to the first page to see your answers.')}"></div>
+          </div>
+
+          <div class="table-scroll" th:unless="${#lists.isEmpty(answers)}">
+            <table class="data-table data-table--stack">
+              <caption class="visually-hidden">
+                Your community answers, most recent first. Open a question to read the thread.
+              </caption>
+              <thead>
+              <tr>
+                <th scope="col">Answer</th>
+                <th scope="col">Question</th>
+                <th scope="col">Status</th>
+                <th scope="col">Posted</th>
+                <th scope="col">Actions</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="answer : ${answers}">
+                <!--
+                  The reader's own text, printed whether or not the answer is
+                  still public: it is their writing and hiding it from them would
+                  make the list useless for the one job it has. The excerpt is
+                  abbreviated for the row, not withheld.
+                -->
+                <th scope="row" class="cell-request">
+                  <span class="cell-request__title"
+                        th:text="${#strings.abbreviate(answer.body, 120)}">
+                    Have you checked the power cable?
+                  </span>
+                  <span class="cell-request__ticket"
+                        th:text="|posted ${#temporals.format(answer.createdAt, 'yyyy-MM-dd HH:mm')}|">
+                    posted 2026-09-19 09:30
+                  </span>
+                </th>
+
+                <!--
+                  Linked only where the question may be read. questionTitle is
+                  null exactly when it may not, so the null check is the same
+                  test the service made - the page cannot decide this on its own
+                  and is not asked to.
+                -->
+                <td data-label="Question">
+                  <a th:if="${answer.questionTitle != null}"
+                     th:href="@{/community/questions/{id}(id=${answer.questionId})}"
+                     th:text="${answer.questionTitle}">Projector will not power on</a>
+                  <span th:unless="${answer.questionTitle != null}" class="badge badge--neutral">
+                    Not available
+                  </span>
+                </td>
+
+                <td data-label="Status">
+                  <span class="badge"
+                        th:classappend="${answer.status.name() == 'VISIBLE'
+                                            ? 'badge--info'
+                                            : 'badge--neutral'}"
+                        th:text="${answer.status.name() == 'VISIBLE'
+                                    ? 'Visible'
+                                    : (answer.status.name() == 'WITHDRAWN'
+                                        ? 'Withdrawn'
+                                        : 'Hidden by a moderator')}">Visible</span>
+                </td>
+
+                <td class="data-table__nowrap" data-label="Posted"
+                    th:text="${#temporals.format(answer.createdAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 09:30
+                </td>
+
+                <td data-label="Actions">
+                  <div class="inline-form" th:if="${answer.status.name() == 'VISIBLE'}">
+                    <a class="btn btn--secondary btn--small"
+                       th:href="@{/community/answers/{id}/edit(id=${answer.id})}">Edit</a>
+
+                    <form method="post"
+                          th:action="@{/community/answers/{id}/withdraw(id=${answer.id})}"
+                          onsubmit="return confirm('Withdraw this answer? It will no longer be publicly visible. If it is the accepted answer, the question becomes open again.')">
+                      <button class="btn btn--secondary btn--small" type="submit">Withdraw</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <nav th:if="${pagination != null}" aria-label="My content pagination">
+        <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
+           th:href="@{/community/mine(tab=${tab}, page=${pagination.number - 1}, size=${pagination.size})}">
+          Previous
+        </a>
+        <span th:text="${tab.name() == 'ANSWERS'
+                          ? pagination.totalElements + ' answers'
+                          : pagination.totalElements + ' questions'}">0 questions</span>
+        <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
+           th:href="@{/community/mine(tab=${tab}, page=${pagination.number + 1}, size=${pagination.size})}">
+          Next
+        </a>
+      </nav>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

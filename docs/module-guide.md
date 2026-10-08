@@ -196,8 +196,10 @@ API (never write emails from here).
 - **Read integration:** `RequestAssignmentLookupAdapter` implements C's
   `ActiveAssignmentLookup` through a separate `AssignmentReadService`, keeping the write
   orchestrator out of the callback dependency chain. Recommendations now use real assignments.
-  `findActiveRequestIdsForTechnician` provides an immutable set of currently assigned request
-  ids for C's list authorization; missing or older adapters grant no list access.
+  `findActiveRequestIdsForTechnician` supplies B's bulk assignment read. The adapter implements
+  C's `findActiveRequestIds(technicianId, candidateRequestIds)` contract and returns only the
+  intersection with candidate work orders. Missing adapters grant no list access; older adapters
+  retain C's per-request checks against current assignments.
 - **Events:** `AssignmentCreatedEvent` (including the previous technician on reassignment)
   and `AssignmentWithdrawnEvent`; notification/audit consumers must subscribe AFTER_COMMIT.
 - **Implementation and validation:** [S3-B-03 handoff](sprint3/B_Assignment_Handoff_CN.md).

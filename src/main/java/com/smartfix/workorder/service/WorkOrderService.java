@@ -86,13 +86,14 @@ public class WorkOrderService {
 
     public Page<WorkOrderResponse> findMine(Long actorId, int page, int size) {
         requireTechnician(actorId);
-        var pageable = PageRequest.of(Math.max(0, page), Math.max(1, Math.min(100, size)),
+        var pageable = PageRequest.of(
+                Math.max(0, page), Math.max(1, Math.min(100, size)),
                 Sort.by(Sort.Direction.DESC, "updatedAt", "id"));
-        var requestIds = assignments.findActiveRequestIdsForTechnician(actorId);
-        if (requestIds.isEmpty()) return Page.empty(pageable);
-        // A withdrawn order retains its historical technician id. Authorize before both
-        // page selection and counting so neither rows nor pagination disclose revoked work.
-        return orders.findByTechnicianIdAndRequestIdIn(actorId, requestIds, pageable)
+        var activeRequestIds = assignments.findActiveRequestIds(
+                actorId, orders.findRequestIdsByTechnicianId(actorId));
+        if (activeRequestIds.isEmpty()) return Page.empty(pageable);
+        // Filter before pagination so withdrawn assignments affect rows and totals equally.
+        return orders.findByTechnicianIdAndRequestIdIn(actorId, activeRequestIds, pageable)
                 .map(this::response);
     }
 

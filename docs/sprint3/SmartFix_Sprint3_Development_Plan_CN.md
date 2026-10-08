@@ -1768,18 +1768,23 @@ sequenceDiagram
 > **实际做法：** 成员在**开始写第一个迁移**时向 C 报「我需要一个号」，
 > C 按当时的**实际最大已合并版本号 + 1** 分配并登记在本表。
 
+> **登记核对：** C，2026-10-08；依据主分支 `754b9b4` 及已获取的远端分支。
+> 下表的“已合入 main”仅说明 SQL 文件已提交合并，不代表任何本地数据库已执行或验收通过。
+> V13、V15 按既有 E 任务分工登记预留，最终文件名待 E 提交；新取号须避开已登记预留编号。
+> V13 晚于 V14 提交时，已执行 V14 的数据库须先确定升级策略；仅登记编号不能解决迁移顺序问题。
+
 | 版本 | 内容 | 负责人 | 依赖 | 状态 |
 |---|---|---|---|---|
-| **V6** | `create_request_status_history` | **C** | 无 | **唯一被 V4 文件头正式预留的编号**【待团队确认 D-01】 |
-| V7 | `maintenance_requests` 扩展（status CHECK、version、reviewed_*、final_urgency_level、resolved_at、closed_at） | C | V6 | 待分配 |
-| V8 | `work_orders` + `repair_records` | C | V7 | 待分配 |
-| V9 | `request_feedback` | C | V7 | 待分配 |
-| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | 待分配 |
-| V11 | `assignments` | B | V10、V7 | 待分配 |
-| V12 | `facilities`（含 `locations` 上的 FK） | D | V3 | 待分配 |
-| V13 | `sla_policies` + `request_sla_states` | E | V7 | 待分配 |
-| V14 | `notifications` | E | V2 | 待分配 |
-| V15 | `audit_entries` | E | V2 | 待分配 |
+| **V6** | `create_request_status_history` | **C** | 无 | 已合入 main；`V6__create_request_status_history.sql`（原由 V4 正式预留） |
+| V7 | `maintenance_requests` 扩展（status CHECK、version、reviewed_*、final_urgency_level、resolved_at、closed_at） | C | V6 | 已合入 main；`V7__extend_request_lifecycle.sql` |
+| V8 | `work_orders` + `repair_records` | C | V7 | 已合入 main；`V8__create_work_orders.sql` |
+| V9 | `request_feedback` | C | V7 | 已合入 main；`V9__create_request_feedback.sql` |
+| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | 已合入 main；`V10__create_technician_profiles.sql` |
+| V11 | `assignments` | B | V10、V7 | 已合入 main；`V11__create_assignments.sql` |
+| V12 | `facilities`（含 `locations` 上的 FK） | D | V3 | 已合入 main；`V12__create_facilities.sql` |
+| V13 | `sla_policies` + `request_sla_states` | E | V7 | 已登记预留（C，2026-10-08）；远端未见 SQL，待 E 提交 |
+| V14 | `notifications` | E | V2 | 已合入 main；`V14__create_notifications.sql`（PR #21） |
+| V15 | `audit_entries` | E | V2 | 已登记预留（C，2026-10-08）；远端未见 SQL，待 E 提交 |
 | V16 | `announcements` | D | V2、V12 | 待分配 |
 | V17 | `community_questions` + `community_answers` | A | V2 | 待分配 |
 | V18 | `community_reports` | A | V17 | 待分配 |
@@ -3515,17 +3520,17 @@ Sprint 4 是否承接：
 | **D-02** | **报修提交与附件编排放在哪个事务边界？** | ① 一个事务全包 ② 文件先落盘、DB 事务独立、失败补偿删除 | ②（§16.2 的八步补偿） | C / E | ＿＿ |
 | **D-03** | **地址（`Location`）与设施（`Facility`）的关系** | ① Facility 属于 Location（1:N） ② 独立 | ①（§14.4） | D / B | ＿＿ |
 | **D-04** | **设施状态是否由请求自动推导？** | ① 自动改写 ② **不**自动改写，仅人工维护 | ②（避免多条未完成请求互相打架） | D | ＿＿ |
-| **D-05** | **提问者能否采纳自己的回答？** | ① 允许 ② 禁止 | **②禁止**（避免自我刷已解决） | A | ＿＿ |
+| **D-05** | **提问者能否采纳自己的回答？** | ① 允许 ② 禁止 | **②禁止**（避免自我刷已解决） | A | 禁止自我采纳（ADR-003，2026-10-08） |
 | **D-06** | **`V5` 非法 SQL 怎么修？** | ① 直接补注释并合并（已应用者会 checksum 不匹配） ② 新增 V5.1/V19 修复迁移 | ①（因为 V5 目前**无法在干净库应用**，说明没人能成功应用过），但需**先确认**是否有本地库已应用 | C / 全员 | ＿＿ |
 | **D-07** | **状态机 10 个状态与 T01–T13 是否冻结？** | ① 冻结 ② 调整 | ①冻结（§6.3/§6.4） | 全员 | ＿＿ |
 | **D-08** | **重新打开的时间窗与评价是否必填？** | ① 无窗口、评价可选 ② 限 N 天内、评价必填 | ①（无窗口，评价可选），若要设窗口须写进 §6.3 的 T13 | C | ＿＿ |
-| **D-09** | **是否引入「关闭回答」概念？** | ① 引入（作者可停止收新回答） ② **不**引入 | ②不引入（`accepted_answer_id` 已足够表达「已解决」） | A | ＿＿ |
-| **D-10** | **社区图片要不要做？怎么做？** | ① 本 Sprint 不做（v1 纯文本） ② 新建 `community_attachments` 表 ③ 复用 `request_attachments` | **①不做或②新建独立表**；**绝不**用 ③（`request_id` 为 NOT NULL） | A / E | ＿＿ |
+| **D-09** | **是否引入「关闭回答」概念？** | ① 引入（作者可停止收新回答） ② **不**引入 | ②不引入（`accepted_answer_id` 已足够表达「已解决」） | A | 不引入独立关闭回答开关（ADR-003，2026-10-08） |
+| **D-10** | **社区图片要不要做？怎么做？** | ① 本 Sprint 不做（v1 纯文本） ② 新建 `community_attachments` 表 ③ 复用 `request_attachments` | **①不做或②新建独立表**；**绝不**用 ③（`request_id` 为 NOT NULL） | A / E | 本 Sprint 社区纯文本，不提供社区附件（ADR-003，2026-10-08） |
 | **D-11** | **地图数据从哪来、怎么呈现？** | ① 静态 SVG 平面图 + 坐标 ② 引入外部地图 SDK ③ 只做列表 + 建筑/楼层文字定位 | ③（不引入外部依赖，成本最低且不会因网络失败） | D | ＿＿ |
 | **D-12** | **是否现在就引入 `TechnicianMatchingStrategy` 策略模式？** | ① 现在就抽象 ② 先用单一实现，出现真实变体再抽 | ②（§8.3：没有真实变体就不要提前抽象） | B | ＿＿ |
-| **D-13** | **「采纳的回答必须属于该问题」用数据库约束还是只靠服务层？** | ① 复合外键 `(accepted_answer_id, id) → (id, question_id)` ② 只在服务层校验 | ① + 服务层友好校验（双保险） | A | ＿＿ |
+| **D-13** | **「采纳的回答必须属于该问题」用数据库约束还是只靠服务层？** | ① 复合外键 `(accepted_answer_id, id) → (id, question_id)` ② 只在服务层校验 | ① + 服务层友好校验（双保险） | A | 复合外键 + 服务端归属校验 + 条件更新（ADR-003，2026-10-08） |
 | **D-14** | **SLA 用自然时间还是工作时间？暂停点有哪些？** | ① 自然时间 ② 工作时间（需要工作日历） | ①自然时间（v1），暂停点见 §14.8 | E | ＿＿ |
-| **D-15** | **社区反重复怎么实现？** | ① 时间窗内相同标题+正文拒绝 ② 不限制 | ①（时间窗可配，默认 2 分钟） | A | ＿＿ |
+| **D-15** | **社区反重复怎么实现？** | ① 时间窗内相同标题+正文拒绝 ② 不限制 | ①（时间窗可配，默认 2 分钟） | A | 重复问题窗口默认 2 分钟；问题/回答分别默认每滚动 24 小时 20 条；不加 30 秒间隔（ADR-003，2026-10-08） |
 | **D-16** | **哪些字段是「受限信息」（不公开）？** | 具体列名清单 | 见 §14.4：精确门牌、内部备注、报告人身份等 | D | ＿＿ |
 | **D-17** | **NUS SSO 做不做？** | ① 本 Sprint 做 ② **不做**，用本地账号 | ②不做（见下方 D-18/D-19 同理） | 全员 | ＿＿ |
 | **D-18** | **公开注册与密码重置做不做？** | ① 做 ② **不做** | ②不做（Sprint 3 范围外，§4.5） | 全员 | ＿＿ |
@@ -3881,3 +3886,5 @@ mvn -Dtest=<TestClass> test
 - [ADR-001 架构基线](../decisions/ADR-001-architecture-baseline.md)
 - [ADR-002 会话认证](../decisions/ADR-002-session-authentication.md)
 
+
+> 2026-10-08 更新：D-05、D-09、D-10、D-13、D-15 已按使用者授权确定；当前结论见 [ADR-003](../decisions/ADR-003-community-completion.md)。旧阶段文字为历史。

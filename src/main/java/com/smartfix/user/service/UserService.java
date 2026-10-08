@@ -9,6 +9,7 @@ import com.smartfix.user.domain.User;
 import com.smartfix.user.dto.ChangeAccountStatusCommand;
 import com.smartfix.user.dto.ChangeUserRoleCommand;
 import com.smartfix.user.dto.CreateUserCommand;
+import com.smartfix.user.dto.RegistrationCommand;
 import com.smartfix.user.dto.UserAccessResponse;
 import com.smartfix.user.dto.UserAuthenticationData;
 import com.smartfix.user.dto.UserSummaryResponse;
@@ -70,6 +71,47 @@ public class UserService {
     @Transactional
     public Long createUser(CreateUserCommand command, Long actorUserId) {
         return createAccount(command).getId();
+    }
+
+    /**
+     * Self-registration: creates a requester account from the public sign-up form.
+     *
+     * <p>A separate entry point from {@link #createUser} on purpose. The administrator's
+     * path takes the role from the form because an administrator chooses one; this one has
+     * no role field to take it from - {@link RegistrationCommand} has none - and the value
+     * is fixed on the line below, so "a registrant cannot promote themselves" is a
+     * property of the types rather than a check that could be forgotten.</p>
+     *
+     * <p>The initial status is not decided here either: {@link User#create} always produces
+     * an {@link AccountStatus#ACTIVE} account with {@code securityVersion} 0. Sprint 3 has
+     * no email verification, so a registered account is usable immediately; introducing a
+     * verification step later means adding a status and a transition, not changing this
+     * method's contract.</p>
+     *
+     * <p>The mechanics are {@link #createAccount}, shared with both other paths: the same
+     * username normalization, the same display-name rule, the same {@code PasswordPolicy},
+     * the same BCrypt encoding and the same translation of a unique-constraint violation
+     * into a business conflict. A second copy of any of those is how a self-registered
+     * account ends up subject to a different rule from an administrator-created one.</p>
+     *
+     * @throws InputValidationException  if the two submitted passwords differ, or if any
+     *                                   value is invalid once normalized
+     * @throws BusinessConflictException if the username is already taken
+     */
+    @Transactional
+    public Long registerRequester(RegistrationCommand command) {
+        if (!command.passwordsMatch()) {
+            // Checked here as well as at the form. A rule enforced only by the page it was
+            // typed into disappears for any other caller, which is the same argument
+            // PasswordPolicy is applied twice for.
+            throw new InputValidationException("Passwords do not match.");
+        }
+        CreateUserCommand account = new CreateUserCommand();
+        account.setUsername(command.getUsername());
+        account.setDisplayName(command.getDisplayName());
+        account.setPassword(command.getPassword());
+        account.setRole(Role.REQUESTER);
+        return createAccount(account).getId();
     }
 
     /**

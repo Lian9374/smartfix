@@ -20,7 +20,7 @@
 <main class="content">
     <h1>My technician profile</h1>
     <p>Choose the repairs you handle, the locations you cover and your current availability.</p>
-    <p th:if="${successMessage}" th:text="${successMessage}" role="status">Your profile was saved.</p>
+    <p th:if="${successMessage}"><output th:text="${successMessage}">Your profile was saved.</output></p>
     <p th:unless="${profileActive}" role="alert">Your technician profile is inactive. Contact an administrator.</p>
 
     <form th:if="${profileActive}" th:action="@{/technician/profile}" th:object="${profileCommand}" method="post">
@@ -35,8 +35,8 @@
             <legend>Skills</legend>
             <p id="skills-help">Select at least one type of repair.</p>
             <p th:each="skill : ${skills}">
-                <input type="checkbox" th:field="*{skills}" th:value="${skill}">
-                <label th:for="${#ids.prev('skills')}" th:text="${skillLabels[skill.name()]}">Electrical</label>
+                <input type="checkbox" id="skill" th:id="|skill-${skill.name()}|" th:field="*{skills}" th:value="${skill}">
+                <label for="skill" th:for="|skill-${skill.name()}|" th:text="${skillLabels[skill.name()]}">Electrical</label>
             </p>
             <p id="skills-errors" th:errors="*{skills}">Select at least one skill.</p>
         </fieldset>
@@ -44,10 +44,10 @@
             <legend>Service areas</legend>
             <p id="areas-help">Select at least one location where you can work.</p>
             <p th:if="${hasUnavailableAreas}" role="alert">A previously selected area is no longer available. Review your service areas before saving.</p>
-            <p th:if="${#lists.isEmpty(locations)}" role="status">No active locations are available. Contact an administrator before saving your profile.</p>
+            <p th:if="${#lists.isEmpty(locations)}"><output>No active locations are available. Contact an administrator before saving your profile.</output></p>
             <p th:each="location : ${locations}">
-                <input type="checkbox" th:field="*{serviceAreaIds}" th:value="${location.id}">
-                <label th:for="${#ids.prev('serviceAreaIds')}" th:text="${location.displayName}">Campus location</label>
+                <input type="checkbox" id="service-area" th:id="|service-area-${location.id}|" th:field="*{serviceAreaIds}" th:value="${location.id}">
+                <label for="service-area" th:for="|service-area-${location.id}|" th:text="${location.displayName}">Campus location</label>
             </p>
             <p id="areas-errors" th:errors="*{serviceAreaIds}">Select at least one service area.</p>
         </fieldset>
@@ -55,8 +55,8 @@
             <legend>Availability</legend>
             <p id="availability-help">Choose On leave to stop appearing as a dispatch candidate.</p>
             <p th:each="availability : ${availabilities}">
-                <input type="radio" th:field="*{availabilityStatus}" th:value="${availability}">
-                <label th:for="${#ids.prev('availabilityStatus')}" th:text="${availabilityLabels[availability.name()]}">Available</label>
+                <input type="radio" id="availability" th:id="|availability-${availability.name()}|" th:field="*{availabilityStatus}" th:value="${availability}">
+                <label for="availability" th:for="|availability-${availability.name()}|" th:text="${availabilityLabels[availability.name()]}">Available</label>
             </p>
             <p id="availability-errors" th:errors="*{availabilityStatus}">Select your availability.</p>
         </fieldset>

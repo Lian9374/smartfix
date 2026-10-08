@@ -1,9 +1,8 @@
 # S3-B-06：技师读取权限与撤回后的列表修复
 
-日期：2026-10-08。代码基线：团队 B3 的 `b3baaf8`（S3-B-04）。
-本阶段在本地 B4 工作分支实现；代码与自动化验收完成后，仍需 **C 联合评审**，不将本机测试视为团队评审。
-
-当前状态：**本地代码与自动化验证完成；未提交/推送；C 联合评审待完成。**
+日期：2026-10-08。初始代码基线：团队 B3 的 `b3baaf8`（S3-B-04）。
+独立交付分支：`feature/SCRUM-UserB6-WANGPENGRUI`，接入主干 `c658b0a`。
+本机验证与 C 联合评审分开记录；不将合并授权或自动化测试记作队友评审。
 
 ## 已复现的问题
 
@@ -18,9 +17,9 @@ C 的 `RequestAccessService` TECH 分支已经通过 `RequestAssignmentAccessSer
 ## 修复方式
 
 1. B 的 `AssignmentReadService` 增加 `findActiveRequestIdsForTechnician(Long technicianId)`，只返回该账号当前有效指派的请求 ID，返回集合不可变。
-2. B 的 `RequestAssignmentLookupAdapter` 通过 C 的只读 SPI 暴露这些 ID。
+2. C 的主干 PR #22 已合入 `findActiveRequestIds(technicianId, candidateRequestIds)`。B 的适配器实现此接口，用一次批量查询取代逐个请求查询，再与候选工单的请求 ID 求交集。
 3. C 的 `RequestAssignmentAccessService` 转交不可变结果；无适配器时返回空集合，不用历史工单归属作为授权依据。
-4. `WorkOrderService.findMine` 先确认账号是有效技师，再通过公开 API 获取 ID，使用工单自己的仓储按“技师账号 + 有效请求 ID”筛选并分页。
+4. 保留 C 主干的 `WorkOrderService.findMine`：先确认有效技师，再取得候选工单 ID 并通过公开接口校验有效指派，最后按“技师账号 + 有效请求 ID”筛选并分页。
 5. 内容查询和分页总数使用相同筛选条件，避免分页后再过滤造成空洞页、错误总数或历史记录泄露。
 
 没有跨模块读取仓储，没有更改请求状态、附件规则、指派历史或数据库迁移。
@@ -30,12 +29,12 @@ C 的 `RequestAccessService` TECH 分支已经通过 `RequestAssignmentAccessSer
 
 原有 Day 1 的 `ActiveAssignmentLookup.findActiveAssignment(Long)`、
 `RequestAccessService.requireReadableRequest(...)`、派单写服务签名保持不变。
-本次在 `ActiveAssignmentLookup` **新增默认只读方法** `findActiveRequestIdsForTechnician(Long)`，供分页前授权使用。
+本次沿用 C 已合入的 `ActiveAssignmentLookup.findActiveRequestIds(Long, Collection<Long>)`，
+不另起并行 SPI，也不覆盖 C 的工单服务和测试夹具。
 
-默认实现返回空集合，使旧适配器保持源码兼容且不会放行历史工单。
-生产 B 适配器及 C 工作流测试夹具都实现了新方法；B/C 这批改动必须一起合并，
-否则使用旧适配器时列表会安全地变为空，而不是自动从 `work_orders.technician_id` 放行。
-请 C 联合确认这一扩展及其分页语义；本地验证不代替接口评审。
+旧适配器保留 C 的默认实现：逐条核对当前指派的请求 ID 和技师账号；B 的生产适配器覆盖为批量读取。
+缺失适配器仍返回空集合。新增测试验证默认兼容行为、批量结果不越出候选范围，以及返回值不可变。
+本地验证不代替接口评审。
 
 ## 访问矩阵
 
@@ -57,7 +56,7 @@ ID 猜测和票号/附件 ID 混配均返回 404，不用不同错误泄露资�
 
 - 新增 `TechnicianAccessIT`：11 个场景，覆盖当前/旧技师、不同请求人的请求和附件、真实会话失权、分页、已完成工单、匿名访问及 CSRF。
 - `TechnicianAccessPostgresIT` 在 Docker PostgreSQL 的独立随机 schema 上继承同一组测试。
-- 扩充请求授权与适配器单测，覆盖缺失适配器、错误请求 ID、技师账号不符、旧适配器的安全默认行为及读取失败传播。
+- 扩充请求授权与适配器单测，覆盖缺失适配器、错误请求 ID、技师账号不符、旧适配器的逐条授权、批量读取边界及读取失败传播。
 - 扩充 B03 撤回验收，同时保留 C 的独立工作流测试夹具；未以 mock 替代 B/C 真实链路的权限判断。
 - 每个原生测试 schema 完成后单独清理；上传测试文件只在本轮临时目录中创建和清理。
 
@@ -69,7 +68,7 @@ mvn -B clean verify
 mvn -B -Ppostgres-it clean verify
 ```
 
-2026-10-08 实测结果：
+2026-10-08 初始基线 `b3baaf8` 的实测结果（不代表最新主干结果）：
 
 | 检查 | 结果 |
 | --- | --- |
@@ -87,7 +86,10 @@ Maven 3.9.14 / JDK 25.0.4，编译目标 Java 21；JDK 21 CI 结果仍需团队�
 
 ## 交付边界
 
-- S3-B-04 已提交并推送到团队 `feature/SCRUM-UserB3-WANGPENGRUI`：`b3baaf8`。
-- S3-B-06 本地实现的业务验收与 C 的联合评审分开记录；本阶段尚未推送。
-- 本次已检查团队主干 `ee33858` 相对先前基线的增量，仅涉及 E 的通知模块和旧 C 说明文档删除，没有请求/工单权限实现的变化；这些主干增量未混入本阶段。
-- E 的通知投递与跨模块事件接线不属于本次权限修复的验收范围，需后续合并主干后联调。
+- S3-B-01..04 已通过团队 PR #19 / #20 合并。本 PR 单独交付 S3-B-06。
+- C 主干已修复列表授权，本次保留该实现并提供 B 批量适配器及完整请求/附件/工单验收。
+- 默认测试仍使用 H2，全部 PostgreSQL 测试由 `postgres-it` 启用；恢复主干合并时遗漏的既有 B 原生测试配置。
+- 指派、页面与本次权限测试均在清理用户之前清理通知，适配最新主干的外键和提交后通知。
+- 在主干 `c658b0a` 上，`mvn -B clean verify` 被通知模块测试编译错误阻塞：`NotificationTransactionTest` 调用六参数 `createNotification`，服务只剩五参数方法；独立主干目录的 `mvn -B test-compile` 复现同一错误。
+- 主干 V14 与 V20 同时创建 `notifications`，还需在确认 V20 执行状态后修复。不会通过跳过测试、删除已执行迁移或关闭校验来宣称验证通过。
+- 最新主干的完整验证结果将在上述集成问题处理后补录。

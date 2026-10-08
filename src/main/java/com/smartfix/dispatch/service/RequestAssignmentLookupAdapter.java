@@ -2,8 +2,10 @@ package com.smartfix.dispatch.service;
 
 import com.smartfix.request.spi.ActiveAssignmentLookup;
 import org.springframework.stereotype.Component;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class RequestAssignmentLookupAdapter implements ActiveAssignmentLookup {
@@ -18,7 +20,9 @@ public class RequestAssignmentLookupAdapter implements ActiveAssignmentLookup {
     }
 
     @Override
-    public Set<Long> findActiveRequestIdsForTechnician(Long technicianId) {
-        return assignments.findActiveRequestIdsForTechnician(technicianId);
+    public Set<Long> findActiveRequestIds(Long technicianId, Collection<Long> candidateRequestIds) {
+        if (candidateRequestIds.isEmpty()) return Set.of();
+        Set<Long> activeIds = assignments.findActiveRequestIdsForTechnician(technicianId);
+        return candidateRequestIds.stream().filter(activeIds::contains).collect(Collectors.toUnmodifiableSet());
     }
 }

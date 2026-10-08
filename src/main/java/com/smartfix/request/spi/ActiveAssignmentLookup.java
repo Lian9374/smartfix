@@ -1,7 +1,9 @@
 package com.smartfix.request.spi;
 
 import java.util.Optional;
+import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * B supplies an adapter to its public assignment read service, without injecting its write
@@ -12,11 +14,12 @@ public interface ActiveAssignmentLookup {
 
     Optional<ActiveAssignment> findActiveAssignment(Long requestId);
 
-    /**
-     * Request ids currently assigned to this account, for authorization before pagination.
-     * Older/missing adapters must not fall back to historical work-order ownership.
-     */
-    default Set<Long> findActiveRequestIdsForTechnician(Long technicianId) {
-        return Set.of();
+    /** Existing adapters remain compatible; B can override this with a bulk read. */
+    default Set<Long> findActiveRequestIds(Long technicianId, Collection<Long> candidateRequestIds) {
+        return candidateRequestIds.stream()
+                .filter(id -> findActiveAssignment(id)
+                        .filter(a -> id.equals(a.requestId()) && technicianId.equals(a.technicianId()))
+                        .isPresent())
+                .collect(Collectors.toSet());
     }
 }
