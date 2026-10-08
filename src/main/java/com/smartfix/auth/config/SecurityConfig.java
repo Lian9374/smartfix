@@ -22,6 +22,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final String TECHNICIAN = "TECHNICIAN";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -43,8 +44,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole("TECHNICIAN")
-                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole(TECHNICIAN)
+                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole(TECHNICIAN)
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")
@@ -53,11 +54,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/requests/*/review", "/requests/*/close").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.POST, "/requests/*/confirm", "/requests/*/feedback", "/requests/*/reopen", "/requests/*/cancel")
                             .hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.POST, "/workorders/*/accept", "/workorders/*/records", "/workorders/*/complete")
-                            .hasRole("TECHNICIAN")
+                            .hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.GET, "/requests/*", "/requests/*/attachments/*")
-                            .hasAnyRole("REQUESTER", "ADMINISTRATOR", "TECHNICIAN")
+                            .hasAnyRole("REQUESTER", "ADMINISTRATOR", TECHNICIAN)
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
                         .anyRequest().denyAll())
