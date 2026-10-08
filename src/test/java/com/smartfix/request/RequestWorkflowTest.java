@@ -466,6 +466,9 @@ class RequestWorkflowTest {
         assignments.assign(id(ticket), 4L);
         lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, null);
         var order = workorders.findByRequestId(id(ticket)).orElseThrow();
+        mvc.perform(get("/requests/" + ticket).with(user(principal(4, Role.TECHNICIAN))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Back to my work orders")));
         mvc.perform(get("/workorders/" + order.id()).with(user(principal(4, Role.TECHNICIAN))))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Request summary")))
@@ -495,6 +498,140 @@ class RequestWorkflowTest {
                                         org.hamcrest.Matchers.not(
                                                 org.hamcrest.Matchers.containsString(
                                                         "<script>fault</script>"))));
+    }
+
+    @Test
+    void invalidFeedbackStaysOnDetailsAndPreservesInput() throws Exception {
+        String ticket = resolved();
+        confirmations.confirm(ticket, 1L);
+        for (String rating : List.of("", "0", "6", "invalid")) {
+            mvc.perform(post("/requests/" + ticket + "/feedback")
+                            .with(user(principal(1, Role.REQUESTER))).with(csrf())
+                            .param("rating", rating).param("comment", "Keep this feedback"))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("request/detail"))
+                    .andExpect(model().attributeHasFieldErrors("feedback", "rating"))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Keep this feedback")));
+        }
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM request_feedback", Long.class)).isZero();
+        assertThat(lifecycle.getStatus(ticket)).isEqualTo(RequestStatus.CONFIRMED);
+    }
+
+    @Test
+    void invalidReopenReasonStaysOnDetailsWithoutChangingHistory() throws Exception {
+        String ticket = resolved();
+        long historyCount = history.count();
+        String reason = "r".repeat(501);
+        mvc.perform(post("/requests/" + ticket + "/reopen")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf())
+                        .param("comment", reason))
+                .andExpect(status().isOk())
+                .andExpect(view().name("request/detail"))
+                .andExpect(model().attributeHasFieldErrors("reopen", "comment"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(reason)));
+        assertThat(lifecycle.getStatus(ticket)).isEqualTo(RequestStatus.RESOLVED);
+        assertThat(history.count()).isEqualTo(historyCount);
+    }
+
+    @Test
+    void invalidActionFormsStillHideOtherRequestersTickets() throws Exception {
+        String ticket = resolved();
+        mvc.perform(post("/requests/" + ticket + "/reopen")
+                        .with(user(principal(2, Role.REQUESTER))).with(csrf())
+                        .param("comment", "r".repeat(501)))
+                .andExpect(status().isNotFound());
+        confirmations.confirm(ticket, 1L);
+        mvc.perform(post("/requests/" + ticket + "/feedback")
+                        .with(user(principal(2, Role.REQUESTER))).with(csrf())
+                        .param("rating", "invalid"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void browserActionsConfirmEvaluateReopenAndClose() throws Exception {
+        String ticket = resolved();
+        mvc.perform(post("/requests/" + ticket + "/confirm")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/requests/" + ticket + "/feedback")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf())
+                        .param("rating", "5").param("comment", "Helpful repair"))
+                .andExpect(redirectedUrl("/requests/" + ticket));
+        mvc.perform(post("/requests/" + ticket + "/reopen")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf())
+                        .param("comment", "Fault returned"))
+                .andExpect(redirectedUrl("/requests/" + ticket));
+        assertThat(lifecycle.getStatus(ticket)).isEqualTo(RequestStatus.REOPENED);
+        var order = workorders.findByRequestId(id(ticket)).orElseThrow();
+        mvc.perform(post("/workorders/" + order.id() + "/accept")
+                        .with(user(principal(4, Role.TECHNICIAN))).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/workorders/" + order.id() + "/records")
+                        .with(user(principal(4, Role.TECHNICIAN))).with(csrf())
+                        .param("diagnosis", "Loose wire").param("actionTaken", "Secured wire")
+                        .param("minutesSpent", "10"))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/workorders/" + order.id() + "/complete")
+                        .with(user(principal(4, Role.TECHNICIAN))).with(csrf())
+                        .param("resolutionNote", "Wire secured and tested"))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/requests/" + ticket + "/confirm")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        mvc.perform(post("/requests/" + ticket + "/close")
+                        .with(user(principal(3, Role.ADMINISTRATOR))).with(csrf()))
+                .andExpect(redirectedUrl("/requests/" + ticket));
+        assertThat(lifecycle.getStatus(ticket)).isEqualTo(RequestStatus.CLOSED);
+        assertThat(workorders.findRecords(order.id(), 4L)).hasSize(2);
+    }
+
+    @Test
+    void terminalStatesRejectEveryTargetWithoutHistoryOrEvents() {
+        for (RequestStatus terminal : List.of(RequestStatus.CLOSED, RequestStatus.REJECTED,
+                RequestStatus.CANCELLED)) {
+            String ticket = submitted();
+            jdbc.update("UPDATE maintenance_requests SET status=? WHERE id=?", terminal.name(), id(ticket));
+            long historyCount = history.count();
+            int eventCount = committed.events.size();
+            for (RequestStatus target : RequestStatus.values()) {
+                for (long actor : List.of(1L, 3L)) {
+                    assertThatThrownBy(() -> lifecycle.transition(ticket, target, actor, "Invalid action"))
+                            .isInstanceOf(BusinessConflictException.class);
+                }
+            }
+            assertThat(lifecycle.getStatus(ticket)).isEqualTo(terminal);
+            assertThat(history.count()).isEqualTo(historyCount);
+            assertThat(committed.events).hasSize(eventCount);
+        }
+    }
+
+    @Test
+    void wrongRolesAndOutOfSequenceActionsLeaveWorkflowUnchanged() throws Exception {
+        String ticket = submitted();
+        reviews.review(ticket, UrgencyLevel.HIGH, 3L, false, null);
+        assertThatThrownBy(() -> lifecycle.transition(ticket, RequestStatus.ASSIGNED, 1L, null))
+                .isInstanceOf(BusinessConflictException.class);
+        assignments.assign(id(ticket), 4L);
+        lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, null);
+        var order = workorders.findByRequestId(id(ticket)).orElseThrow();
+        workorders.accept(order.id(), 4L);
+        long historyCount = history.count();
+        int eventCount = committed.events.size();
+        assertThatThrownBy(() -> confirmations.confirm(ticket, 4L))
+                .isInstanceOf(BusinessConflictException.class);
+        assertThatThrownBy(() -> reviews.review(ticket, UrgencyLevel.LOW, 3L, false, null))
+                .isInstanceOf(BusinessConflictException.class);
+        mvc.perform(post("/workorders/" + order.id() + "/accept")
+                        .with(user(principal(5, Role.TECHNICIAN))).with(csrf()))
+                .andExpect(status().isNotFound());
+        mvc.perform(post("/requests/" + ticket + "/confirm")
+                        .with(user(principal(1, Role.REQUESTER))).with(csrf()))
+                .andExpect(status().isConflict());
+        assertThat(lifecycle.getStatus(ticket)).isEqualTo(RequestStatus.IN_PROGRESS);
+        assertThat(requests.findById(id(ticket)).orElseThrow().getFinalUrgencyLevel())
+                .isEqualTo(UrgencyLevel.HIGH);
+        assertThat(history.count()).isEqualTo(historyCount);
+        assertThat(committed.events).hasSize(eventCount);
     }
 
     static Stream<Arguments> transitions() {
