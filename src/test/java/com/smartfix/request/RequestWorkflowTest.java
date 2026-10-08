@@ -604,6 +604,11 @@ class RequestWorkflowTest {
         public Optional<ActiveAssignment> findActiveAssignment(Long requestId) {
             return Optional.ofNullable(current.get(requestId));
         }
+
+        public Set<Long> findActiveRequestIdsForTechnician(Long technicianId) {
+            return current.values().stream().filter(a -> a.technicianId().equals(technicianId))
+                    .map(ActiveAssignment::requestId).collect(java.util.stream.Collectors.toSet());
+        }
     }
 
     static class CommittedEvents {

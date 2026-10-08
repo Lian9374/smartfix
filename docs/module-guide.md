@@ -125,6 +125,11 @@ service behind `request` uses.
   records.
 - **Likely services:** `WorkOrderService` (accept, update repair state, record evidence).
 - **Likely repository responsibility:** `WorkOrderRepository`, repair-record queries.
+- **Technician access (S3-B-06):** details, repair records and writes require the current
+  active assignment. `findMine` obtains the active request ids through the public request
+  assignment adapter, then filters before pagination and counting. A withdrawn order's
+  historical technician id cannot expose a row or inflate totals. See the
+  [technician access handoff](sprint3/B_Technician_Access_Handoff_CN.md) for the B/C interface review.
 - **May reasonably depend on:** `user` (technician identity), `request` (the request
   being worked), `dispatch` (the assignment that created the work order) — via public
   services.
@@ -191,6 +196,8 @@ API (never write emails from here).
 - **Read integration:** `RequestAssignmentLookupAdapter` implements C's
   `ActiveAssignmentLookup` through a separate `AssignmentReadService`, keeping the write
   orchestrator out of the callback dependency chain. Recommendations now use real assignments.
+  `findActiveRequestIdsForTechnician` provides an immutable set of currently assigned request
+  ids for C's list authorization; missing or older adapters grant no list access.
 - **Events:** `AssignmentCreatedEvent` (including the previous technician on reassignment)
   and `AssignmentWithdrawnEvent`; notification/audit consumers must subscribe AFTER_COMMIT.
 - **Implementation and validation:** [S3-B-03 handoff](sprint3/B_Assignment_Handoff_CN.md).

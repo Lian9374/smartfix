@@ -112,6 +112,7 @@
                         <exclude>**/RequestWorkflowPostgresIT.java</exclude>
                         <exclude>**/AssignmentPostgresIT.java</exclude>
                         <exclude>**/DispatchPagePostgresIT.java</exclude>
+                        <exclude>**/TechnicianAccessPostgresIT.java</exclude>
                         <exclude>**/AssignmentMigrationIT.java</exclude>
                     </excludes>
                 </configuration>

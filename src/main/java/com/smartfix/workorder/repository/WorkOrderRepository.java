@@ -10,7 +10,8 @@ import java.util.*;
 public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
     Optional<WorkOrder> findByRequestId(Long requestId);
 
-    Page<WorkOrder> findByTechnicianId(Long technicianId, Pageable pageable);
+    Page<WorkOrder> findByTechnicianIdAndRequestIdIn(
+            Long technicianId, Collection<Long> requestIds, Pageable pageable);
 
     List<WorkOrder> findAllByTechnicianIdAndStatusIn(
             Long technicianId, Collection<WorkOrderStatus> statuses);
