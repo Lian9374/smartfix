@@ -86,12 +86,14 @@ public class WorkOrderService {
 
     public Page<WorkOrderResponse> findMine(Long actorId, int page, int size) {
         requireTechnician(actorId);
-        return orders.findByTechnicianId(
-                        actorId,
-                        PageRequest.of(
-                                Math.max(0, page),
-                                Math.max(1, Math.min(100, size)),
-                                Sort.by(Sort.Direction.DESC, "updatedAt", "id")))
+        var pageable = PageRequest.of(
+                Math.max(0, page), Math.max(1, Math.min(100, size)),
+                Sort.by(Sort.Direction.DESC, "updatedAt", "id"));
+        var activeRequestIds = assignments.findActiveRequestIds(
+                actorId, orders.findRequestIdsByTechnicianId(actorId));
+        if (activeRequestIds.isEmpty()) return Page.empty(pageable);
+        // Filter before pagination so withdrawn assignments affect rows and totals equally.
+        return orders.findByTechnicianIdAndRequestIdIn(actorId, activeRequestIds, pageable)
                 .map(this::response);
     }
 

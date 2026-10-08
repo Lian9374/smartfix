@@ -11,6 +11,8 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.Set;
 
 @Service
 public class RequestAssignmentAccessService {
@@ -33,6 +35,12 @@ public class RequestAssignmentAccessService {
         return findActiveAssignment(requestId)
                 .map(a -> technicianId.equals(a.technicianId()))
                 .orElse(false);
+    }
+
+    public Set<Long> findActiveRequestIds(Long technicianId, Collection<Long> candidateRequestIds) {
+        ActiveAssignmentLookup adapter = lookup.getIfAvailable();
+        if (adapter == null || candidateRequestIds.isEmpty()) return Set.of();
+        return adapter.findActiveRequestIds(technicianId, candidateRequestIds);
     }
 
     public ActiveAssignment requireActiveAssignment(Long requestId) {

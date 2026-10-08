@@ -2,6 +2,7 @@ package com.smartfix.workorder.controller;
 
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.request.service.AttachmentService;
+import com.smartfix.request.service.RequestQueryService;
 import com.smartfix.workorder.domain.WorkOrderStatus;
 import com.smartfix.workorder.dto.*;
 import com.smartfix.workorder.service.WorkOrderService;
@@ -19,10 +20,13 @@ public class WorkOrderController {
     private final WorkOrderService orders;
 
     private final AttachmentService attachments;
+    private final RequestQueryService requests;
 
-    public WorkOrderController(WorkOrderService orders, AttachmentService attachments) {
+    public WorkOrderController(WorkOrderService orders, AttachmentService attachments,
+            RequestQueryService requests) {
         this.orders = orders;
         this.attachments = attachments;
+        this.requests = requests;
     }
 
     @GetMapping("/workorders/mine")
@@ -86,6 +90,7 @@ public class WorkOrderController {
     private void populate(Long id, Long actorId, Model model) {
         var order = orders.findReadable(id, actorId);
         model.addAttribute("order", order);
+        model.addAttribute("request", requests.getRequestDetails(order.ticketNumber(), actorId));
         model.addAttribute("evidence", attachments.findByRequestId(order.requestId()));
         model.addAttribute("records", orders.findRecords(id, actorId));
     }

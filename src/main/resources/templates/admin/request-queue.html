@@ -7,9 +7,11 @@
 <form th:action="@{/admin/requests}" method="get"><label>Status <select name="status"><option value="">All statuses</option>
 <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == selectedStatus}"></option></select></label><button>Filter</button></form>
 <p th:if="${pagination.empty}">No requests match this page or filter.</p>
-<table th:unless="${pagination.empty}"><thead><tr><th>Ticket</th><th>Title</th><th>Status</th><th>Location</th></tr></thead><tbody>
+<table th:unless="${pagination.empty}"><thead><tr><th>Ticket</th><th>Title</th><th>Status</th><th>Location</th><th>Assignment</th></tr></thead><tbody>
 <tr th:each="request : ${pagination.content}"><td><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.ticketNumber}"></a></td>
-<td th:text="${request.title}"></td><td th:text="${request.status}"></td><td th:text="${request.locationDisplayName}"></td></tr></tbody></table>
+<td th:text="${request.title}"></td><td th:text="${request.status}"></td><td th:text="${request.locationDisplayName}"></td>
+<td><a th:if="${request.status.name() == 'UNDER_REVIEW' or request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS' or request.status.name() == 'REOPENED'}"
+       th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a></td></tr></tbody></table>
 <nav><a th:if="${pagination.hasPrevious()}" th:href="@{/admin/requests(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
 <span th:text="${pagination.totalElements + ' requests'}"></span>
 <a th:if="${pagination.hasNext()}" th:href="@{/admin/requests(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a></nav>

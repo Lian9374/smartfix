@@ -1,13 +1,31 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Work Orders - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
-<body><header><h1>My Work Orders</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
-<p th:if="${orders.empty}">No work orders on this page.</p>
-<section th:each="status : ${statuses}"><h2 th:text="${status}"></h2><ul>
-<li th:each="order : ${orders.content}" th:if="${order.status == status}"><a th:href="@{/workorders/{id}(id=${order.id})}" th:text="${order.ticketNumber}"></a></li>
-</ul></section>
-<nav><a th:if="${orders.hasPrevious()}" th:href="@{/workorders/mine(page=${orders.number - 1},size=${orders.size})}">Previous</a>
-<span th:text="${orders.totalElements + ' work orders'}"></span>
-<a th:if="${orders.hasNext()}" th:href="@{/workorders/mine(page=${orders.number + 1},size=${orders.size})}">Next</a></nav>
-</main></body></html>
+<head th:replace="~{fragments/layout :: head('My Work Orders')}"><title>My Work Orders · SmartFix</title></head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('work-orders')}"></th:block>
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('work-orders')}"></th:block>
+    <main id="main-content" class="content request-workflow workflow-stack">
+      <div th:replace="~{fragments/components :: pageHeading('My Work Orders', 'Open an assigned request to record repairs or submit a solution.')}"></div>
+      <section class="card" th:if="${orders.empty}" aria-label="Work order list">
+        <div class="card__body"><div th:replace="~{fragments/components :: emptyState('No work orders on this page.', 'Only your current assignments are shown.')}"></div></div>
+      </section>
+      <section class="card" th:each="status : ${statuses}" th:unless="${orders.empty}" th:attr="aria-label=${status}">
+        <div class="card__header"><h2 class="card__title" th:text="${status}"></h2></div>
+        <div class="card__body"><ul class="workflow-stack workflow-stack--tight">
+          <li th:each="order : ${orders.content}" th:if="${order.status == status}"><a th:href="@{/workorders/{id}(id=${order.id})}" th:text="${order.ticketNumber}"></a></li>
+        </ul></div>
+      </section>
+      <nav class="workflow-actions" aria-label="Work order pagination">
+        <a class="btn btn--secondary" th:if="${orders.hasPrevious()}" th:href="@{/workorders/mine(page=${orders.number - 1},size=${orders.size})}">Previous</a>
+        <span class="meta" th:text="${orders.totalElements + ' work orders'}"></span>
+        <a class="btn btn--secondary" th:if="${orders.hasNext()}" th:href="@{/workorders/mine(page=${orders.number + 1},size=${orders.size})}">Next</a>
+      </nav>
+    </main>
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

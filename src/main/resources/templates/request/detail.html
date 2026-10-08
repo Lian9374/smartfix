@@ -4,24 +4,28 @@
 <head th:replace="~{fragments/layout :: head(
     ${navRole == 'ADMINISTRATOR'}
         ? |Request lookup / ${request.ticketNumber}|
-        : |My Requests / ${request.ticketNumber}|)}">
+        : (${navRole == 'TECHNICIAN'} ? |My work orders / ${request.ticketNumber}|
+            : |My Requests / ${request.ticketNumber}|))}">
   <title>Request details · SmartFix</title>
 </head>
 <body>
 <div class="app-shell">
   <th:block th:replace="~{fragments/layout :: sidebar(
-      ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
+      ${navRole == 'ADMINISTRATOR'} ? 'request-lookup'
+          : (${navRole == 'TECHNICIAN'} ? 'work-orders' : 'my-requests'))}"></th:block>
 
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar(
-        ${navRole == 'ADMINISTRATOR'} ? 'request-lookup' : 'my-requests')}"></th:block>
+        ${navRole == 'ADMINISTRATOR'} ? 'request-lookup'
+            : (${navRole == 'TECHNICIAN'} ? 'work-orders' : 'my-requests'))}"></th:block>
 
     <main id="main-content" class="content">
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:if="${navRole == 'ADMINISTRATOR'}"
            th:href="@{/admin/requests/lookup}">Request lookup</a><!--
      --><a class="crumbs__link" th:unless="${navRole == 'ADMINISTRATOR'}"
-           th:href="@{/requests/mine}">My Requests</a><!--
+           th:href="${navRole == 'TECHNICIAN'} ? @{/workorders/mine} : @{/requests/mine}"
+           th:text="${navRole == 'TECHNICIAN'} ? 'My work orders' : 'My Requests'">My Requests</a><!--
      --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
      --><span class="crumbs__here" aria-current="page"
               th:text="${request.ticketNumber}">SF-2026-000001</span>
@@ -47,7 +51,8 @@
           <a class="btn btn--secondary" th:if="${navRole == 'ADMINISTRATOR'}"
              th:href="@{/admin/requests/lookup}">Back to request lookup</a>
           <a class="btn btn--secondary" th:unless="${navRole == 'ADMINISTRATOR'}"
-             th:href="@{/requests/mine}">Back to my requests</a>
+             th:href="${navRole == 'TECHNICIAN'} ? @{/workorders/mine} : @{/requests/mine}"
+             th:text="${navRole == 'TECHNICIAN'} ? 'Back to my work orders' : 'Back to my requests'">Back to my requests</a>
         </div>
       </div>
 
@@ -139,8 +144,9 @@
 
               <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
                  th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
-              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
-                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch') or
+                    (navRole == 'ADMINISTRATOR' and (request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS'))}"
+                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a>
 
               <form th:if="${presentation.availableActions.contains('cancel')}"
                     th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">
@@ -155,17 +161,28 @@
                 <button class="btn btn--secondary" type="submit">Close request</button>
               </form>
               <form th:if="${presentation.availableActions.contains('reopen')}"
-                    th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}" method="post">
+                    th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}"
+                    th:object="${reopen}" method="post">
+                <ul class="alert alert--error" role="alert" th:if="${#fields.hasAnyErrors()}">
+                  <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
+                </ul>
                 <label for="reopen-comment">Reopen reason (optional)</label>
-                <textarea id="reopen-comment" name="comment" maxlength="500"></textarea>
+                <textarea id="reopen-comment" th:field="*{comment}" maxlength="500"></textarea>
+                <span class="form-field__error" th:errors="*{comment}"></span>
                 <button class="btn btn--secondary" type="submit">Reopen request</button>
               </form>
               <form th:if="${presentation.availableActions.contains('feedback')}"
-                    th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}" method="post">
+                    th:action="@{/requests/{ticket}/feedback(ticket=${request.ticketNumber})}"
+                    th:object="${feedback}" method="post">
+                <ul class="alert alert--error" role="alert" th:if="${#fields.hasAnyErrors()}">
+                  <li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li>
+                </ul>
                 <label for="feedback-rating">Rating (1–5)</label>
-                <input id="feedback-rating" name="rating" type="number" min="1" max="5" required>
+                <input id="feedback-rating" th:field="*{rating}" type="number" min="1" max="5" required>
+                <span class="form-field__error" th:errors="*{rating}"></span>
                 <label for="feedback-comment">Feedback (optional)</label>
-                <textarea id="feedback-comment" name="comment" maxlength="500"></textarea>
+                <textarea id="feedback-comment" th:field="*{comment}" maxlength="500"></textarea>
+                <span class="form-field__error" th:errors="*{comment}"></span>
                 <button class="btn btn--primary" type="submit">Submit feedback</button>
               </form>
             </div>

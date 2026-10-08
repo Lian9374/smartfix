@@ -1737,18 +1737,23 @@ sequenceDiagram
 > **In practice:** a member who is about to write their first migration asks C for a number,
 > and C allocates it as the **actual current maximum merged version + 1** and registers it here.
 
+> **Registry checked by C on 2026-10-08:** main `754b9b4` and fetched remote branches.
+> "Merged into main" means the SQL file has been committed and merged; it does not certify execution or acceptance on any local database.
+> V13 and V15 are reserved for the existing E task allocation; final filenames await E submission. New allocations must skip registered reservations.
+> If V13 arrives after V14, databases that already applied V14 need an agreed upgrade strategy; registration alone does not resolve migration ordering.
+
 | Version | Contents | Owner | Depends on | Status |
 |---|---|---|---|---|
-| **V6** | `create_request_status_history` | **C** | none | **the only number formally reserved by the `V4` header** 【team to confirm — D-01】 |
-| V7 | `maintenance_requests` extension (status CHECK, `version`, `reviewed_*`, `final_urgency_level`, `resolved_at`, `closed_at`) | C | V6 | to be allocated |
-| V8 | `work_orders` + `repair_records` | C | V7 | to be allocated |
-| V9 | `request_feedback` | C | V7 | to be allocated |
-| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | to be allocated |
-| V11 | `assignments` | B | V10, V7 | to be allocated |
-| V12 | `facilities` (including the FK to `locations`) | D | V3 | to be allocated |
-| V13 | `sla_policies` + `request_sla_states` | E | V7 | to be allocated |
-| V14 | `notifications` | E | V2 | to be allocated |
-| V15 | `audit_entries` | E | V2 | to be allocated |
+| **V6** | `create_request_status_history` | **C** | none | Merged into main; `V6__create_request_status_history.sql` (originally reserved by V4) |
+| V7 | `maintenance_requests` extension (status CHECK, `version`, `reviewed_*`, `final_urgency_level`, `resolved_at`, `closed_at`) | C | V6 | Merged into main; `V7__extend_request_lifecycle.sql` |
+| V8 | `work_orders` + `repair_records` | C | V7 | Merged into main; `V8__create_work_orders.sql` |
+| V9 | `request_feedback` | C | V7 | Merged into main; `V9__create_request_feedback.sql` |
+| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | Merged into main; `V10__create_technician_profiles.sql` |
+| V11 | `assignments` | B | V10, V7 | Merged into main; `V11__create_assignments.sql` |
+| V12 | `facilities` (including the FK to `locations`) | D | V3 | Merged into main; `V12__create_facilities.sql` |
+| V13 | `sla_policies` + `request_sla_states` | E | V7 | Reserved by C on 2026-10-08; SQL not found on checked remote branches, awaiting E submission |
+| V14 | `notifications` | E | V2 | Merged into main; `V14__create_notifications.sql` (PR #21) |
+| V15 | `audit_entries` | E | V2 | Reserved by C on 2026-10-08; SQL not found on checked remote branches, awaiting E submission |
 | V16 | `announcements` | D | V2, V12 | to be allocated |
 | V17 | `community_questions` + `community_answers` | A | V2 | to be allocated |
 | V18 | `community_reports` | A | V17 | to be allocated |
