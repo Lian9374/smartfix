@@ -28,6 +28,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/technician/profile")
 public class TechnicianProfileController {
+    private static final String PROFILE_ACTIVE = "profileActive";
     private final TechnicianDirectoryService directory;
     private final LocationService locations;
 
@@ -44,13 +45,13 @@ public class TechnicianProfileController {
     @GetMapping
     public String profile(@AuthenticationPrincipal SmartFixUserDetails principal, Model model) {
         UpdateTechnicianProfileCommand command = new UpdateTechnicianProfileCommand();
-        model.addAttribute("profileActive", true);
+        model.addAttribute(PROFILE_ACTIVE, true);
         directory.getProfile(principal.getUserId()).ifPresent(profile -> {
             command.setSkills(profile.skills());
             command.setServiceAreaIds(profile.serviceAreaIds());
             command.setAvailabilityStatus(profile.availabilityStatus());
             command.setVersion(profile.version());
-            model.addAttribute("profileActive", profile.active());
+            model.addAttribute(PROFILE_ACTIVE, profile.active());
         });
         model.addAttribute("profileCommand", command);
         populateOptions(model, command);
@@ -78,7 +79,7 @@ public class TechnicianProfileController {
     }
 
     private ModelAndView render(Model model, UpdateTechnicianProfileCommand command, HttpStatus status) {
-        model.addAttribute("profileActive", true);
+        model.addAttribute(PROFILE_ACTIVE, true);
         populateOptions(model, command);
         ModelAndView result = new ModelAndView("technician/profile", model.asMap());
         result.setStatus(status);

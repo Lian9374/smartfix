@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Notifications - SmartFix</title>
+</head>
+
+<body>
+
+<main>
+
+    <h1>My Notifications</h1>
+
+    <p>
+        Unread notifications:
+        <strong th:text="${unreadCount}">0</strong>
+    </p>
+
+    <div th:if="${#lists.isEmpty(notifications)}">
+        <p>No notifications available.</p>
+    </div>
+
+    <section th:each="notification : ${notifications}">
+
+        <article>
+
+            <h2 th:text="${notification.title}">
+                Notification Title
+            </h2>
+
+            <p th:text="${notification.message}">
+                Notification message
+            </p>
+
+            <p>
+                Status:
+                <span th:if="${notification.read}">
+                    Read
+                </span>
+
+                <span th:unless="${notification.read}">
+                    Unread
+                </span>
+            </p>
+
+            <p th:text="${notification.createdAt}">
+                Created time
+            </p>
+
+            <form
+                th:if="${!notification.read}"
+                th:action="@{/notifications/{id}/read(id=${notification.id})}"
+                method="post">
+
+                <button type="submit">
+                    Mark as Read
+                </button>
+
+            </form>
+
+        </article>
+
+        <hr>
+
+    </section>
+
+</main>
+
+</body>
+</html>
