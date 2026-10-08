@@ -793,6 +793,7 @@ has lasting architectural impact, e.g.:
 | [`docs/git-safety-guide.md`](docs/git-safety-guide.md) | "How not to destroy the repository" |
 | [`docs/database-guide.md`](docs/database-guide.md) | PostgreSQL + Flyway safety and recipes |
 | [`docs/testing-guide.md`](docs/testing-guide.md) | Testing levels, naming, mocking guidance |
+| [`docs/ui-guide.md`](docs/ui-guide.md) | Page layout, design tokens, shared fragments and how to add a page |
 | [`docs/troubleshooting.md`](docs/troubleshooting.md) | Common problems and diagnostics |
 | [`docs/release-and-recovery.md`](docs/release-and-recovery.md) | Stable `main`, tags, recovery after bad merges |
 | [`docs/github-repository-settings.md`](docs/github-repository-settings.md) | Repository-owner setup, branch protection, CODEOWNERS |

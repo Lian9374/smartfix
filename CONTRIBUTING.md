@@ -84,4 +84,5 @@ Guides: [`docs/architecture.md`](docs/architecture.md) ·
 [`docs/team-workflow.md`](docs/team-workflow.md) ·
 [`docs/git-safety-guide.md`](docs/git-safety-guide.md) ·
 [`docs/database-guide.md`](docs/database-guide.md) ·
-[`docs/testing-guide.md`](docs/testing-guide.md)
+[`docs/testing-guide.md`](docs/testing-guide.md) ·
+[`docs/ui-guide.md`](docs/ui-guide.md)

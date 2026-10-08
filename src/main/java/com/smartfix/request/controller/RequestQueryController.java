@@ -1,8 +1,11 @@
 package com.smartfix.request.controller;
 
 import com.smartfix.auth.security.SmartFixUserDetails;
+import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.dto.MaintenanceRequestDetailsResponse;
+import com.smartfix.request.service.RequestPresentationService;
 import com.smartfix.request.service.RequestQueryService;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,60 +18,71 @@ public class RequestQueryController {
 
     private final RequestQueryService requestQueryService;
 
-    public RequestQueryController(RequestQueryService requestQueryService) {
+    private final RequestPresentationService presentation;
+
+    public RequestQueryController(
+            RequestQueryService requestQueryService, RequestPresentationService presentation) {
         this.requestQueryService = requestQueryService;
+        this.presentation = presentation;
     }
 
     @GetMapping("/requests/mine")
     public String myRequests(
-        @AuthenticationPrincipal SmartFixUserDetails principal,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size,
-        Model model
-    ) {
-        model.addAttribute(
-            "requests",
-            requestQueryService.listMyRequests(
-                principal.getUserId(),
-                page,
-                size
-            )
-        );
-
-        model.addAttribute("page", Math.max(page, 0));
+            @AuthenticationPrincipal SmartFixUserDetails principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) RequestStatus status,
+            Model model) {
+        var result =
+                requestQueryService.listMyRequestsPage(principal.getUserId(), status, page, size);
+        model.addAttribute("requests", result.getContent());
+        model.addAttribute("pagination", result);
+        model.addAttribute("statuses", RequestStatus.values());
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("page", result.getNumber());
 
         return "request/mine";
     }
 
     @GetMapping("/requests/{ticketNumber}")
     public String requestDetails(
-        @PathVariable String ticketNumber,
-        @AuthenticationPrincipal SmartFixUserDetails principal,
-        Model model
-    ) {
+            @PathVariable String ticketNumber,
+            @AuthenticationPrincipal SmartFixUserDetails principal,
+            Model model) {
         MaintenanceRequestDetailsResponse request =
-            requestQueryService.getRequestDetails(
-                ticketNumber,
-                principal.getUserId()
-            );
+                requestQueryService.getRequestDetails(ticketNumber, principal.getUserId());
 
         model.addAttribute("request", request);
+        model.addAttribute(
+                "presentation", presentation.describe(ticketNumber, principal.getUserId()));
 
         return "request/detail";
     }
 
+    @GetMapping("/admin/requests")
+    public String queue(
+            @AuthenticationPrincipal SmartFixUserDetails principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) RequestStatus status,
+            Model model) {
+        model.addAttribute(
+                "pagination",
+                requestQueryService.listForReview(principal.getUserId(), status, page, size));
+        model.addAttribute("statuses", RequestStatus.values());
+        model.addAttribute("selectedStatus", status);
+        return "admin/request-queue";
+    }
+
     @GetMapping("/admin/requests/lookup")
     public String adminLookup(
-        @RequestParam(required = false) String ticketNumber,
-        @AuthenticationPrincipal SmartFixUserDetails principal,
-        Model model
-    ) {
+            @RequestParam(required = false) String ticketNumber,
+            @AuthenticationPrincipal SmartFixUserDetails principal,
+            Model model) {
         if (ticketNumber != null && !ticketNumber.isBlank()) {
             MaintenanceRequestDetailsResponse request =
-                requestQueryService.getRequestDetails(
-                    ticketNumber.trim(),
-                    principal.getUserId()
-                );
+                    requestQueryService.getRequestDetails(
+                            ticketNumber.trim(), principal.getUserId());
 
             model.addAttribute("request", request);
         }

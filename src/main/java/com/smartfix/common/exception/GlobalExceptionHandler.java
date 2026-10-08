@@ -3,6 +3,8 @@ package com.smartfix.common.exception;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
@@ -32,7 +34,8 @@ public class GlobalExceptionHandler {
             MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
     public ModelAndView invalidInput(Exception exception) { return error(HttpStatus.BAD_REQUEST); }
 
-    @ExceptionHandler({BusinessConflictException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler({BusinessConflictException.class, DataIntegrityViolationException.class,
+            OptimisticLockingFailureException.class, OptimisticLockException.class})
     public ModelAndView conflict(Exception exception) { return error(HttpStatus.CONFLICT); }
 
     @ExceptionHandler(AccessDeniedException.class)

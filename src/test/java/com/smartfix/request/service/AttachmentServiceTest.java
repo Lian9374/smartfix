@@ -17,6 +17,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -337,6 +338,93 @@ class AttachmentServiceTest {
 
         verify(storageService, never())
                 .loadAsResource(anyString());
+    }
+
+    @Test
+    void readAttachmentReturnsReadableAttachmentForAuthorizedRequest() {
+        MaintenanceRequest request =
+                mock(MaintenanceRequest.class);
+
+        when(request.getId())
+                .thenReturn(100L);
+
+        when(
+                requestAccessService
+                        .requireReadableRequest(
+                                "SF-2026-000001",
+                                10L
+                        )
+        ).thenReturn(request);
+
+        Attachment attachment =
+                Attachment.create(
+                        100L,
+                        "evidence.png",
+                        "uuid-evidence.png",
+                        "image/png",
+                        3L,
+                        Instant.now()
+                );
+
+        when(
+                repository.findByIdAndRequestId(
+                        5L,
+                        100L
+                )
+        ).thenReturn(
+                java.util.Optional.of(
+                        attachment
+                )
+        );
+
+        ByteArrayResource resource =
+                new ByteArrayResource(
+                        new byte[]{1, 2, 3}
+                );
+
+        when(
+                storageService.loadAsResource(
+                        "uuid-evidence.png"
+                )
+        ).thenReturn(resource);
+
+        var result =
+                service.readAttachment(
+                        "SF-2026-000001",
+                        5L,
+                        10L
+                );
+
+        assertEquals(
+                "evidence.png",
+                result.originalFilename()
+        );
+
+        assertEquals(
+                "image/png",
+                result.contentType()
+        );
+
+        assertEquals(
+                3L,
+                result.sizeBytes()
+        );
+
+        assertSame(
+                resource,
+                result.resource()
+        );
+
+        verify(requestAccessService)
+                .requireReadableRequest(
+                        "SF-2026-000001",
+                        10L
+                );
+
+        verify(storageService)
+                .loadAsResource(
+                        "uuid-evidence.png"
+                );
     }
 
     private StoredAttachment stored(

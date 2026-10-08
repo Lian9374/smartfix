@@ -38,9 +38,20 @@ import static org.springframework.security.web.context.HttpSessionSecurityContex
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/** Real A services, BCrypt, persistence, B filters and templates; only the database is H2. */
+/**
+ * Real A services, BCrypt, persistence, B filters and templates; only the database is H2.
+ *
+ * <p>The overview reads a requester's own most recent requests, so the landing page
+ * every sign-in test finishes on needs the request tables to exist. Hibernate builds
+ * the whole schema from the entities for that; {@code @Sql} still resets {@code users}
+ * before each method, which is what lets {@code accounts()} create the same three
+ * usernames every time. The two do not collide: {@code requester_id} and
+ * {@code location_id} are plain columns, so dropping {@code users} leaves no foreign
+ * key pointing at it.</p>
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.datasource.url=jdbc:h2:mem:smartfix-auth-it;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
         "smartfix.bootstrap-admin.enabled=false"})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
@@ -68,13 +79,21 @@ class AuthenticationFlowIT {
             case TECHNICIAN -> "tech";
             case ADMINISTRATOR -> "root.admin";
         };
+        // The interface names a role as a word; the enum keeps its own spelling.
+        String roleWord = switch (role) {
+            case REQUESTER -> "Requester";
+            case TECHNICIAN -> "Technician";
+            case ADMINISTRATOR -> "Administrator";
+        };
         MockHttpSession session = login(username);
         var result = mvc.perform(get("/").session(session))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString(role.name())))
+                // Named as the signed-in account's own role, in the badge the
+                // shell renders once for the page.
+                .andExpect(content().string(containsString("badge--brand\">" + roleWord + "<")))
                 .andExpect(content().string(containsString("Sign out")));
         if (role == Role.TECHNICIAN) {
-            result.andExpect(content().string(containsString("Technician workspace")))
+            result.andExpect(content().string(containsString("Work orders are not available yet")))
                     .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
         }
         if (role == Role.REQUESTER) {
@@ -159,7 +178,7 @@ class AuthenticationFlowIT {
         mvc.perform(get("/home").session(old)).andExpect(redirectedUrl("/login?expired"));
         MockHttpSession current = login("alice");
         mvc.perform(get("/home").session(current))
-                .andExpect(content().string(containsString("Technician workspace")));
+                .andExpect(content().string(containsString("Work orders are not available yet")));
         mvc.perform(get("/requests/new").session(current)).andExpect(status().isForbidden());
     }
 

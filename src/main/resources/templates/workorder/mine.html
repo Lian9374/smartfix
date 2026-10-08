@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Work Orders - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
+<body><header><h1>My Work Orders</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
+<p th:if="${orders.empty}">No work orders on this page.</p>
+<section th:each="status : ${statuses}"><h2 th:text="${status}"></h2><ul>
+<li th:each="order : ${orders.content}" th:if="${order.status == status}"><a th:href="@{/workorders/{id}(id=${order.id})}" th:text="${order.ticketNumber}"></a></li>
+</ul></section>
+<nav><a th:if="${orders.hasPrevious()}" th:href="@{/workorders/mine(page=${orders.number - 1},size=${orders.size})}">Previous</a>
+<span th:text="${orders.totalElements + ' work orders'}"></span>
+<a th:if="${orders.hasNext()}" th:href="@{/workorders/mine(page=${orders.number + 1},size=${orders.size})}">Next</a></nav>
+</main></body></html>

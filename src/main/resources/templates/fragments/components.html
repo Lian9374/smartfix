@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<!--
+  Reusable UI pieces, and the single place where a backend enum is mapped to a
+  visual tone. A page that needs a status label calls one of these instead of
+  inventing its own colours, so the same status looks the same everywhere.
+  statusBadge, urgencyBadge, roleBadge and accountStatusBadge cover the four
+  backend enums between them.
+
+  Every badge prints the status name as text, so the state never depends on
+  colour alone. docs/ui-guide.md lists each fragment with the arguments it takes.
+
+  Two empty states live here on purpose rather than one with a switch.
+  emptyState is the quiet line of icon and text, for a region inside a page that
+  already has its own heading (a status history, a list of accounts).
+  requestEmptyState is the illustrated one, for the moment a requester's own
+  list has nothing in it: that is the one empty state in the product a person
+  meets on their first visit, so it is the one that earns a drawing.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  The page's own heading. Kept as a fragment because five pages open with the
+  same two lines, and because a page title that drifts in size between pages is
+  the fastest way to make a product look assembled rather than designed.
+
+  A page that needs something beside the title - an action, a status - wraps
+  this in .page-head-row and adds it there, rather than passing it in.
+-->
+<div class="page-head" th:fragment="pageHeading(title, subtitle)">
+  <h1 class="page-head__title" th:text="${title}">Page title</h1>
+  <p class="page-head__subtitle" th:if="${subtitle != null}" th:text="${subtitle}">
+    What this page is for.
+  </p>
+</div>
+
+<!-- Generic pill: badge(text, tone) where tone is one of the .badge--* classes. -->
+<span class="badge" th:fragment="badge(text, tone)" th:classappend="|badge--${tone}|"
+      th:text="${text}">Label</span>
+
+<!--
+  RequestStatus. SUBMITTED is the only value Sprint 2 can produce; anything added
+  later needs a tone here, which is the point of keeping the mapping in one file.
+-->
+<span class="badge" th:fragment="statusBadge(status)"
+      th:classappend="${status != null and status.name() == 'SUBMITTED'} ? 'badge--info' : 'badge--neutral'"
+      th:text="${status} ?: 'Unknown'">SUBMITTED</span>
+
+<!-- UrgencyLevel: LOW reads as background, HIGH as attention. -->
+<span class="badge" th:fragment="urgencyBadge(urgency)"
+      th:classappend="${urgency == null
+          ? 'badge--neutral'
+          : (urgency.name() == 'HIGH'
+              ? 'badge--danger'
+              : (urgency.name() == 'MEDIUM' ? 'badge--warning' : 'badge--neutral'))}"
+      th:text="${urgency} ?: 'Not set'">MEDIUM</span>
+
+<!--
+  Role. Always the brand tone; the name itself is what matters.
+
+  Roles are the one enum shown in title case, because each one names a person
+  ("Requester") rather than a data value, and the product brief asks for exactly
+  that wording. The other enums - status, urgency, category, account status -
+  stay as the constants the backend binds and the admin forms post back, so what
+  is on screen always matches what the controller receives. role.toString() is
+  called explicitly: the fragment is handed a String from NavigationAdvice and
+  an enum from the account list, and toString() normalises both.
+-->
+<span class="badge badge--brand" th:fragment="roleBadge(role)"
+      th:text="${role != null
+          ? #strings.capitalize(#strings.toLowerCase(role.toString()))
+          : 'Account'}">Requester</span>
+
+<!-- AccountStatus: the one place where "can this account be used" is coloured. -->
+<span class="badge" th:fragment="accountStatusBadge(accountStatus)"
+      th:classappend="${accountStatus != null and accountStatus.name() == 'ACTIVE'} ? 'badge--success' : 'badge--danger'"
+      th:text="${accountStatus}">ACTIVE</span>
+
+<!--
+  Page-level feedback. Errors are announced as alerts, confirmations as status,
+  so a screen reader treats the two differently.
+  tone: "success" | "error" | "warning" | "info"
+-->
+<div class="alert" th:fragment="alert(tone, title, message)"
+     th:classappend="|alert--${tone}|"
+     th:attr="role=${tone == 'error'} ? 'alert' : 'status'">
+  <svg class="alert__icon" th:if="${tone == 'error' or tone == 'warning'}"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <path d="M12 4.5 21 20H3z"/>
+    <path d="M12 10v4"/>
+    <path d="M12 17h.01"/>
+  </svg>
+  <svg class="alert__icon" th:unless="${tone == 'error' or tone == 'warning'}"
+       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="9"/>
+    <path d="M12 8h.01"/>
+    <path d="M11 12h1v4h1"/>
+  </svg>
+  <div class="alert__body">
+    <p class="alert__title" th:if="${title != null}" th:text="${title}">Something happened</p>
+    <p th:text="${message}">Details</p>
+  </div>
+</div>
+
+<!--
+  Quiet empty state. Says what is missing and what would fill it, in a region
+  that already has a heading above it.
+
+  The icon is decorative and aria-hidden: the two lines of text already carry the
+  meaning, so it adds a shape to an otherwise blank area without adding anything
+  for a screen reader to announce. It is drawn in the muted line colour rather
+  than the brand colour - an empty state is a resting state, not a call to action.
+-->
+<div class="empty-state" th:fragment="emptyState(title, message)">
+  <svg class="empty-state__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+       aria-hidden="true" focusable="false">
+    <path d="M3.5 13.5h4l1.2 2.2h6.6l1.2-2.2h4"/>
+    <path d="M6.2 5.2h11.6l2.7 8.3v4.3a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1v-4.3z"/>
+  </svg>
+  <p class="empty-state__title" th:text="${title}">Nothing to show</p>
+  <p th:if="${message != null}" th:text="${message}">Explanation</p>
+</div>
+
+<!--
+  The illustrated empty state, for a requester's own request list.
+
+  The drawing is the one from the sign-in page and the overview, reduced to a
+  slip: same geometry, same palette, same 1.5px detail, so a person who has seen
+  the product's artwork once recognises it here.
+
+  There is no action button under it. The submission form does not exist in this
+  build, so a "New request" button would be a control that cannot do anything;
+  what is missing is stated once, in the page's own note, instead.
+-->
+<div class="empty-state empty-state--illustrated" th:fragment="requestEmptyState(title, message)">
+  <span class="empty-state__art" th:insert="~{fragments/illustrations :: requestEmpty}"></span>
+  <p class="empty-state__title" th:text="${title}">Nothing to show</p>
+  <p th:if="${message != null}" th:text="${message}">Explanation</p>
+</div>
+
+<!--
+  A single quiet line under a page description, for a standing fact about the
+  page rather than a message about something that just happened. Alerts and
+  notices are boxed because they are events; this is not one, so it is text with
+  a small icon and nothing else.
+-->
+<p class="page-note" th:fragment="pageNote(text)">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+    <circle cx="12" cy="12" r="8.5"/>
+    <path d="M12 8.2h.01"/>
+    <path d="M11.2 11.6h.9v4h.9"/>
+  </svg>
+  <span th:text="${text}">Note</span>
+</p>
+
+<!--
+  Status history as a timeline. Used by the request detail page and the
+  administrator lookup, so a ticket's history looks identical in both.
+
+  Each entry states the transition in words as well as in badges, and carries the
+  time, because a bare coloured dot would not be readable on its own.
+-->
+<ol class="timeline" th:fragment="timeline(entries)">
+  <li class="timeline__item" th:each="entry : ${entries}">
+    <div class="timeline__head">
+      <p class="timeline__transition" th:if="${entry.fromStatus == null}">
+        <span>Recorded as</span>
+        <span th:replace="~{fragments/components :: statusBadge(${entry.toStatus})}">SUBMITTED</span>
+      </p>
+      <p class="timeline__transition" th:if="${entry.fromStatus != null}">
+        <span>Changed from</span>
+        <span th:replace="~{fragments/components :: statusBadge(${entry.fromStatus})}">SUBMITTED</span>
+        <span>to</span>
+        <span th:replace="~{fragments/components :: statusBadge(${entry.toStatus})}">SUBMITTED</span>
+      </p>
+    </div>
+
+    <p class="timeline__meta">
+      <span th:if="${entry.changedByUserId != null}"
+            th:text="|Account #${entry.changedByUserId}|">Account #1</span>
+      <span th:if="${entry.changedByUserId != null}" aria-hidden="true"> &middot; </span>
+      <span th:text="${#temporals.format(entry.changedAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</span>
+    </p>
+
+    <p class="timeline__comment" th:if="${entry.comment != null and !entry.comment.isBlank()}"
+       th:text="${entry.comment}">Comment</p>
+  </li>
+</ol>
+
+</body>
+</html>

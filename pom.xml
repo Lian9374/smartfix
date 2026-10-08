@@ -104,7 +104,13 @@
                 <version>3.5.3</version>
                 <configuration>
                     <failIfNoTests>true</failIfNoTests>
-                    <excludes><exclude>**/MigrationIT.java</exclude></excludes>
+                    <!-- Native PostgreSQL cases are opt-in through postgres-it; H2 authentication IT still runs in verify. -->
+                    <excludes>
+                        <exclude>**/MigrationIT.java</exclude>
+                        <exclude>**/AttachmentPersistenceIT.java</exclude>
+                        <exclude>**/RequestMigrationIT.java</exclude>
+                        <exclude>**/RequestWorkflowPostgresIT.java</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
