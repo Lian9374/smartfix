@@ -174,7 +174,12 @@ API (never write emails from here).
   `TechnicianWorkloadService`. Ranking is AVAILABLE before BUSY, then workload ascending,
   then **profile id** ascending. Failures propagate; no partial recommendation is returned.
   This is an internal read API, not an HTTP endpoint or a reservation. Assignment must
-  revalidate eligibility. Dispatch pages follow in S3-B-04.
+  revalidate eligibility.
+- **Dispatch page (S3-B-04):** `DispatchPageService` assembles the read model through public
+  services. `DispatchController` exposes administrator-only GET `/admin/requests/{ticket}/dispatch`
+  and CSRF-protected POST `assign` / `reassign` / `withdraw` sibling routes. The authenticated
+  principal supplies the actor; stale submissions show 409 and require an explicit reload.
+  See the [S3-B-04 handoff](sprint3/B_Dispatch_UI_Handoff_CN.md) for validation and integration boundaries.
 - **Assignment API (S3-B-03):** `AssignmentService.assign`, `reassign`, `withdraw` and
   `findActiveAssignment`; writes require an active administrator. Reassign/withdraw
   commands carry `expectedAssignmentId` to reject stale forms, plus a 1–500 character reason.
