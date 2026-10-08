@@ -110,6 +110,9 @@
                         <exclude>**/AttachmentPersistenceIT.java</exclude>
                         <exclude>**/RequestMigrationIT.java</exclude>
                         <exclude>**/RequestWorkflowPostgresIT.java</exclude>
+                        <exclude>**/AssignmentPostgresIT.java</exclude>
+                        <exclude>**/DispatchPagePostgresIT.java</exclude>
+                        <exclude>**/AssignmentMigrationIT.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>

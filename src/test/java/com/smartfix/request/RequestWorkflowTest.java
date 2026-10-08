@@ -30,6 +30,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.*;
@@ -64,6 +65,8 @@ import javax.imageio.ImageIO;
 class RequestWorkflowTest {
     private static final Path UPLOADS = tempDirectory();
     private static final Instant NOW = Instant.parse("2026-10-01T00:00:00Z");
+    // PostgreSQL JDBC does not infer a SQL type for Instant; H2 accepts it, which hid this fixture issue.
+    private static final java.sql.Timestamp JDBC_NOW = java.sql.Timestamp.from(NOW);
 
     @DynamicPropertySource
     static void config(DynamicPropertyRegistry r) {
@@ -114,8 +117,8 @@ class RequestWorkflowTest {
                     "Test User " + id,
                     "synthetic-test-hash",
                     role,
-                    NOW,
-                    NOW);
+                    JDBC_NOW,
+                    JDBC_NOW);
         }
         jdbc.update(
                 "INSERT INTO locations(id,location_code,display_name,active)"
@@ -486,8 +489,8 @@ class RequestWorkflowTest {
                         + " status=?,final_urgency_level='HIGH',resolved_at=?,confirmed_at=? WHERE"
                         + " id=?",
                 from,
-                NOW,
-                NOW,
+                JDBC_NOW,
+                JDBC_NOW,
                 id);
         if (!from.equals("SUBMITTED") && !from.equals("UNDER_REVIEW")) {
             String workStatus =
@@ -500,10 +503,10 @@ class RequestWorkflowTest {
                         + " VALUES(?,4,?,0,?,?,?,?)",
                     id,
                     workStatus,
-                    NOW,
-                    NOW,
+                    JDBC_NOW,
+                    JDBC_NOW,
                     "Resolved",
-                    NOW);
+                    JDBC_NOW);
         }
         if (!to.equals("UNDER_REVIEW")) assignments.assign(id, 4L);
         lifecycle.transition(ticket, RequestStatus.valueOf(to), actor, "Transition reason");
@@ -615,6 +618,7 @@ class RequestWorkflowTest {
     @TestConfiguration
     static class Collaboration {
         @Bean
+        @Primary
         AssignmentFixture assignmentFixture() {
             return new AssignmentFixture();
         }

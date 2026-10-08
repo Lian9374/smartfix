@@ -139,8 +139,9 @@
 
               <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
                  th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
-              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
-                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign technician</a>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch') or
+                    (navRole == 'ADMINISTRATOR' and (request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS'))}"
+                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a>
 
               <form th:if="${presentation.availableActions.contains('cancel')}"
                     th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">

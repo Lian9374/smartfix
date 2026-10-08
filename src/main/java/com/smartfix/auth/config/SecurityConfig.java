@@ -46,6 +46,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
                         .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole(TECHNICIAN)
+                        // Frozen Sprint 3 A/D/E contracts; services still enforce authorship/recipients.
+                        .requestMatchers(HttpMethod.GET, "/community", "/community/mine", "/community/questions/new",
+                                "/community/questions/*", "/community/questions/*/edit", "/community/answers/*/edit",
+                                "/notifications", "/announcements").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/community/questions", "/community/questions/*",
+                                "/community/questions/*/withdraw", "/community/questions/*/answers",
+                                "/community/answers/*", "/community/answers/*/withdraw",
+                                "/community/questions/*/answers/*/accept", "/community/questions/*/acceptance/remove",
+                                "/community/questions/*/reports", "/community/answers/*/reports",
+                                "/notifications/*/read").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/dashboard").hasAnyRole("ADMINISTRATOR", TECHNICIAN)
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")
@@ -59,6 +70,13 @@ public class SecurityConfig {
                             .hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.GET, "/requests/*", "/requests/*/attachments/*")
                             .hasAnyRole("REQUESTER", "ADMINISTRATOR", TECHNICIAN)
+                        .requestMatchers(HttpMethod.GET, "/admin/requests", "/admin/requests/*/dispatch")
+                            .hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/admin/requests/*/assign", "/admin/requests/*/reassign", "/admin/requests/*/withdraw")
+                            .hasRole("ADMINISTRATOR")
+                        // Do not let the legacy /admin/** rule authorize other dispatch methods.
+                        .requestMatchers("/admin/requests/*/dispatch", "/admin/requests/*/assign",
+                                "/admin/requests/*/reassign", "/admin/requests/*/withdraw").denyAll()
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
                         .anyRequest().denyAll())
