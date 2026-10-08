@@ -1,9 +1,27 @@
 package com.smartfix.request;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import com.smartfix.SmartFixApplication;
+import com.smartfix.auth.security.SmartFixUserDetails;
+import com.smartfix.user.domain.AccountStatus;
+import com.smartfix.user.domain.Role;
+import com.smartfix.user.dto.UserAuthenticationData;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.web.MockServletContext;
+import org.springframework.test.context.support.TestPropertySourceUtils;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.support.GenericWebApplicationContext;
+import org.springframework.context.annotation.AnnotatedBeanDefinitionReader;
+import org.springframework.boot.context.TypeExcludeFilter;
+import org.springframework.core.type.classreading.MetadataReader;
+import org.springframework.core.type.classreading.MetadataReaderFactory;
 
 import java.sql.*;
 import java.util.UUID;
@@ -67,6 +85,7 @@ class RequestMigrationIT {
                     assertThat(result.getString(3)).isEqualTo("Broken light");
                     assertThat(result.getString(4)).isNull();
                 }
+                assertUpgradedDetailsPage(url, user, password, schema);
                 s.executeUpdate("UPDATE maintenance_requests SET status='UNDER_REVIEW' WHERE id=1");
                 assertThatThrownBy(
                                 () ->
@@ -105,6 +124,47 @@ class RequestMigrationIT {
             } finally {
                 s.execute("DROP SCHEMA " + schema + " CASCADE");
             }
+        }
+    }
+
+    private void assertUpgradedDetailsPage(String url, String username, String password,
+            String schema) throws Exception {
+        // Exercise the actual services and Thymeleaf page against the preserved Sprint 2 row.
+        // A mock servlet context starts no HTTP server and uses only this isolated test schema.
+        try (var context = new GenericWebApplicationContext()) {
+            context.setServletContext(new MockServletContext());
+            context.getEnvironment().setActiveProfiles("test");
+            TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context,
+                    "spring.datasource.url=" + url + (url.contains("?") ? "&" : "?")
+                            + "currentSchema=" + schema,
+                    "spring.datasource.username=" + username,
+                    "spring.datasource.password=" + password,
+                    "spring.datasource.driver-class-name=org.postgresql.Driver",
+                    "spring.jpa.hibernate.ddl-auto=validate",
+                    "spring.jpa.open-in-view=false",
+                    "spring.flyway.enabled=true",
+                    "spring.flyway.locations=classpath:db/migration",
+                    "spring.flyway.schemas=" + schema,
+                    "spring.flyway.default-schema=" + schema,
+                    "smartfix.bootstrap-admin.enabled=false");
+            // Keep other tests' route probes and datasource configurations out of this context.
+            context.getBeanFactory().registerSingleton("upgradePageTestExclusions", new TypeExcludeFilter() {
+                @Override
+                public boolean match(MetadataReader reader, MetadataReaderFactory factory) {
+                    return reader.getClassMetadata().getClassName().matches(".*(Test|Tests|IT)(\\$.*)?");
+                }
+            });
+            new AnnotatedBeanDefinitionReader(context).register(SmartFixApplication.class);
+            context.refresh();
+            var requester = new SmartFixUserDetails(new UserAuthenticationData(
+                    1L, "test.requester", "synthetic-test-hash", Role.REQUESTER,
+                    AccountStatus.ACTIVE, 0));
+            MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build()
+                    .perform(get("/requests/SF-2026-000001").with(user(requester)))
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("request/detail"))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Broken light")))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Test location")));
         }
     }
 
