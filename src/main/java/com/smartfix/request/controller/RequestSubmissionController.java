@@ -50,8 +50,13 @@ public class RequestSubmissionController {
     }
 
     @GetMapping("/requests/new")
-    public String form(Model model) {
-        model.addAttribute("command", new SubmitMaintenanceRequestCommand());
+    public String form(@RequestParam(required = false) Long locationId, Model model) {
+        var command = new SubmitMaintenanceRequestCommand();
+        if (locationId != null) {
+            locations.requireActiveLocation(locationId);
+            command.setLocationId(locationId);
+        }
+        model.addAttribute("command", command);
         model.addAttribute("locations", locations.listActiveLocations());
         return "request/new";
     }

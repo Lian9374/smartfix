@@ -25,7 +25,7 @@
 
   active = "overview" | "community" | "community-reports" | "my-requests"
          | "work-orders" | "user-management" | "request-queue"
-         | "request-lookup",
+         | "request-lookup" | "campus-map",
   and it only decides which link carries aria-current="page". Which links exist
   at all comes from ${navRole}, which NavigationAdvice adds from the
   authenticated principal - see docs/ui-guide.md.
@@ -206,6 +206,11 @@
           </svg>
           <span>Request Lookup</span>
         </a>
+        <a class="nav__link" th:href="@{/campus-map}"
+           th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">
+          <svg th:replace="~{fragments/ui-icons :: map}"></svg>
+          <span>Campus Map</span>
+        </a>
       </nav>
 
       <div class="sidebar__foot">
@@ -273,6 +278,8 @@
              th:attr="aria-current=${active == 'my-requests'} ? 'page' : null">My Requests</a>
           <a class="appbar__link" th:href="@{/workorders/mine}" th:if="${navRole == 'TECHNICIAN'}"
              th:attr="aria-current=${active == 'work-orders'} ? 'page' : null">My Work Orders</a>
+          <a class="appbar__link" th:href="@{/campus-map}"
+             th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">Campus Map</a>
         </nav>
 
         <div th:replace="~{fragments/layout :: userArea}">Account</div>

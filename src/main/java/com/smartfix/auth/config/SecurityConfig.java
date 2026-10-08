@@ -52,7 +52,7 @@ public class SecurityConfig {
                         // carries the token like every other write does.
                         .requestMatchers(HttpMethod.GET, "/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
                         .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole(TECHNICIAN)

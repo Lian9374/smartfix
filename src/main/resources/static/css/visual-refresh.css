@@ -7,6 +7,78 @@
   --content-max: 1200px;
   background: #f3f5f2;
 }
+
+/* Online NUS map: quiet cartography, contained status summary and an optional directory. */
+.campus-atlas{overflow:hidden;margin:0 0 24px;padding:0;border-radius:22px}
+.atlas-header{padding:23px 27px;gap:18px;align-items:center}
+.atlas-header h2{margin:0;font-size:24px}
+.atlas-subtitle{margin:5px 0 0;color:var(--muted,#687976);font-size:14px}
+.atlas-refresh{display:flex;gap:8px;align-items:center;font-size:13px;color:#5f756e;max-width:300px}
+.atlas-live-dot{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#448572;box-shadow:0 0 0 4px #e9f2ee}
+.atlas--stale .atlas-live-dot{background:#a97b38;box-shadow:0 0 0 4px #f5efe4}
+.atlas-toolbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 24px;border-block:1px solid #e5ece8;background:#fbfcfb}
+.atlas-campus-tabs{display:flex;gap:5px;flex-wrap:wrap}
+.atlas-campus-tabs button{border:0;border-radius:9px;background:transparent;padding:10px 13px;color:#526760;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.atlas-campus-tabs button[aria-pressed=true]{background:#e3eee8;color:#254a40}
+.atlas-campus-tabs button:hover{background:#edf3ef}
+.atlas-find{display:flex;gap:8px;align-items:center;min-width:0;max-width:390px;flex:1}
+.atlas-find input{min-width:0;width:100%;height:42px;padding:10px 13px;background:#fff;border:1px solid #d9e3dd;border-radius:9px;font-size:14px}
+.atlas-find .btn{min-height:42px;padding:9px 15px;font-size:14px;white-space:nowrap}
+.atlas-body{display:grid;grid-template-columns:minmax(0,1fr) 280px}
+.atlas-map-wrap{position:relative;min-width:0;background:#e8eeeb}
+.atlas-map{height:610px;width:100%;z-index:0;background:#e7eeea;font:14px var(--font-body,system-ui,sans-serif)}
+.atlas-map-legend{position:absolute;z-index:450;left:18px;top:18px;display:flex;gap:14px;flex-wrap:wrap;max-width:calc(100% - 90px);padding:12px 15px;background:rgba(255,255,255,.96);border:1px solid #dfe7e1;border-radius:12px;box-shadow:0 3px 15px #254a400c;font-size:12px;color:#3c5149;pointer-events:none}
+.atlas-map-legend span{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.atlas-dot{display:inline-block;flex:0 0 8px;width:8px;height:8px;border-radius:50%}
+.atlas-dot--fault{background:#c45a4f}.atlas-dot--repair{background:#bf852d}.atlas-dot--quiet{background:#6a8881}
+.atlas-map .leaflet-control-zoom{border:1px solid #d9e3db;box-shadow:0 3px 15px #254a4015;border-radius:10px;overflow:hidden}
+.atlas-map .leaflet-control-zoom a{color:#254a40;background:#fff}
+.atlas-map .leaflet-top.leaflet-left{left:auto;right:10px}
+.atlas-map .leaflet-control-attribution{background:#ffffffed;color:#50645b;font-size:11px;padding:3px 6px;max-width:95%;white-space:normal}
+.atlas-map .leaflet-control-attribution a{color:#315f50}
+.atlas-map .leaflet-control-attribution img{display:inline-block;height:20px;width:auto;vertical-align:middle}
+.atlas-map .leaflet-control-scale-line{border-color:#789284;color:#415c4d;background:#ffffffd9}
+.atlas-map .atlas-label{border:0;background:#fffffff0;border-radius:5px;box-shadow:0 2px 8px #254a4010;font-size:10px;color:#425a4e;padding:3px 6px;width:max-content;max-width:170px;white-space:normal;text-align:center;pointer-events:none}
+.atlas-label strong{font-weight:600}
+.atlas-map .atlas-label--active{padding:7px 10px;width:210px;max-width:220px;background:#fff;border:1px solid #e5e9e3;box-shadow:0 3px 12px #254a401c;font-size:12px}
+.atlas-label--active span{display:block;font-size:10px;color:#7c7166;margin-top:3px}
+.atlas-map-notice{position:absolute;z-index:460;left:20px;right:20px;bottom:36px;background:#fffaf0;border:1px solid #e8d8b2;color:#755b31;padding:12px 16px;border-radius:10px;font-size:13px;box-shadow:0 3px 15px #254a4010}
+.atlas-map-notice[hidden]{display:none}
+.atlas-activity{display:flex;flex-direction:column;gap:0;background:#f6f8f4;padding:26px 23px;border-left:1px solid #e3e9e2;min-width:0}
+.atlas-activity .section-kicker{font-size:10px;letter-spacing:.12em;color:#6c7e6f}
+.atlas-activity h3{font-size:21px;margin:10px 0 24px;line-height:1.35}
+.atlas-activity-totals{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.atlas-activity-totals div{background:#fff;border:1px solid #e4e8de;border-radius:12px;padding:15px 12px}
+.atlas-activity-totals strong{display:block;font-size:30px;line-height:1.2;color:#b44f45}
+.atlas-activity-totals div+div strong{color:#a5742f}
+.atlas-activity-totals span{display:block;font-size:12px;color:#6e756a;margin-top:5px}
+.atlas-count-help{font-size:11px;line-height:1.5;color:#84907e;margin:10px 0 20px}
+.atlas-activity-list{flex:1;min-height:110px;max-height:265px;overflow:auto}
+.atlas-no-activity{padding:24px 15px;border:1px dashed #d6dfd0;border-radius:12px;margin:0;font-size:14px;line-height:1.65;color:#6e7a68;background:#fafcf8;text-align:center}
+.atlas-activity-item{display:flex;align-items:flex-start;gap:10px;padding:13px 0;border-top:1px solid #e0e7db}
+.atlas-activity-item .atlas-dot{margin-top:7px}
+.atlas-activity-item h4{font-size:14px;margin:0;color:#344d3d;overflow-wrap:anywhere}
+.atlas-activity-item p{font-size:12px;line-height:1.6;margin:5px 0 0;color:#7b806e}
+.atlas-unmapped{font-size:12px;color:#8b764c;padding:10px 0;border-top:1px solid #e0e7db;margin:10px 0 0}
+.atlas-data-note{font-size:11px;line-height:1.6;color:#86917d;margin:20px 0 15px}
+.atlas-activity .btn{font-size:14px;min-height:43px;justify-content:space-between;width:100%;display:flex}
+.atlas-source{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 24px;background:#fff;font-size:11px;color:#889087;border-top:1px solid #e6ece5;flex-wrap:wrap}
+.atlas-source a{color:#667d6b;text-decoration:underline;text-underline-offset:3px}
+.atlas-directory{border-top:1px solid #e7ece6;background:#fcfdfb}
+.atlas-directory summary,.campus-facility-details>summary{cursor:pointer;font-size:14px;font-weight:600;padding:18px 24px;color:#385442;list-style:inside}
+.atlas-directory summary span,.campus-facility-details>summary span{font-weight:400;font-size:12px;margin-left:12px;color:#819080}
+.atlas-directory-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;max-height:400px;overflow:auto;padding:0 20px 20px}
+.atlas-directory-grid>span{display:block;padding:12px 10px;border-bottom:1px solid #e7ece3}
+.atlas-directory-grid strong{display:block;font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.atlas-directory-grid small{font-size:11px;display:block;color:#87907d;margin-top:3px}
+.campus-facility-details{background:#fff;border:1px solid #e2e9e4;border-radius:18px;margin-bottom:24px}
+.campus-facility-details[open]>summary{border-bottom:1px solid #e7ece6}
+.campus-facility-details>.campus-map-workspace{padding:20px;margin:0}
+.campus-facility-details .campus-building-directory nav{max-height:450px;overflow:auto}
+@media(min-width:1600px){.atlas-map{height:670px}.atlas-body{grid-template-columns:minmax(0,1fr) 310px}.atlas-activity{padding:30px 26px}}
+@media(max-width:1100px){.atlas-toolbar{flex-wrap:wrap}.atlas-find{max-width:none;flex-basis:100%}.atlas-body{grid-template-columns:minmax(0,1fr) 245px}.atlas-map{height:580px}.atlas-activity{padding:23px 18px}.atlas-directory-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.atlas-header{padding:20px;flex-wrap:wrap}.atlas-refresh{font-size:12px}.atlas-toolbar{padding:12px 15px;gap:12px}.atlas-campus-tabs{gap:3px}.atlas-campus-tabs button{font-size:12px;padding:9px 8px}.atlas-body{grid-template-columns:1fr}.atlas-map{height:450px}.atlas-map-legend{left:12px;top:12px;gap:8px;padding:10px;font-size:10px;max-width:calc(100% - 65px)}.atlas-activity{border-left:0;border-top:1px solid #e3e9e2;padding:22px}.atlas-activity h3{margin-bottom:16px}.atlas-activity-totals{max-width:350px}.atlas-activity-list{flex:none;min-height:0;max-height:220px}.atlas-data-note{margin:16px 0}.atlas-activity .btn{max-width:350px}.atlas-source{padding:14px 18px;line-height:1.7;display:block}.atlas-source>span{display:block}.atlas-directory-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.campus-facility-details>.campus-map-workspace{padding:12px}.atlas-directory summary,.campus-facility-details>summary{padding:16px;font-size:13px}.atlas-directory summary span,.campus-facility-details>summary span{display:block;margin-left:15px;margin-top:5px}.atlas-label--active{max-width:160px}}
+@media(prefers-reduced-motion:reduce){.atlas-map .leaflet-zoom-animated{transition:none}}
 .appbar { background: #ffFEFB; }
 .appbar__link { font-weight: 600; }
 .content { padding-top: 32px; }
@@ -300,6 +372,79 @@
 @media (prefers-reduced-motion: reduce) { .quick-link { transition: none; } .quick-link:hover { transform: none; } }
 
 .notification-entry { display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;color:var(--brand);border-radius:50%; }
+
+/* Campus directory: real buildings and floors, with a clear route into reporting. */
+.campus-map-promo { display:flex;align-items:center;gap:18px;padding:20px 24px;margin-top:24px; }
+.campus-map-promo__icon { display:grid;place-items:center;flex:0 0 48px;height:48px;border-radius:14px;background:#e4eee7;color:#285d52; }
+.campus-map-promo__icon svg { width:27px;height:27px; }
+.campus-map-promo h2 { margin:0;font-size:20px; }
+.campus-map-promo p { font-size:14px;color:#63716a;margin-top:4px; }
+.campus-map-promo .btn { margin-left:auto; }
+.campus-map-hero { display:flex;align-items:center;justify-content:space-between;gap:24px;padding:30px 36px;background:#e2eee5;border:1px solid #d7e4da;border-radius:22px;margin-bottom:24px; }
+.campus-map-hero .section-kicker { color:#597c65; }
+.campus-map-hero h1 { font-size:36px;letter-spacing:-.035em;margin-top:10px; }
+.campus-map-hero p { font-size:16px;color:#546c61;margin-top:10px; }
+.campus-map-totals { display:flex;flex-wrap:wrap;gap:12px 22px;margin-top:20px;font-size:13px;color:#476456; }
+.campus-map-totals strong { font-size:20px;color:#244f42;margin-right:4px; }
+.campus-map-art { display:grid;place-items:center;flex:0 0 138px;height:138px;background:#f5f4dd;border-radius:32px;transform:rotate(-8deg);color:#416953; }
+.campus-map-art svg { width:80px;height:80px; }
+.campus-map-workspace { display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start; }
+.campus-building-directory { overflow:hidden; }
+.campus-building-directory .module-header { padding:20px; }
+.campus-building-directory .module-header h2 { font-size:18px; }
+.campus-building-directory nav { padding:10px;display:grid;gap:6px; }
+.campus-building { display:flex;align-items:center;gap:12px;border:1px solid transparent;border-radius:12px;padding:12px;color:#345348;min-width:0; }
+.campus-building > span:last-child { min-width:0; }
+.campus-building:hover,.campus-building[aria-current="true"] { background:#eaf2ec;border-color:#d5e6d8;text-decoration:none; }
+.campus-building strong { display:block;font-size:15px;overflow-wrap:anywhere; }
+.campus-building small { display:block;color:#748077;font-size:12px;margin-top:3px; }
+.campus-building__icon { display:grid;place-items:center;flex:0 0 32px;height:36px;color:#668472; }
+.campus-building__icon svg { width:26px;height:26px; }
+.campus-directory-note { padding:12px 20px 20px;color:#627166;font-size:14px; }
+.campus-directory-actions { padding:16px 20px;border-top:1px solid #e7ece7;font-size:14px;font-weight:600; }
+.campus-map-filters { display:grid;grid-template-columns:minmax(140px,1.5fr) minmax(90px,1fr) minmax(140px,1fr) auto;gap:14px;padding:20px;align-items:end; }
+.campus-map-filters .form-field { margin:0;min-width:0; }
+.campus-map-filters label { display:block;font-size:13px;font-weight:600;margin-bottom:8px; }
+.campus-map-filters input,.campus-map-filters select { width:100%;min-width:0;font-size:14px;height:44px; }
+.campus-map-filter-actions { display:flex;align-items:center;gap:12px; }
+.campus-map-filter-actions .text-link { font-size:13px; }
+.campus-status-summary { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0; }
+.campus-status-tile { display:flex;align-items:center;gap:9px;padding:14px;border-radius:12px;border:1px solid #e0e8df;font-size:12px; }
+.campus-status-tile strong { margin-left:auto;font-size:20px; }
+.campus-status-tile--green { background:#e9f2e9;color:#36674d; }
+.campus-status-tile--amber { background:#f5eddb;color:#866927;border-color:#ebe2cc; }
+.campus-status-tile--red { background:#f5e7e5;color:#935a50;border-color:#ecdcda; }
+.campus-status-dot { flex:0 0 7px;height:7px;border-radius:50%;background:currentColor; }
+.campus-facility-feed { overflow:hidden; }
+.campus-facility-feed .module-header h2 { overflow-wrap:anywhere;font-size:20px; }
+.campus-facility-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:20px; }
+.campus-facility { padding:20px;border:1px solid #e2e9e3;border-radius:14px;background:#fff;min-width:0; }
+.campus-facility__top { display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px; }
+.campus-facility__icon { display:grid;place-items:center;flex:0 0 38px;height:38px;border-radius:10px;background:#edf2ee;color:#537263; }
+.campus-facility__icon svg { width:24px;height:24px; }
+.campus-status-badge { padding:5px 8px;border-radius:7px;font-size:11px;font-weight:600; }
+.campus-status-badge--green { color:#326443;background:#eaf3e9; }
+.campus-status-badge--amber { color:#825f22;background:#f7efd9; }
+.campus-status-badge--red { color:#8a4c48;background:#f8e9e6; }
+.campus-facility h3 { font-size:18px;margin:0;overflow-wrap:anywhere; }
+.campus-facility__address { font-size:14px;color:#5b7164;margin-top:8px;overflow-wrap:anywhere; }
+.campus-facility__room,.campus-facility__detail { font-size:13px;color:#748078;margin-top:5px;overflow-wrap:anywhere; }
+.campus-facility__action { display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:600;margin-top:22px;padding-top:14px;border-top:1px solid #e9eeea; }
+.campus-map-empty { display:grid;justify-items:center;gap:12px;text-align:center;padding:40px 24px; }
+.campus-map-empty > svg { width:48px;height:48px;color:#82a18d;margin-bottom:5px; }
+.campus-map-empty h3 { font-size:20px; }
+.campus-map-empty p { color:#718075;font-size:14px;max-width:42ch; }
+@media(max-width:1100px) { .campus-map-workspace { grid-template-columns:220px minmax(0,1fr);gap:18px; } .campus-map-filters { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
+@media(max-width:850px) { .campus-map-workspace { grid-template-columns:minmax(0,1fr); } .campus-building-directory nav { grid-template-columns:repeat(2,minmax(0,1fr)); } .campus-map-art { flex-basis:100px;height:100px;border-radius:24px; } .campus-map-art svg { width:60px;height:60px; } }
+/* The shared shell marks script-enabled documents with .js. Keep navigation
+   reachable when scripts are unavailable, including the administrator's rail. */
+@media(max-width:900px) {
+  html:not(.js) .appbar__panel { display:flex; }
+  html:not(.js) .nav-toggle,html:not(.js) .nav-close { display:none; }
+  html:not(.js) .app-shell { flex-direction:column; }
+  html:not(.js) .sidebar { position:static;transform:none;width:100%;flex:none;box-shadow:none; }
+}
+@media(max-width:650px) { .campus-map-promo { flex-wrap:wrap;padding:18px;gap:12px; } .campus-map-promo > div { flex:1; } .campus-map-promo .btn { margin:0 0 0 60px;font-size:13px; } .campus-map-hero { padding:24px; } .campus-map-hero h1 { font-size:29px; } .campus-map-hero p { font-size:14px; } .campus-map-art { display:none; } .campus-status-summary { gap:8px; } .campus-status-tile { flex-wrap:wrap;gap:5px;padding:12px 10px; } .campus-status-tile > span:nth-child(2) { flex-basis:calc(100% - 14px); } .campus-status-tile strong { margin:0;font-size:22px; } .campus-map-filters { padding:18px;gap:16px 12px; } .campus-map-filters > .form-field:first-of-type { grid-column:1/-1; } .campus-map-filter-actions { grid-column:1/-1; } .campus-facility-grid { grid-template-columns:minmax(0,1fr);padding:16px; } .campus-building { padding:10px;gap:8px; } .campus-building strong { font-size:14px; } }
 .notification-entry:hover { background:#e7f1ed; }
 .moderation-tabs { display:flex;flex-wrap:wrap;gap:10px;padding:16px;margin:20px 0; }
 .moderation-tabs [aria-current="page"] { background:#e7f1ed;border-color:#749c91;color:#24564e; }
