@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<!--
+  One form for asking a question and for editing one, because the fields and the
+  rules are the same - only the wording, the target and the button differ, and
+  those three are the whole of what ${editing} decides.
+
+  The action is th:action rather than a plain action so Thymeleaf writes the CSRF
+  hidden field. Every community write is a POST and every POST keeps CSRF; none of
+  them is exempt.
+
+  The form never carries an author, a status or an accepted answer. There is no
+  field for any of the three, so a forged value of any of those names has nowhere
+  to bind, and authorship always comes from the signed-in session.
+
+  maxlength on each control matches the DTO annotation and the database column, so
+  the browser stops a value the server would reject rather than letting someone
+  type a page of text and lose it to a validation error.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${editing} ? 'Edit question' : 'Ask a question')}">
+  <title>Ask a question · SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('community')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
+
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div th:replace="~{fragments/components :: pageHeading(
+             ${editing} ? 'Edit question' : 'Ask a question',
+             ${editing}
+                 ? 'Change the title, the details or the topic. The question keeps its author and its answers.'
+                 : 'Describe the problem for everyone on campus. Anyone can read it once you post.')}">
+          <h1 class="page-head__title">Ask a question</h1>
+        </div>
+
+        <div class="page-head-row__actions">
+          <a class="btn btn--secondary" th:href="@{/community}">Back to community</a>
+        </div>
+      </div>
+
+      <form th:action="${editing}
+                ? @{/community/questions/{id}(id=${question.id})}
+                : @{/community/questions}"
+            th:object="${command}" method="post">
+
+        <!--
+          Errors that belong to the form as a whole rather than to a field - the
+          posting guards, which are about how often something was posted and not
+          about the text of any one control.
+
+          This block is inside the form on purpose. #fields is only bound where a
+          th:object is in scope, so placed above the <form> the expression cannot be
+          evaluated at all and the page fails to render outright rather than merely
+          losing its message.
+
+          The wrapper carries th:if and the inner element carries th:replace, never
+          both on one element: th:replace is processed first, so a th:if beside it
+          would never run.
+        -->
+        <div th:if="${#fields.hasGlobalErrors()}">
+          <div th:replace="~{fragments/components :: alert('error',
+               'That question was not posted',
+               ${#fields.globalErrors()[0].defaultMessage})}"></div>
+        </div>
+
+        <fieldset class="form-section">
+          <legend>Your question</legend>
+
+          <div class="form-field"
+               th:classappend="${#fields.hasErrors('title')} ? 'form-field--invalid'">
+            <label class="form-field__label" for="title">Title</label>
+            <input type="text" id="title" th:field="*{title}" maxlength="150"
+                   placeholder="Short summary, for example: Projector will not power on"
+                   aria-describedby="title-hint title-error"
+                   th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : null">
+            <span class="form-field__hint" id="title-hint">
+              Between 3 and 150 characters. This is the line other people see in the list.
+            </span>
+            <span class="form-field__error" id="title-error" th:errors="*{title}">
+              Title is required.
+            </span>
+          </div>
+
+          <div class="form-field"
+               th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
+            <label class="form-field__label" for="body">Details</label>
+            <textarea id="body" th:field="*{body}" rows="10" maxlength="4000"
+                      placeholder="What happened, what you already tried, and anything else that would help."
+                      aria-describedby="body-hint body-error"
+                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+            <span class="form-field__hint" id="body-hint">
+              Between 10 and 4000 characters. Line breaks are kept exactly as you type them.
+            </span>
+            <span class="form-field__error" id="body-error" th:errors="*{body}">
+              Details are required.
+            </span>
+          </div>
+
+          <div class="form-field"
+               th:classappend="${#fields.hasErrors('category')} ? 'form-field--invalid'">
+            <label class="form-field__label" for="category">Topic</label>
+            <select id="category" th:field="*{category}" required
+                    aria-describedby="category-hint category-error"
+                    th:attr="aria-invalid=${#fields.hasErrors('category')} ? 'true' : null">
+              <option value="">-- choose a topic --</option>
+              <option th:each="topic : ${categories}" th:value="${topic}"
+                      th:text="${topic}">HARDWARE</option>
+            </select>
+            <span class="form-field__hint" id="category-hint">
+              Used by the list filter, so pick the closest one.
+            </span>
+            <span class="form-field__error" id="category-error" th:errors="*{category}">
+              Topic is required.
+            </span>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit"
+                  th:text="${editing} ? 'Save changes' : 'Post question'">Post question</button>
+          <a class="btn btn--secondary"
+             th:href="${editing}
+                 ? @{/community/questions/{id}(id=${question.id})}
+                 : @{/community}">Cancel</a>
+        </div>
+      </form>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

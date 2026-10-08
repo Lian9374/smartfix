@@ -3504,17 +3504,17 @@ Recorded by:
 | **D-02** | **Where is the transaction boundary for submission and attachments?** | ① One transaction for everything ② Files written first, DB transaction separate, compensation on failure | ② (§16.2's eight steps) | C / E | ____ |
 | **D-03** | **Relationship between Location and Facility** | ① Facility belongs to Location (1:N) ② Independent | ① (§14.4) | D / B | ____ |
 | **D-04** | **Is facility status derived from requests?** | ① Auto-rewritten ② **Not** auto-rewritten; maintained manually | ② (avoids multiple open requests fighting over the status) | D | ____ |
-| **D-05** | **May a question author accept their own answer?** | ① Allowed ② Forbidden | **② Forbidden** (prevents self-marking as solved) | A | ____ |
+| **D-05** | **May a question author accept their own answer?** | ① Allowed ② Forbidden | **② Forbidden** (prevents self-marking as solved) | A | Forbidden (ADR-003, 2026-10-08) |
 | **D-06** | **How is the invalid `V5` repaired?** | ① Add the comment prefixes and merge (checksum mismatch for anyone who applied it) ② Add a V5.1 / V19 repair migration | ① (V5 **cannot** be applied from a clean checkout today, which suggests nobody applied it), **after confirming** whether any local database did | C / All | ____ |
 | **D-07** | **Are the ten statuses and T01–T13 frozen?** | ① Freeze ② Adjust | ① Freeze (§6.3 / §6.4) | All | ____ |
 | **D-08** | **Reopen window and whether rating is required** | ① No window; rating optional ② N-day window; rating required | ① (no window, rating optional); a window would have to be written into T13 | C | ____ |
-| **D-09** | **Introduce a "close answers" concept?** | ① Yes (the author stops new answers) ② **No** | ② No: `accepted_answer_id` already expresses "solved" | A | ____ |
-| **D-10** | **Community images: do them, and how?** | ① Not this Sprint (v1 is text only) ② A new `community_attachments` table ③ Reuse `request_attachments` | **① or ②**; **never ③** (`request_id` is NOT NULL) | A / E | ____ |
+| **D-09** | **Introduce a "close answers" concept?** | ① Yes (the author stops new answers) ② **No** | ② No: `accepted_answer_id` already expresses "solved" | A | No independent close-answers switch (ADR-003, 2026-10-08) |
+| **D-10** | **Community images: do them, and how?** | ① Not this Sprint (v1 is text only) ② A new `community_attachments` table ③ Reuse `request_attachments` | **① or ②**; **never ③** (`request_id` is NOT NULL) | A / E | Text only this Sprint; no community attachments (ADR-003, 2026-10-08) |
 | **D-11** | **Map data source and presentation** | ① Static SVG floor plan + coordinates ② An external map SDK ③ A list plus building/floor text positioning | ③ (no external dependency, lowest cost, cannot fail on network) | D | ____ |
 | **D-12** | **Introduce `TechnicianMatchingStrategy` now?** | ① Abstract now ② Ship one implementation; extract when a real variant appears | ② (§8.3: do not abstract ahead of a real variation point) | B | ____ |
-| **D-13** | **"The accepted answer must belong to the question": DB constraint or service-layer only?** | ① Composite FK `(accepted_answer_id, id) → (id, question_id)` ② Service-layer check only | ① **plus** a friendly service-layer check | A | ____ |
+| **D-13** | **"The accepted answer must belong to the question": DB constraint or service-layer only?** | ① Composite FK `(accepted_answer_id, id) → (id, question_id)` ② Service-layer check only | ① **plus** a friendly service-layer check | A | Composite FK plus service ownership checks and conditional updates (ADR-003, 2026-10-08) |
 | **D-14** | **SLA: natural time or working time? Which pause points?** | ① Natural time ② Working time (needs a working calendar) | ① natural time for v1; pause points per §14.8 | E | ____ |
-| **D-15** | **How is community anti-duplicate implemented?** | ① Reject identical title+body from the same author inside a window ② No limit | ① (window configurable, default 2 minutes) | A | ____ |
+| **D-15** | **How is community anti-duplicate implemented?** | ① Reject identical title+body from the same author inside a window ② No limit | ① (window configurable, default 2 minutes) | A | 2-minute duplicate-question window; separate 20-per-rolling-24h question/answer caps; no additional 30s interval (ADR-003, 2026-10-08) |
 | **D-16** | **Which fields are "restricted"?** | An explicit column list | See §14.4: exact room numbers, internal notes, reporter identity | D | ____ |
 | **D-17** | **NUS SSO?** | ① This Sprint ② **No**; local accounts | ② No (as with D-18 / D-19) | All | ____ |
 | **D-18** | **Public registration and password reset?** | ① Yes ② **No** | ② No (out of Sprint 3 scope, §4.5) | All | ____ |
@@ -3881,3 +3881,5 @@ Try next time (start):
 
 
 
+
+> 2026-10-08: D-05, D-09, D-10, D-13 and D-15 are now resolved under user authorization. [ADR-003](../decisions/ADR-003-community-completion.md) supersedes earlier pending-decision prose.

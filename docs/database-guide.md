@@ -3,9 +3,10 @@
 This guide covers local PostgreSQL, Docker, environment variables, and — most
 importantly — how to evolve the schema **safely** with Flyway.
 
-> The application currently has **no business schema**. The only migration,
-> `V1__baseline.sql`, is intentionally empty. This guide explains the process you will
-> use from the first real schema change onward.
+> The current branch includes business migrations V1–V19. Community completion adds
+> V20 (notifications) and V21 (audit entries); previously applied migrations remain
+> immutable. H2 tests create their own disposable schema from entities; PostgreSQL
+> integration tests validate the actual Flyway schema.
 
 ---
 
@@ -181,3 +182,18 @@ so `mvn test` needs no database. Flyway is disabled in the test profile for now.
 fast and isolated, but H2 is **not** PostgreSQL (README §29, `docs/testing-guide.md`).
 As real schema/queries arrive, verify PostgreSQL-specific behaviour with a real
 PostgreSQL (e.g. Testcontainers — added deliberately later, not now).
+
+## Community notification and audit upgrade (2026-10-08)
+
+Back up the database before upgrading, then start the application normally. Flyway
+applies V20__create_notifications.sql and V21__create_audit_entries.sql after V19.
+Do not edit old checksums, run repair, or use Hibernate update to create these tables.
+
+V20 stores recipient, event type, title, message, reference, created/read timestamps;
+it includes a users FK and recipient/time and unread indexes. V21 stores actor,
+action, target type/id, outcome and occurred_at with an actor FK and history indexes.
+Moderation audit is atomic with the business operation; notification delivery occurs
+after commit. See docs/decisions/ADR-003-community-completion.md for delivery limits.
+
+Use a dedicated database ending in _test for postgres-it. Its integration tests
+create and drop only their own random schema, never the application schema.

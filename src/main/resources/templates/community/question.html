@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<!--
+  One community question and its thread.
+
+  The body is printed with th:text and laid out with .prose, which is what makes a
+  newline in someone's question look like a newline without any HTML being
+  interpreted: what a person typed is what a reader sees, and never markup. No
+  expression on this page uses th:utext.
+
+  A question its author has withdrawn or a moderator has hidden still opens for
+  that author, with a notice saying so, because "my question is gone" is worse
+  than "my question is not public". For anyone else the service answers 404 and
+  this page is never reached. A question that is not public shows no answer box
+  and no accept control: both would be refused, and neither would be readable by
+  anybody but the author.
+
+  Every control here mirrors a rule the service enforces again. Whether the reader
+  wrote an answer decides the edit and withdraw buttons, whether the reader wrote
+  the question decides the accept button, and none of those tests is worth
+  anything on its own - hiding a button is courtesy, and the service is the rule.
+
+  Reporting is offered here, moderation is not: a reader can report the question
+  or any visible answer, and the entry that does it is a disclosure closed by
+  default so that reading a thread is not a page full of forms. What a reader can
+  report is what a reader can read, so an answer or a question that is not
+  publicly visible offers no report entry - the service refuses a report of one
+  anyway. Nobody is offered a report entry on their own writing.
+
+  The moderation queue is a separate page under /admin/community/, which this one
+  does not link to: whether the reader may open it is not something this page
+  knows, and a link that leads to a refusal is worse than no link.
+
+  The accepted answer is pinned first by the service, not by this page: the thread
+  arrives already ordered, and the answer that is accepted appears exactly once,
+  at the top of the list, with a badge saying so.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${question.title})}">
+  <title>Question · SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('community')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
+
+    <main id="main-content" class="content">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a class="crumbs__link" th:href="@{/community}">Community</a><!--
+     --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
+     --><span class="crumbs__here" aria-current="page"
+              th:text="|Question #${question.id}|">Question #1</span>
+      </nav>
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title" th:text="${question.title}">
+            Projector will not power on
+          </h1>
+          <p class="page-head__subtitle">
+            <span th:text="|Asked by Account #${question.authorId}|">Asked by Account #10</span>
+            <span aria-hidden="true"> &middot; </span>
+            <span th:text="|posted ${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}|">
+              posted 2026-09-19 08:00
+            </span>
+            <!-- Said only when it is true, so an edit is never implied. -->
+            <th:block th:if="${question.edited}">
+              <span aria-hidden="true"> &middot; </span>
+              <span th:text="|edited ${#temporals.format(question.updatedAt, 'yyyy-MM-dd HH:mm')}|">
+                edited 2026-09-19 09:00
+              </span>
+            </th:block>
+          </p>
+        </div>
+
+        <div class="page-head-row__actions">
+          <span class="badge"
+                th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
+                th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
+
+          <!--
+            Edit and withdraw are offered only to the question's own author, and
+            only while it is still public. Both are checks the service repeats;
+            hiding them here is courtesy, not the rule.
+
+            Withdraw is a POST that changes state, so it is a form with the
+            framework's CSRF token in it, and it lands on My Questions where the
+            result of the action is visible.
+          -->
+          <th:block th:if="${isAuthor and question.status.name() == 'VISIBLE'}">
+            <a class="btn btn--secondary"
+               th:href="@{/community/questions/{id}/edit(id=${question.id})}">Edit</a>
+
+            <form class="inline-form" method="post"
+                  th:action="@{/community/questions/{id}/withdraw(id=${question.id})}"
+                  onsubmit="return confirm('Withdraw this question? It will no longer be publicly visible.')">
+              <button class="btn btn--secondary" type="submit">Withdraw</button>
+            </form>
+          </th:block>
+
+          <a class="btn btn--secondary" th:href="@{/community}">Back to community</a>
+        </div>
+      </div>
+
+      <!--
+        Shown only to the author, and only while the question is not public. It
+        names the state rather than the reason: an author knows whether they
+        withdrew it, and telling someone a moderator hid their question is a
+        message for the moderation screen, not for here.
+      -->
+      <div class="alert alert--warning" th:if="${question.status.name() != 'VISIBLE'}">
+        <p th:if="${question.status.name() == 'WITHDRAWN'}">
+          You withdrew this question, so it is not visible to anyone else. Only you
+          can see it here and on My Questions.
+        </p>
+        <p th:if="${question.status.name() == 'HIDDEN'}">
+          This question is not publicly visible. A moderator hid it, so it is not
+          listed and not searchable, and it cannot be edited or withdrawn while it
+          is hidden.
+        </p>
+      </div>
+
+      <!--
+        An acceptance the service refused, carried across the redirect as a flash
+        attribute. A flash attribute and not a query parameter: it is a sentence
+        this application wrote, and a URL carrying it would let anyone hand a
+        reader words the service never said.
+
+        The wording comes from the service, so the page cannot claim a reason the
+        rule does not have.
+      -->
+      <div th:if="${acceptanceRefused != null}">
+        <div th:replace="~{fragments/components :: alert('error',
+             'That answer was not accepted',
+             ${acceptanceRefused})}"></div>
+      </div>
+
+      <!--
+        The two outcomes of filing a report, flashed onto the page the reporter
+        was returned to. Both are this application's own sentences and neither
+        arrives as a query parameter.
+      -->
+      <div th:if="${reportReceived != null}">
+        <div th:replace="~{fragments/components :: alert('success', null,
+             ${reportReceived})}"></div>
+      </div>
+      <div th:if="${reportRefused != null}">
+        <div th:replace="~{fragments/components :: alert('error',
+             'That report was not filed',
+             ${reportRefused})}"></div>
+      </div>
+
+      <div class="detail-layout">
+        <aside class="detail-layout__aside" aria-labelledby="question-summary-title">
+          <section class="card">
+            <div class="card__header">
+              <h2 class="card__title" id="question-summary-title">Question summary</h2>
+            </div>
+            <div class="card__body">
+              <dl class="detail-list">
+                <dt>Topic</dt>
+                <dd>
+                  <span th:replace="~{fragments/components :: badge(${question.category}, 'neutral')}">
+                    HARDWARE
+                  </span>
+                </dd>
+
+                <dt>Answers</dt>
+                <dd>
+                  <span class="badge"
+                        th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
+                        th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
+                </dd>
+
+                <dt>Asked by</dt>
+                <dd th:text="|Account #${question.authorId}|">Account #10</dd>
+
+                <dt>Posted</dt>
+                <dd th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 08:00
+                </dd>
+
+                <dt>Last updated</dt>
+                <dd th:text="${#temporals.format(question.updatedAt, 'yyyy-MM-dd HH:mm')}">
+                  2026-09-19 08:00
+                </dd>
+              </dl>
+            </div>
+          </section>
+        </aside>
+
+        <div class="detail-layout__main">
+          <section class="card" aria-labelledby="question-body-title">
+            <div class="card__header">
+              <h2 class="card__title" id="question-body-title">Details</h2>
+            </div>
+            <div class="card__body">
+              <!-- .prose carries white-space: pre-wrap, so the author's line breaks
+                   survive without any markup being interpreted. -->
+              <p class="prose" th:text="${question.body}">The projector in seminar room 3
+                does not power on.</p>
+            </div>
+
+            <!--
+              Reporting the question. Offered only while the question is publicly
+              visible and only to somebody other than its author: a report of one's
+              own question is refused by the service, and a report of a question
+              nobody else can read has nothing to review.
+
+              A <details> and not an always-open form: the entry exists on every
+              thread, and a thread a reader is only reading should not be a column
+              of controls. <summary> is a button the browser gives keyboard and
+              screen-reader behaviour to for free, which is why this needs no
+              script and no aria-expanded of its own.
+            -->
+            <div class="card__footer"
+                 th:if="${question.status.name() == 'VISIBLE' and question.authorId != viewerId}">
+              <details class="report-entry">
+                <summary class="report-entry__summary">Report this question</summary>
+
+                <form class="report-entry__form" method="post"
+                      th:action="@{/community/questions/{id}/reports(id=${question.id})}">
+                  <div class="report-entry__fields">
+                    <p class="form-field">
+                      <label class="form-field__label" for="report-question-reason">
+                        Reason
+                      </label>
+                      <select id="report-question-reason" name="reason" required>
+                        <option value="">Choose a reason</option>
+                        <option th:each="reason : ${reportReasons}"
+                                th:value="${reason}" th:text="${reason}">SPAM</option>
+                      </select>
+                    </p>
+
+                    <p class="form-field">
+                      <label class="form-field__label" for="report-question-detail">
+                        What is wrong with it
+                      </label>
+                      <textarea id="report-question-detail" name="detail" rows="3"
+                                maxlength="500" aria-describedby="report-question-detail-hint"
+                                placeholder="Optional. Up to 500 characters."></textarea>
+                      <span class="form-field__hint" id="report-question-detail-hint">
+                        Optional, up to 500 characters. A moderator reads this alongside
+                        the question.
+                      </span>
+                    </p>
+                  </div>
+
+                  <div class="form-actions">
+                    <button class="btn btn--secondary" type="submit">Report question</button>
+                  </div>
+                </form>
+              </details>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="question-answers-title">
+            <div class="card__header">
+              <h2 class="card__title" id="question-answers-title"
+                  th:text="${#lists.isEmpty(question.answers)
+                              ? 'Answers'
+                              : 'Answers (' + #lists.size(question.answers) + ')'}">Answers</h2>
+            </div>
+            <!--
+              Flush body, with each answer re-applying the body padding itself:
+              that is what gives consecutive answers a boundary to sit behind
+              without inventing a class the stylesheet does not have.
+            -->
+            <div class="card__body card__body--flush">
+              <div th:if="${#lists.isEmpty(question.answers)}">
+                <div th:replace="~{fragments/components :: emptyState(
+                         'No answers yet',
+                         'Answers posted by the community will appear here.')}"></div>
+              </div>
+
+              <article th:each="answer : ${question.answers}" class="card__body">
+                <p class="page-head__eyebrow">
+                  <span th:text="|Account #${answer.authorId}|">Account #20</span>
+                  <span aria-hidden="true"> &middot; </span>
+                  <span th:text="${#temporals.format(answer.createdAt, 'yyyy-MM-dd HH:mm')}">
+                    2026-09-19 09:30
+                  </span>
+                  <th:block th:if="${answer.edited}">
+                    <span aria-hidden="true"> &middot; </span>
+                    <span th:text="|edited ${#temporals.format(answer.updatedAt, 'yyyy-MM-dd HH:mm')}|">
+                      edited 2026-09-19 09:45
+                    </span>
+                  </th:block>
+                  <span th:if="${answer.accepted}" class="badge badge--success">Accepted</span>
+                </p>
+
+                <!--
+                  Two branches, never one. An answer that is not publicly visible
+                  arrives here with a null body, so the placeholder below is not a
+                  style choice: it is the only thing there is to print. Nothing
+                  about the withdrawn text reaches this page at all - the body is
+                  absent from the response, not merely hidden by the template.
+                -->
+                <p class="prose" th:if="${answer.body != null}" th:text="${answer.body}">
+                  Have you checked the power cable?
+                </p>
+                <p class="prose" th:unless="${answer.body != null}"
+                   th:text="${answer.status.name() == 'WITHDRAWN'
+                               ? 'This answer was withdrawn.'
+                               : 'This answer is hidden.'}">This answer was withdrawn.</p>
+
+                <!--
+                  The controls, one set per reader. An answer its author withdrew
+                  offers them nothing - there is no edit that could bring it back,
+                  and withdrawing it again would do nothing - while the question's
+                  author still sees the Remove acceptance control on it, because a
+                  withdrawn answer that is somehow still the accepted one must be
+                  removable, which is the state the service also cleans up on its
+                  own.
+                -->
+                <div class="form-actions">
+
+                  <th:block th:if="${answer.authorId == viewerId
+                                    and answer.status.name() == 'VISIBLE'}">
+                    <a class="btn btn--secondary"
+                       th:href="@{/community/answers/{id}/edit(id=${answer.id})}">Edit</a>
+
+                    <form class="inline-form" method="post"
+                          th:action="@{/community/answers/{id}/withdraw(id=${answer.id})}"
+                          onsubmit="return confirm('Withdraw this answer? It will no longer be publicly visible. If it is the accepted answer, the question becomes open again.')">
+                      <button class="btn btn--secondary" type="submit">Withdraw</button>
+                    </form>
+                  </th:block>
+
+                  <th:block th:if="${isAuthor
+                                    and question.status.name() == 'VISIBLE'
+                                    and !question.solved
+                                    and answer.status.name() == 'VISIBLE'
+                                    and answer.authorId != viewerId}">
+                    <form class="inline-form" method="post"
+                          th:action="@{/community/questions/{q}/answers/{a}/accept(q=${question.id}, a=${answer.id})}">
+                      <button class="btn btn--primary" type="submit">Accept this answer</button>
+                    </form>
+                  </th:block>
+
+                  <th:block th:if="${isAuthor and answer.accepted}">
+                    <form class="inline-form" method="post"
+                          th:action="@{/community/questions/{id}/acceptance/remove(id=${question.id})}">
+                      <button class="btn btn--secondary" type="submit">Remove acceptance</button>
+                    </form>
+                  </th:block>
+                </div>
+
+                <!--
+                  Reporting the answer. The same rule as the service applies:
+                  the answer is public, its question is public, and the reader
+                  did not write it. All three are checked, because a report the
+                  page offered and the service refused would be a control that
+                  lies about what it does.
+                -->
+                <details class="report-entry"
+                         th:if="${question.status.name() == 'VISIBLE'
+                                   and answer.status.name() == 'VISIBLE'
+                                   and answer.authorId != viewerId}">
+                  <summary class="report-entry__summary">Report this answer</summary>
+
+                  <form class="report-entry__form" method="post"
+                        th:action="@{/community/answers/{id}/reports(id=${answer.id})}">
+                    <div class="report-entry__fields">
+                      <p class="form-field">
+                        <label class="form-field__label"
+                               for="report-answer-reason" th:for="|report-answer-reason-${answer.id}|">
+                          Reason
+                        </label>
+                        <select id="report-answer-reason" th:id="|report-answer-reason-${answer.id}|"
+                                name="reason" required>
+                          <option value="">Choose a reason</option>
+                          <option th:each="reason : ${reportReasons}"
+                                  th:value="${reason}" th:text="${reason}">SPAM</option>
+                        </select>
+                      </p>
+
+                      <p class="form-field">
+                        <label class="form-field__label" for="report-answer-detail"
+                               th:for="|report-answer-detail-${answer.id}|">
+                          What is wrong with it
+                        </label>
+                        <textarea id="report-answer-detail" th:id="|report-answer-detail-${answer.id}|"
+                                  name="detail" rows="3" maxlength="500"
+                                  aria-describedby="report-answer-detail-hint"
+                                  th:attr="aria-describedby=|report-answer-detail-hint-${answer.id}|"
+                                  placeholder="Optional. Up to 500 characters."></textarea>
+                        <span class="form-field__hint" id="report-answer-detail-hint"
+                              th:id="|report-answer-detail-hint-${answer.id}|">
+                          Optional, up to 500 characters. A moderator reads this alongside
+                          the answer.
+                        </span>
+                      </p>
+                    </div>
+
+                    <div class="form-actions">
+                      <button class="btn btn--secondary" type="submit">Report answer</button>
+                    </div>
+                  </form>
+                </details>
+              </article>
+            </div>
+
+            <!--
+              The answer box, on the page the answer is about. It is offered only
+              while the question is publicly visible: a reply to a question
+              nobody else can read is not what the board is for, and the service
+              refuses one anyway.
+
+              The form carries a body and nothing else, so nothing posted here can
+              name an author or move the answer to another question. The refusal
+              from the posting guard is a global error on this command, which is
+              why the alert is inside the form: #fields is only bound where a
+              th:object is in scope, and outside it the page would fail to render
+              rather than merely lose the message.
+            -->
+            <div class="card__footer" th:if="${question.status.name() == 'VISIBLE'}">
+              <form method="post" th:action="@{/community/questions/{id}/answers(id=${question.id})}"
+                    th:object="${answerCommand}">
+
+                <h3 class="card__title" id="answer-form-title">Your answer</h3>
+
+                <div th:if="${#fields.hasGlobalErrors()}">
+                  <div th:replace="~{fragments/components :: alert('error',
+                       'That answer was not posted',
+                       ${#fields.globalErrors()[0].defaultMessage})}"></div>
+                </div>
+
+                <div class="form-field"
+                     th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
+                  <label class="form-field__label" for="answer-body">Answer</label>
+                  <textarea id="answer-body" th:field="*{body}" rows="6" maxlength="4000"
+                            placeholder="What the person asking should try, and why."
+                            aria-describedby="answer-body-hint answer-body-error"
+                            th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+                  <span class="form-field__hint" id="answer-body-hint">
+                    Between 10 and 4000 characters. Line breaks are kept exactly as you
+                    type them, and nothing you type is read as markup.
+                  </span>
+                  <span class="form-field__error" id="answer-body-error" th:errors="*{body}">
+                    Answer is required.
+                  </span>
+                </div>
+
+                <div class="form-actions">
+                  <button class="btn btn--primary" type="submit">Post answer</button>
+                </div>
+              </form>
+            </div>
+
+            <!--
+              Why there is no answer box. Said rather than silently omitted: an
+              author looking at their own withdrawn question would otherwise
+              wonder why every other thread has one.
+            -->
+            <div class="card__footer" th:unless="${question.status.name() == 'VISIBLE'}">
+              <div class="notice">
+                <svg class="notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="9"/>
+                  <path d="M12 8h.01"/>
+                  <path d="M11 12h1v4h1"/>
+                </svg>
+                <div>
+                  <p class="notice__title">This question cannot be answered</p>
+                  <p>
+                    It is not publicly visible, so an answer to it could not be read by
+                    anyone but you. Answers already posted are still listed above.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -19,7 +19,9 @@
   CSRF-protected, so the token is required, not decorative.
 
   The failure message is deliberately generic: it must not reveal whether the
-  username exists, or whether the account is allowed to sign in at all.
+  username exists, or whether the account is allowed to sign in at all. The one
+  exception is the account-type refusal - see the feedback block below - which says
+  only that the selected type is not this account's, never which type is.
 -->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Sign in')}">
@@ -76,8 +78,27 @@
         along with the tag itself and the message would always show.
       -->
       <div class="auth__feedback"
-           th:if="${param.error != null or param.logout != null or param.expired != null}">
-        <div th:if="${param.error}">
+           th:if="${successMessage != null or param.error != null or param.logout != null or param.expired != null}">
+        <!--
+          After a successful registration. A flash attribute, so it survives exactly the
+          one redirect that PUT /register sends and is gone on the next refresh.
+        -->
+        <div th:if="${successMessage != null}">
+          <div th:replace="~{fragments/components :: alert('success', null, ${successMessage})}"></div>
+        </div>
+        <!--
+          The account-type refusal. It is the one failure that can say more than "wrong
+          credentials", because it happens after the password has already checked out -
+          and it still does not say what the account's own type is.
+
+          The null guard is not decoration: `param.error` is absent, not empty, when the
+          sign-in page is simply opened, and SpringEL refuses to read a null as a boolean
+          in `and`. `${param.error}` alone would be fine; `${param.error and ...}` is not.
+        -->
+        <div th:if="${param.error != null and param.error[0] == 'type'}">
+          <div th:replace="~{fragments/components :: alert('error', null, 'Unable to sign in with the selected account type. Check your details or select another type.')}"></div>
+        </div>
+        <div th:if="${param.error != null and param.error[0] != 'type'}">
           <div th:replace="~{fragments/components :: alert('error', null, 'Invalid username or password.')}"></div>
         </div>
         <div th:if="${param.logout}">
@@ -94,6 +115,54 @@
         than putting a submitted secret into the HTML of the response.
       -->
       <form class="auth__form-fields" th:action="@{/login}" method="post">
+        <!--
+          Which of the three kinds of account this visit is for: one bar, three equal
+          segments, one native radio each.
+
+          The radio sits inside its own <label>, so the whole segment is the click
+          target and not just the word in the middle of it. That is not decoration:
+          with the word alone as the target, most of a control this width is inert, and
+          a segment that ignores a click on it reads as broken. The id and the for
+          attribute are kept as well, so the association is explicit in the markup and
+          not only implied by nesting.
+
+          The field name comes from the server (${accountTypeField}) so the name the
+          browser posts and the name SelectedAccountType reads cannot drift apart. The
+          values are the Role constants. Which one is checked is decided on the server
+          (${selectedAccountType}), so exactly one is ever checked - including after a
+          refusal, where the choice the visitor made comes back still made.
+
+          The choice decides nothing on its own: an account whose role is not the one
+          selected is refused a session altogether, in
+          SelectedAccountTypeAuthenticationProvider.
+        -->
+        <fieldset class="account-type">
+          <legend class="account-type__legend">Sign in as</legend>
+
+          <div class="account-type__track">
+            <label class="account-type__option" for="accountType-requester">
+              <input class="account-type__input" type="radio" id="accountType-requester"
+                     th:name="${accountTypeField}" value="REQUESTER"
+                     th:checked="${selectedAccountType == 'REQUESTER'}">
+              <span class="account-type__face">Requester</span>
+            </label>
+
+            <label class="account-type__option" for="accountType-technician">
+              <input class="account-type__input" type="radio" id="accountType-technician"
+                     th:name="${accountTypeField}" value="TECHNICIAN"
+                     th:checked="${selectedAccountType == 'TECHNICIAN'}">
+              <span class="account-type__face">Technician</span>
+            </label>
+
+            <label class="account-type__option" for="accountType-administrator">
+              <input class="account-type__input" type="radio" id="accountType-administrator"
+                     th:name="${accountTypeField}" value="ADMINISTRATOR"
+                     th:checked="${selectedAccountType == 'ADMINISTRATOR'}">
+              <span class="account-type__face">Administrator</span>
+            </label>
+          </div>
+        </fieldset>
+
         <!--
           No autofocus. It moves a screen-reader or keyboard user on load to a
           place they did not choose, and it buys nothing here: the username field
@@ -127,8 +196,27 @@
         <button type="submit" class="btn btn--primary btn--block">Sign in</button>
       </form>
 
+      <!--
+        The way in for somebody who has no account. It is outside the form and below
+        the primary button, so it is in the same place whichever account type is
+        selected and is not buried under one of the options - the previous version put
+        it inside the requester segment's own description, where it read as a footnote
+        to that option rather than as the page's registration entry, and where it was
+        reachable only after the choice had already been made.
+
+        Only a requester can register, so the link says so and the line under it says
+        who creates the other two, which is the question the other two options raise.
+      -->
+      <p class="auth__register">
+        New to SmartFix?
+        <a th:href="@{/register}">Create a requester account</a>
+      </p>
+      <p class="auth__register-note">
+        Technician and administrator accounts are created by an administrator.
+      </p>
+
       <p class="auth__footnote">
-        Need an account or help signing in? Contact your administrator.
+        Trouble signing in? Contact your administrator.
       </p>
     </main>
   </div>

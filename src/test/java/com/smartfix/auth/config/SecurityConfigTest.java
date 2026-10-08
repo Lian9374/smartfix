@@ -1,9 +1,11 @@
 package com.smartfix.auth.config;
 
 import com.smartfix.auth.controller.LoginController;
+import com.smartfix.auth.controller.RegistrationController;
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.auth.service.SmartFixUserDetailsService;
 import com.smartfix.common.web.HomeController;
+import com.smartfix.request.service.RequestAssignmentAccessService;
 import com.smartfix.request.service.RequestQueryService;
 import com.smartfix.user.config.PasswordConfig;
 import com.smartfix.user.controller.UserManagementController;
@@ -37,8 +39,8 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = {LoginController.class, HomeController.class, UserManagementController.class,
-        SecurityConfigTest.RequestRouteProbes.class})
+@WebMvcTest(controllers = {LoginController.class, RegistrationController.class, HomeController.class,
+        UserManagementController.class, SecurityConfigTest.RequestRouteProbes.class})
 @Import({SecurityConfig.class, SmartFixUserDetailsService.class, PasswordConfig.class,
         SecurityConfigTest.RequestRouteProbes.class})
 class SecurityConfigTest {
@@ -49,6 +51,9 @@ class SecurityConfigTest {
     // collaborator is mocked like every other one here; the route matrix this test
     // exists for is unaffected by what the overview chooses to list.
     @MockitoBean private RequestQueryService requestQueryService;
+    // And its second one: the overview asks dispatch whether assigning is possible at all,
+    // to decide what the technician's card says. Same reasoning as above.
+    @MockitoBean private RequestAssignmentAccessService requestAssignmentAccessService;
 
     static Stream<Arguments> routes() {
         List<Arguments> cases = new ArrayList<>();
@@ -89,9 +94,35 @@ class SecurityConfigTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/", "/home", "/campus-map", "/requests/new", "/requests/mine", "/admin/users",
-        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1"})
+        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1", "/community"})
     void anonymousPageAccessRedirectsToLogin(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isFound()).andExpect(redirectedUrl("http://localhost/login"));
+    }
+
+    /**
+     * The community board is one shared place, so its write routes carry no role condition:
+     * every signed-in role may post an answer, edit one, withdraw one, accept one or take an
+     * acceptance back. What decides who may actually do it is ownership, which is checked in
+     * the service and is not something a URL pattern can express.
+     *
+     * <p>CSRF is checked here as well, because "open to every role" must not be read as
+     * "open": a write still needs the token every other write needs.</p>
+     */
+    @Test
+    void communityWritesAreForEverySignedInRoleAndStillRequireCsrf() throws Exception {
+        for (Role role : Role.values()) {
+            for (String route : List.of(
+                    "/community/questions/1/answers",
+                    "/community/answers/1",
+                    "/community/answers/1/withdraw",
+                    "/community/questions/1/answers/1/accept",
+                    "/community/questions/1/acceptance/remove")) {
+                mvc.perform(post(route).with(account(role)).with(csrf()))
+                        .andExpect(status().isOk());
+                mvc.perform(post(route).with(account(role)))
+                        .andExpect(status().isForbidden());
+            }
+        }
     }
 
     @Test
@@ -100,6 +131,36 @@ class SecurityConfigTest {
                 .andExpect(status().isOk()).andExpect(content().string(containsString("name=\"_csrf\"")))
                 .andExpect(content().string(containsString("Invalid username or password.")));
         mvc.perform(get("/css/site.css")).andExpect(status().isOk());
+    }
+
+    /**
+     * The sign-up route is the only page open before anybody has signed in, and the only
+     * anonymous write in the matrix. Permission to fetch the form and permission to submit
+     * it are asserted separately, because a route that is {@code permitAll} for both methods
+     * would still be a route whose POST is CSRF-protected, and only the second assertion
+     * can tell those apart.
+     */
+    @Test
+    void theSignUpPageIsAnonymousAndItsSubmissionStillNeedsCsrf() throws Exception {
+        mvc.perform(get("/register"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"_csrf\"")));
+        mvc.perform(post("/register")).andExpect(status().isForbidden());
+    }
+
+    /**
+     * Opening {@code /register} opens exactly that path.
+     *
+     * <p>Named-route matching rather than a prefix, so nothing that merely starts with the
+     * same word comes with it, and the account module stays closed to a visitor who has not
+     * signed in.</p>
+     */
+    @Test
+    void nothingIsOpenedAlongWithTheSignUpRoute() throws Exception {
+        for (String neighbour : List.of("/register/", "/register/anything", "/admin/users", "/admin/users/new")) {
+            mvc.perform(get(neighbour)).andExpect(status().isFound())
+                    .andExpect(redirectedUrl("http://localhost/login"));
+        }
     }
 
     @Test
@@ -172,5 +233,18 @@ class SecurityConfigTest {
                 "/requests/{ticket}/reopen", "/requests/{ticket}/cancel", "/requests/{ticket}/review",
                 "/requests/{ticket}/close", "/workorders/{id}/accept", "/workorders/{id}/records", "/workorders/{id}/complete"})
         String submit() { return "authorized route probe"; }
+
+        /*
+         * The answer routes. Only their shape and their authorisation are claimed here; the
+         * real controller is not loaded by this slice, and the ownership rules behind them
+         * are exercised end to end in CommunityPagesIT and directly in
+         * CommunityAnswerServiceTest.
+         */
+        @PostMapping({"/community/questions/{id}/answers",
+                "/community/answers/{id}",
+                "/community/answers/{id}/withdraw",
+                "/community/questions/{id}/answers/{answerId}/accept",
+                "/community/questions/{id}/acceptance/remove"})
+        String communityWrite() { return "authorized route probe"; }
     }
 }

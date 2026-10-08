@@ -19,14 +19,20 @@
   guidance is the reference here): a rail earns its 240px when it holds enough
   destinations to need scanning, and costs a permanent 240px when it holds two.
   A requester has two, so they go in a bar and the content keeps the width. An
-  administrator has three management areas plus the overview and will gain more,
-  so the rail stays. Both wear the same brand, type, buttons, forms and status
-  labels - the layout differs, the product does not.
+  administrator has four management areas plus the overview, so the rail stays.
+  Both wear the same brand, type, buttons, forms and status labels - the layout
+  differs, the product does not.
 
-  active = "overview" | "my-requests" | "user-management" | "request-lookup",
+  active = "overview" | "community" | "community-reports" | "my-requests"
+         | "work-orders" | "user-management" | "request-queue"
+         | "request-lookup",
   and it only decides which link carries aria-current="page". Which links exist
   at all comes from ${navRole}, which NavigationAdvice adds from the
   authenticated principal - see docs/ui-guide.md.
+
+  Every link below points at a route SecurityConfig already authorises, and no
+  link exists for a route that does not exist yet: a destination that leads
+  nowhere is worse than an absent one.
 
   Sign out stays a POST form. Spring Security owns that endpoint and it is
   CSRF-protected, so it must never become a plain GET link.
@@ -38,6 +44,7 @@
   <title th:text="|${pageTitle} · SmartFix|">SmartFix</title>
   <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
   <link rel="stylesheet" th:href="@{/css/site.css}">
+  <link rel="stylesheet" th:href="@{/css/visual-refresh.css}">
   <!--
     Marks the document as script-enabled before first paint. The stylesheet only
     collapses navigation into a menu button for .js, so a browser that runs no
@@ -96,6 +103,12 @@
   <form class="logout-form" th:action="@{/logout}" method="post">
     <button type="submit" class="link-button">Sign out</button>
   </form>
+  <a class="notification-entry" th:href="@{/notifications}" aria-label="Notifications" title="Notifications">
+    <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"></path>
+      <path d="M10 21h4"></path>
+    </svg>
+  </a>
 </div>
 
 <!--
@@ -133,6 +146,43 @@
             <path d="M5.5 9.4V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.4"/>
           </svg>
           <span>Overview</span>
+        </a>
+
+        <!-- No role condition is needed here: this rail only renders for an
+             administrator, and /community/** is open to every signed-in role. -->
+        <a class="nav__link" th:href="@{/community}"
+           th:attr="aria-current=${active == 'community'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M20.5 12a7.5 7.5 0 0 1-7.5 7.5H8.6L4 21.5l1.1-4.2A7.5 7.5 0 1 1 20.5 12Z"/>
+            <path d="M9 11.5h6"/>
+            <path d="M9 14.5h3.5"/>
+          </svg>
+          <span>Community</span>
+        </a>
+
+        <!-- Moderation. Only an administrator reaches this rail, and the route
+             it points at is /admin/community/**, which SecurityConfig restricts
+             to that role - so no role condition is needed on the link either. -->
+        <a class="nav__link" th:href="@{/admin/community/reports}"
+           th:attr="aria-current=${active == 'community-reports'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M6.5 21V3.8"/>
+            <path d="M6.5 4.6h10.9l-2.3 3.7 2.3 3.7H6.5"/>
+          </svg>
+          <span>Reported Content</span>
+        </a>
+
+        <a class="nav__link" th:href="@{/admin/requests}"
+           th:attr="aria-current=${active == 'request-queue'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+            <path d="M4 6.5h16"/>
+            <path d="M4 12h16"/>
+            <path d="M4 17.5h10"/>
+          </svg>
+          <span>Request Queue</span>
         </a>
 
         <a class="nav__link" th:href="@{/admin/users}"
@@ -215,8 +265,14 @@
         <nav class="appbar__links" aria-label="Sections">
           <a class="appbar__link" th:href="@{/}"
              th:attr="aria-current=${active == 'overview'} ? 'page' : null">Home</a>
+          <!-- No role condition: the community board is for every signed-in role, which
+               is what SecurityConfig's /community/** .authenticated() rule says. -->
+          <a class="appbar__link" th:href="@{/community}"
+             th:attr="aria-current=${active == 'community'} ? 'page' : null">Community</a>
           <a class="appbar__link" th:href="@{/requests/mine}" th:if="${navRole == 'REQUESTER'}"
              th:attr="aria-current=${active == 'my-requests'} ? 'page' : null">My Requests</a>
+          <a class="appbar__link" th:href="@{/workorders/mine}" th:if="${navRole == 'TECHNICIAN'}"
+             th:attr="aria-current=${active == 'work-orders'} ? 'page' : null">My Work Orders</a>
         </nav>
 
         <div th:replace="~{fragments/layout :: userArea}">Account</div>
