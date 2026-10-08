@@ -69,11 +69,10 @@ business logic owned by one module (→ keep it in that module, let others call 
 - **Purpose:** users, roles and accounts.
 - **Owns:** who the people in the system are, their roles and account state
   (active/inactive).
-- **Does not own:** requests, work orders, technician *matching decisions* (a
-  technician's *profile* relevant to matching may live here or in a
-  `TechnicianProfile` concept that `dispatch` consumes — decide during modelling).
+- **Does not own:** requests, work orders, technician profiles (`technician`) or
+  technician matching decisions (`dispatch`).
 - **Current content:** `user/domain/Role` (REQUESTER / TECHNICIAN / ADMINISTRATOR only).
-- **Likely future domain objects:** `User`, `Role`, possibly `TechnicianProfile`,
+- **Likely future domain objects:** `User`, `Role`,
   account-status values.
 - **Likely services:** `UserService` (account admin, role assignment — Sprint 2).
 - **Likely repository responsibility:** `UserRepository`, role/account queries.
@@ -137,6 +136,24 @@ API (never write emails from here).
 
 ---
 
+## `technician`
+
+- **Purpose:** technician preferences and the eligible technician directory (S3-B-01).
+- **Owns:** `TechnicianProfile`, skills, service-area ids, availability and profile status.
+- **Public API:** `TechnicianDirectoryService.getProfile`, `updateProfile` and
+  `findCandidates`. The directory filters eligibility; recommendation ranking and
+  work-order counts are subsequent S3-B-02 work, not implemented by this change.
+- **Entry point:** `GET/POST /technician/profile`, restricted to the current active
+  technician. The account id comes from the authenticated principal, never the form.
+- **Persistence:** V10 creates `technician_profiles`, `technician_skills` and
+  `technician_service_areas`; apply after the earlier Sprint 3 migrations are coordinated.
+- **Dependencies:** public `UserService` and `LocationService`; reuse the existing
+  `MaintenanceCategory` enum. No cross-module repository access or JPA entity relationships.
+- **Does not own:** account creation, assignment decisions, work orders or notifications.
+- **Implementation and verification status:** [S3-B-01 handoff](sprint3/B_Technician_Profile_Handoff_CN.md).
+
+---
+
 ## `dispatch`
 
 - **Purpose:** technician recommendation and assignment.
@@ -148,7 +165,7 @@ API (never write emails from here).
   matching/ranking concepts.
 - **Likely services:** `DispatchService`/`AssignmentService`.
 - **Likely repository responsibility:** `AssignmentRepository` (assignment state).
-- **May reasonably depend on:** `user` (technicians), `request` (the request to
+- **May reasonably depend on:** `technician` (eligible profiles), `user` (accounts), `request` (the request to
   dispatch), `facility` (location/service area), `sla` (deadlines) — **via their public
   services**, so it can read what it needs without coupling to their repositories.
 - **Must not contain:** reading `UserRepository`, `RequestRepository`,
@@ -159,7 +176,7 @@ API (never write emails from here).
   (README §31).
 
 **Example scenario:** "admin dispatches the best available technician" → `DispatchService`
-asks `user`'s public API for technicians, `request`'s public API for the request, applies
+asks `technician`'s public API for candidates, `request`'s public API for the request, applies
 (designed) matching logic, and persists the assignment in `dispatch`.
 
 ---

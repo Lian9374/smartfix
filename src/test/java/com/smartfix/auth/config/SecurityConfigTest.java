@@ -53,8 +53,8 @@ class SecurityConfigTest {
     static Stream<Arguments> routes() {
         List<Arguments> cases = new ArrayList<>();
         for (Role role : Role.values()) {
+            cases.add(Arguments.of(role, "/technician/profile", role == Role.TECHNICIAN ? 200 : 403));
             cases.add(Arguments.of(role, "/campus-map", 200));
-
             for (String route : List.of("/requests/new", "/requests/mine")) {
                 cases.add(Arguments.of(role, route, role == Role.REQUESTER ? 200 : 403));
             }
@@ -89,7 +89,7 @@ class SecurityConfigTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/", "/home", "/campus-map", "/requests/new", "/requests/mine", "/admin/users",
-        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1"})
+        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1", "/technician/profile"})
     void anonymousPageAccessRedirectsToLogin(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isFound()).andExpect(redirectedUrl("http://localhost/login"));
     }
@@ -108,6 +108,7 @@ class SecurityConfigTest {
         mvc.perform(post("/logout").with(account(Role.REQUESTER))).andExpect(status().isForbidden());
         mvc.perform(post("/requests").with(account(Role.REQUESTER))).andExpect(status().isForbidden());
         mvc.perform(post("/admin/users").with(account(Role.ADMINISTRATOR))).andExpect(status().isForbidden());
+        mvc.perform(post("/technician/profile").with(account(Role.TECHNICIAN))).andExpect(status().isForbidden());
     }
 
     @Test
@@ -141,6 +142,8 @@ class SecurityConfigTest {
         mvc.perform(delete("/requests/anything").with(account(Role.ADMINISTRATOR)).with(csrf()))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/logout").with(account(Role.REQUESTER))).andExpect(status().isForbidden());
+        mvc.perform(delete("/technician/profile").with(account(Role.TECHNICIAN)).with(csrf()))
+                .andExpect(status().isForbidden());
     }
 
     private RequestPostProcessor account(Role role) {
@@ -162,7 +165,8 @@ class SecurityConfigTest {
             "/workorders/mine",
             "/workorders/{id}",
             "/campus-map",
-            "/admin/facilities"
+            "/admin/facilities",
+            "/technician/profile"
         })
         String read() {
             return "authorized route probe";
