@@ -1097,6 +1097,34 @@ hr {
   margin-top: var(--space-6);
 }
 
+/* Request and work-order forms keep their spacing within the shared shell. */
+.request-workflow .workflow-stack,
+.request-workflow.workflow-stack {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+.request-workflow .workflow-stack--tight { gap: var(--space-3); }
+.request-workflow.workflow-stack > .card + .card { margin-top: 0; }
+.request-workflow .workflow-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.request-workflow .form-field textarea { padding-block: var(--space-3); }
+.request-workflow .form-field input[type="number"],
+.request-workflow .form-field input[type="file"] {
+  min-height: var(--field-height);
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
 .inline-form {
   display: flex;
   align-items: center;

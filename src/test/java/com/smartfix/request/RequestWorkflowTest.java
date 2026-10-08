@@ -348,6 +348,9 @@ class RequestWorkflowTest {
         workorders.accept(order.id(), 4L);
         assignments.assign(id, 5L);
         lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, "Changed technician");
+        assertThat(workorders.findMine(4L, 0, 20).getTotalElements()).isZero();
+        assertThat(workorders.findMine(5L, 0, 20).getContent())
+                .extracting(w -> w.id()).containsExactly(order.id());
         assertThatThrownBy(() -> workorders.recordRepair(order.id(), 4L, repair()))
                 .isInstanceOf(ResourceNotFoundException.class);
         assertThatThrownBy(() -> access.requireReadableRequest(ticket, 4L))
@@ -369,9 +372,34 @@ class RequestWorkflowTest {
         assertThat(workorders.countOpenWorkOrders(4L)).isZero();
         assertThatThrownBy(() -> access.requireReadableRequest(ticket, 4L))
                 .isInstanceOf(ResourceNotFoundException.class);
+        assertThat(workorders.findMine(4L, 0, 20).getTotalElements()).isZero();
         confirmations.cancel(ticket, 1L);
         assertThat(workorders.findByRequestId(requestId).orElseThrow().status().name())
                 .isEqualTo("CLOSED");
+    }
+
+    @Test
+    void withdrawnOrdersAreExcludedBeforePaginationAndCounting() throws Exception {
+        String first = submitted();
+        String second = submitted();
+        String third = submitted();
+        for (String ticket : List.of(first, second, third)) {
+            reviews.review(ticket, UrgencyLevel.HIGH, 3L, false, null);
+            assignments.assign(id(ticket), 4L);
+            lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, null);
+        }
+        assignments.current.remove(id(third));
+        lifecycle.transition(third, RequestStatus.UNDER_REVIEW, 3L, "Withdrawn");
+        var page = workorders.findMine(4L, 0, 1);
+        assertThat(page.getTotalElements()).isEqualTo(2);
+        assertThat(page.getTotalPages()).isEqualTo(2);
+        assertThat(page.getContent()).extracting(w -> w.ticketNumber()).containsExactly(second);
+        assertThat(workorders.findMine(4L, 1, 1).getContent())
+                .extracting(w -> w.ticketNumber()).containsExactly(first);
+        mvc.perform(get("/workorders/mine").with(user(principal(4, Role.TECHNICIAN))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString(third))));
     }
 
     @Test
@@ -436,7 +464,13 @@ class RequestWorkflowTest {
         lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, null);
         var order = workorders.findByRequestId(id(ticket)).orElseThrow();
         mvc.perform(get("/workorders/" + order.id()).with(user(principal(4, Role.TECHNICIAN))))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Request summary")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Broken light")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Test location")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;fault&lt;/script&gt;")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("<script>fault</script>"))));
         workorders.accept(order.id(), 4L);
         mvc.perform(get("/workorders/" + order.id()).with(user(principal(4, Role.TECHNICIAN))))
                 .andExpect(status().isOk());
