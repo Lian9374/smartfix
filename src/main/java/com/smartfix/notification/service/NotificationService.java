@@ -10,43 +10,55 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.smartfix.common.exception.ResourceNotFoundException;
-import com.smartfix.notification.domain.Notification;
+import com.smartfix.notification.repository.NotificationInsertRepository;
 import com.smartfix.notification.repository.NotificationRepository;
+import com.smartfix.notification.domain.Notification;
 
 @Service
 public class NotificationService {
 
     private final NotificationRepository repository;
+    private final NotificationInsertRepository insertRepository;
     private final Clock clock;
 
     public NotificationService(
             NotificationRepository repository,
+            NotificationInsertRepository insertRepository,
             Clock clock
     ) {
         this.repository = repository;
+        this.insertRepository = insertRepository;
         this.clock = clock;
     }
 
-    @Transactional(
-        propagation = Propagation.REQUIRES_NEW
-    )
-    public Notification createNotification(
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public boolean createNotification(
             Long recipientId,
             String eventType,
             String title,
             String message,
-            Long referenceId
+            Long referenceId,
+            String dedupKey
     ) {
-        Notification notification = Notification.create(
+        Notification.create(
                 recipientId,
                 eventType,
                 title,
                 message,
                 referenceId,
-                Instant.now(clock)
+                Instant.now(clock),
+                dedupKey
         );
 
-        return repository.save(notification);
+        return insertRepository.insertIfAbsent(
+                recipientId,
+                eventType,
+                title,
+                message,
+                referenceId,
+                dedupKey,
+                Instant.now(clock)
+        );
     }
 
     @Transactional(readOnly = true)
@@ -63,9 +75,7 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public long getUnreadCount(Long recipientId) {
         return repository
-                .countByRecipientIdAndReadAtIsNull(
-                        recipientId
-                );
+                .countByRecipientIdAndReadAtIsNull(recipientId);
     }
 
     @Transactional
