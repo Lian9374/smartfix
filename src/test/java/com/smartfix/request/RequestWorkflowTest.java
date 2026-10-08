@@ -1,6 +1,8 @@
 package com.smartfix.request;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -97,6 +99,7 @@ class RequestWorkflowTest {
     void fixtures() throws Exception {
         for (String table :
                 List.of(
+                        "notifications",
                         "repair_records",
                         "request_feedback",
                         "request_status_history",
