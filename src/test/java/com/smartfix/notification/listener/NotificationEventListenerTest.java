@@ -3,17 +3,13 @@ package com.smartfix.notification.listener;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +29,10 @@ class NotificationEventListenerTest {
     @BeforeEach
     void setUp() {
         notificationService = mock(NotificationService.class);
-        listener = new NotificationEventListener(notificationService);
+
+        listener = new NotificationEventListener(
+                notificationService
+        );
     }
 
     @Test
@@ -57,8 +56,7 @@ class NotificationEventListenerTest {
                 eq("REQUEST_STATUS_CHANGED"),
                 eq("Maintenance Request Updated"),
                 contains("SF-2026-000001"),
-                eq(100L),
-                startsWith("REQUEST_STATUS_CHANGED:100:")
+                eq(100L)
         );
     }
 
@@ -82,79 +80,7 @@ class NotificationEventListenerTest {
                 eq("WORK_ORDER_COMPLETED"),
                 eq("Maintenance Work Completed"),
                 contains("SF-2026-000001"),
-                eq(100L),
-                startsWith("WORK_ORDER_COMPLETED:50:")
-        );
-    }
-
-    @Test
-    void duplicateRequestEventGeneratesSameDedupKey() {
-
-        RequestStatusChangedEvent event =
-                new RequestStatusChangedEvent(
-                        100L,
-                        "SF-2026-000001",
-                        10L,
-                        RequestStatus.SUBMITTED,
-                        RequestStatus.UNDER_REVIEW,
-                        20L,
-                        NOW
-                );
-
-        listener.on(event);
-        listener.on(event);
-
-        ArgumentCaptor<String> captor =
-                ArgumentCaptor.forClass(String.class);
-
-        verify(notificationService, times(2))
-                .createNotification(
-                        eq(10L),
-                        eq("REQUEST_STATUS_CHANGED"),
-                        anyString(),
-                        anyString(),
-                        eq(100L),
-                        captor.capture()
-                );
-
-        assertEquals(
-                captor.getAllValues().get(0),
-                captor.getAllValues().get(1)
-        );
-    }
-
-    @Test
-    void duplicateWorkOrderEventGeneratesSameDedupKey() {
-
-        WorkOrderCompletedEvent event =
-                new WorkOrderCompletedEvent(
-                        50L,
-                        100L,
-                        "SF-2026-000001",
-                        30L,
-                        10L,
-                        NOW
-                );
-
-        listener.on(event);
-        listener.on(event);
-
-        ArgumentCaptor<String> captor =
-                ArgumentCaptor.forClass(String.class);
-
-        verify(notificationService, times(2))
-                .createNotification(
-                        eq(10L),
-                        eq("WORK_ORDER_COMPLETED"),
-                        anyString(),
-                        anyString(),
-                        eq(100L),
-                        captor.capture()
-                );
-
-        assertEquals(
-                captor.getAllValues().get(0),
-                captor.getAllValues().get(1)
+                eq(100L)
         );
     }
 
@@ -177,9 +103,10 @@ class NotificationEventListenerTest {
                 anyString(),
                 anyString(),
                 anyString(),
-                anyLong(),
-                anyString()
-        )).thenThrow(new IllegalStateException("Database unavailable"));
+                anyLong()
+        )).thenThrow(
+                new IllegalStateException("Notification DB unavailable")
+        );
 
         assertDoesNotThrow(() -> listener.on(event));
     }

@@ -1,0 +1,4 @@
+Asset: src/main/resources/static/images/campus-maintenance.png
+Generator: built-in image_gen, transparent_background=true
+
+Use case: stylized-concept. Create a polished PNG illustration for the existing SmartFix campus facility maintenance website. Transparent background, a single compact coherent isometric scene of a friendly university building with three or four windows, a small tree, a teal maintenance toolkit and a small golden location pin. Contemporary soft 3D clay illustration, matte tactile materials, rounded shapes, clean crisp silhouettes, soft ambient shadows, restrained forest teal / mint / cream with warm mustard yellow accents. Three quarter isometric viewpoint. Building is main subject; toolkit in foreground. Centered scene filling canvas, no excessive empty border. Suitable as a right-hand website hero decoration shown at 260-360 px wide. No words, lettering, brand logos, watermark, border, interface panels or people.

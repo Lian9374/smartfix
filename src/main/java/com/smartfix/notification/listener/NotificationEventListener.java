@@ -30,18 +30,6 @@ public class NotificationEventListener {
     public void on(RequestStatusChangedEvent event) {
 
         try {
-            String dedupKey =
-                    "REQUEST_STATUS_CHANGED:"
-                            + event.requestId()
-                            + ":"
-                            + event.fromStatus().name()
-                            + ":"
-                            + event.toStatus().name()
-                            + ":"
-                            + event.occurredAt()
-                            + ":"
-                            + event.requesterId();
-
             notificationService.createNotification(
                     event.requesterId(),
                     "REQUEST_STATUS_CHANGED",
@@ -49,13 +37,11 @@ public class NotificationEventListener {
                     "Request " + event.ticketNumber()
                             + " status changed to "
                             + event.toStatus().name() + ".",
-                    event.requestId(),
-                    dedupKey
+                    event.requestId()
             );
-
         } catch (RuntimeException exception) {
             log.error(
-                    "Failed to process request status notification: {}",
+                    "Failed to process request status notification",
                     exception.getClass().getSimpleName()
             );
         }
@@ -67,14 +53,6 @@ public class NotificationEventListener {
     public void on(WorkOrderCompletedEvent event) {
 
         try {
-            String dedupKey =
-                    "WORK_ORDER_COMPLETED:"
-                            + event.workOrderId()
-                            + ":"
-                            + event.occurredAt()
-                            + ":"
-                            + event.requesterId();
-
             notificationService.createNotification(
                     event.requesterId(),
                     "WORK_ORDER_COMPLETED",
@@ -82,13 +60,11 @@ public class NotificationEventListener {
                     "Maintenance work for request "
                             + event.ticketNumber()
                             + " has been completed.",
-                    event.requestId(),
-                    dedupKey
+                    event.requestId()
             );
-
         } catch (RuntimeException exception) {
             log.error(
-                    "Failed to process work order notification: {}",
+                    "Failed to process work order notification",
                     exception.getClass().getSimpleName()
             );
         }

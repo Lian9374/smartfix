@@ -37,3 +37,4 @@ nohup.out
 # ---- Docker ----
 .dockerignore-local
 uploads/
+local-db-backups/

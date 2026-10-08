@@ -827,6 +827,63 @@ hr {
 .notice__icon { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 2px; color: var(--brand); }
 .notice__title { color: var(--text); font-weight: 620; }
 
+/* ---------------------------------------------------- reported content */
+
+/*
+  The report entry on a question thread: a disclosure that is closed until a
+  reader opens it, so a thread being read stays a thread and not a column of
+  forms. <summary> keeps the marker the browser draws by default - it is the
+  affordance that says the row opens, and removing it would leave a line of
+  text with nothing to say what it does.
+*/
+.report-entry {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.report-entry__summary {
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 560;
+  cursor: pointer;
+  list-style-position: inside;
+}
+.report-entry__summary:hover { color: var(--brand-dark); }
+.report-entry__summary:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/*
+  The fields sit side by side where there is room and stack where there is not,
+  which is the shape .form-grid already uses elsewhere in the product.
+*/
+.report-entry__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .report-entry__fields { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
+}
+
+/*
+  The text a moderation decision is about, quoted on the queue. The left rule
+  says "this is somebody's writing, reproduced" without pretending to be a
+  citation; the body keeps .prose's white-space so line breaks survive.
+*/
+.report-quote {
+  margin-top: var(--space-3);
+  padding: var(--space-1) 0 var(--space-1) var(--space-4);
+  border-left: 3px solid var(--accent);
+}
+.report-quote > :first-child { margin-top: 0; }
+.report-quote > :last-child { margin-bottom: 0; }
+
 /* -------------------------------------------------------------- timeline */
 
 .timeline { list-style: none; }
@@ -1054,11 +1111,13 @@ hr {
 .form-field__error:empty { display: none; }
 
 .form-field--invalid input,
-.form-field--invalid select {
+.form-field--invalid select,
+.form-field--invalid textarea {
   border-color: var(--tone-danger-ink);
 }
 .form-field--invalid input:focus,
-.form-field--invalid select:focus {
+.form-field--invalid select:focus,
+.form-field--invalid textarea:focus {
   box-shadow: 0 0 0 1px var(--tone-danger-ink), 0 0 0 4px rgba(155, 44, 44, 0.18);
 }
 
@@ -1097,33 +1156,41 @@ hr {
   margin-top: var(--space-6);
 }
 
-/* Request and work-order forms keep their spacing within the shared shell. */
-.request-workflow .workflow-stack,
-.request-workflow.workflow-stack {
-  display: grid;
-  gap: var(--space-5);
-  align-content: start;
-}
-.request-workflow .workflow-stack--tight { gap: var(--space-3); }
-.request-workflow.workflow-stack > .card + .card { margin-top: 0; }
-.request-workflow .workflow-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-}
-.request-workflow .form-field textarea { padding-block: var(--space-3); }
-.request-workflow .form-field input[type="number"],
-.request-workflow .form-field input[type="file"] {
-  min-height: var(--field-height);
-  max-width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-}
+/* New requests are an action within My Requests. */
+.request-breadcrumb { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-4); font-size: var(--text-sm); color: var(--muted); }
+.request-create-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; align-items: start; gap: var(--space-6); }
+.request-form { padding: var(--space-6); min-width: 0; }
+.request-form__intro { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-3); margin-bottom: var(--space-6); }
+.request-form__intro p { color: var(--muted); font-size: var(--text-xs); }
+.request-form .alert { margin-bottom: var(--space-6); }
+.request-form .alert ul { padding-left: var(--space-5); margin-block: var(--space-2); }
+.request-form .form-section > .form-field + .form-field { margin-top: var(--space-5); }
+.request-form textarea { padding: var(--space-3); resize: vertical; min-height: 150px; }
+.request-field-meta { display: flex; justify-content: space-between; gap: var(--space-3); }
+.request-field-meta [data-count-for] { flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.request-optional { margin-left: var(--space-2); text-transform: none; letter-spacing: normal; font-weight: 400; }
+.request-upload { display: flex; flex-direction: column; align-items: center; gap: var(--space-3); padding: var(--space-5); background: var(--canvas); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); text-align: center; }
+.request-upload > svg { width: 32px; height: 32px; color: var(--brand); }
+.request-upload input { max-width: 100%; font: inherit; font-size: var(--text-sm); }
+.request-upload input::file-selector-button { padding: var(--space-2) var(--space-3); margin-right: var(--space-3); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--surface); color: var(--brand-dark); font: inherit; cursor: pointer; }
+.request-upload:focus-within { border-color: var(--brand); }
+.request-photo-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-3); }
+.request-photo { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-4); padding: var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-md); min-width: 0; font-size: var(--text-xs); }
+.request-photo img { width: 100%; height: 100px; object-fit: cover; border-radius: var(--radius-sm); }
+.request-photo > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.request-photo button { align-self: start; }
+.request-form__actions { padding-top: var(--space-5); border-top: 1px solid var(--border); }
+.request-guidance { display: grid; gap: var(--space-5); }
+.request-guidance section { padding: var(--space-5); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.request-guidance .request-guidance__intro { background: var(--brand-tint); border-color: var(--brand-tint-line); }
+.request-guidance__eyebrow { display: block; margin-bottom: var(--space-3); color: var(--brand-dark); font-size: var(--text-xs); }
+.request-guidance h2 { font-size: var(--text-md); margin-bottom: var(--space-3); }
+.request-guidance__intro h2 { font-size: var(--text-lg); color: var(--brand-dark); }
+.request-guidance p, .request-urgency-guide { font-size: var(--text-sm); color: var(--muted); line-height: 1.6; }
+.request-urgency-guide dt { color: var(--text); font-weight: 620; margin-top: var(--space-3); }
+.request-urgency-guide dd { margin: 2px 0 var(--space-3); }
+@media (max-width: 1000px) { .request-create-layout { grid-template-columns: minmax(0, 1fr); } .request-guidance { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .request-guidance { grid-template-columns: minmax(0, 1fr); } .request-form { padding: var(--space-5); } .request-field-meta { flex-wrap: wrap; } .request-photo-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } .request-form__actions .btn { flex: 1; } }
 
 .inline-form {
   display: flex;
@@ -1472,6 +1539,124 @@ hr {
   font-size: var(--text-sm);
 }
 
+/* The account-type choice on the sign-in page: one bar, three equal segments, each
+   with a native radio inside it.
+
+   A segmented bar rather than three cards, because three cards is what it was and
+   each one was 100px tall with the same white fill and the same border - so the
+   three of them read as three selected things, and the selected state had to be
+   carried by a tint subtle enough to miss. Here the selected segment is the only
+   one filled, and the other two are the track.
+
+   The radio is transparent but NOT out of the layout: it stays focusable, it stays
+   in the form, and the arrow keys still move the selection, which is exactly what
+   display:none or hidden would take away. What the eye reads is the segment, and
+   the segment's state is driven by :checked on that input and by nothing else -
+   there is no active class to fall out of step with the real state. */
+.account-type {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.account-type__legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 620;
+  color: var(--text);
+}
+
+.account-type__track {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+/* The segment, and the whole of it is the label, so the whole of it is the click
+   target. min-inline-size: 0 is what lets the three columns share the width evenly
+   instead of a long word widening its own column and squeezing the others. */
+.account-type__option {
+  position: relative;
+  display: flex;
+  min-inline-size: 0;
+  cursor: pointer;
+}
+
+.account-type__input {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: 0;
+  opacity: 0;
+}
+
+/* 40px + the track's 2px padding and 2px border = 44px for the bar, which is the
+   smallest a control of this kind should be to stay a comfortable target. */
+.account-type__face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  min-block-size: 40px;
+  padding-inline: 4px;
+  border-radius: calc(var(--radius-md) - 2px);
+  font-size: var(--text-sm);
+  font-weight: 550;
+  color: var(--muted);
+  text-align: center;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.account-type__option:hover .account-type__face {
+  background: var(--canvas);
+  color: var(--text);
+}
+
+/* The selected segment. Three signals, none of them colour alone: a filled
+   background, the brand's dark end for the text, and a hairline of its own. */
+.account-type__input:checked + .account-type__face {
+  background: var(--brand-tint);
+  color: var(--brand-dark);
+  font-weight: 650;
+  box-shadow: inset 0 0 0 1px var(--brand-tint-line);
+}
+
+/* The focus ring is drawn on the segment, because the input that receives the focus
+   is deliberately invisible. Arrow keys move between the three, and the ring follows
+   them, so a keyboard user can see which one is about to be chosen. */
+.account-type__input:focus-visible + .account-type__face {
+  outline: 3px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* The way in for somebody without an account: below the primary button and outside
+   the role bar, so it is in the same place whatever is selected. */
+.auth__register {
+  margin-top: var(--space-5);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.auth__register a {
+  color: var(--brand-dark);
+  font-weight: 620;
+}
+
+.auth__register-note {
+  margin-top: var(--space-2);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
 /* ==========================================================================
    11. Error page
    ========================================================================== */
@@ -1721,4 +1906,20 @@ hr {
 
   .data-table--stack td { grid-template-columns: 1fr; gap: 2px; }
   .data-table--stack td::before { margin-bottom: 2px; }
+
+  /* The three account types stay one row at every width, because a segmented control
+     that turns into a list is no longer the same control, and the label size does not
+     change to make room for them: "Administrator" measures 85px at 13px against 89px
+     available at 320px, so the type is not what gives way. The padding is - first the
+     segment's own, then the panel's, which is the only remaining thing here that can
+     shrink without the reader losing information. */
+  .auth__panel { padding-inline: var(--space-4); }
+  .account-type__face { padding-inline: 2px; }
+}
+
+@media (max-width: 340px) {
+  /* A few more pixels for the labels, taken from the page's margins rather than from
+     the type: enough headroom for a platform whose fallback font is wider than the
+     Segoe UI the 85px was measured in. */
+  .auth__panel { padding-inline: var(--space-3); }
 }

@@ -11,8 +11,8 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content requests-page">
+      <div class="card page-head-row page-context">
         <div class="page-head">
           <h1 class="page-head__title">My Requests</h1>
           <p class="page-head__subtitle">
@@ -26,29 +26,30 @@
           <a class="btn btn--primary" th:href="@{/requests/new}">New request</a>
         </div>
 
-        <p class="page-head-row__meta" th:unless="${#lists.isEmpty(requests)}"
-           th:text="|${#lists.size(requests)} shown|">2 shown</p>
+
       </div>
 
-      <form class="card" th:action="@{/requests/mine}" method="get">
+      <form class="card request-list-filter" th:action="@{/requests/mine}" method="get">
         <div class="card__body">
-          <label for="request-status">Status</label>
+          <div class="form-field">
+          <label class="form-field__label" for="request-status">Status</label>
           <select id="request-status" name="status">
             <option value="">All statuses</option>
             <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"
                     th:selected="${status == selectedStatus}">SUBMITTED</option>
           </select>
+          </div>
           <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
           <button class="btn btn--secondary" type="submit">Filter</button>
         </div>
       </form>
 
       <!--
-        No visible card title: the page heading above already names this list, and
-        a second heading over the same table only restated it. The section keeps
-        an accessible name so it is still a labelled landmark.
+        The history header owns the result total. Pagination only appears when
+        another page exists, so the same count is not repeated below the list.
       -->
-      <section class="card" aria-label="Your maintenance requests">
+      <section class="card request-history" aria-label="Your maintenance requests">
+<header class="module-header"><h2>Request history</h2><span class="result-count" th:if="${pagination != null}" th:text="${pagination.totalElements + (pagination.totalElements == 1 ? ' request' : ' requests')}"></span></header>
         <div class="card__body card__body--flush">
           <div th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
             <div th:replace="~{fragments/components :: requestEmptyState(
@@ -130,10 +131,10 @@
           </div>
         </div>
       </section>
-      <nav th:if="${pagination != null}" aria-label="Request pagination">
+      <nav class="list-pagination card" th:if="${pagination != null and (pagination.hasPrevious() or pagination.hasNext())}" aria-label="Request pagination">
         <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
            th:href="@{/requests/mine(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
-        <span th:text="|${pagination.totalElements} requests|">0 requests</span>
+        <span th:text="|Page ${pagination.number + 1} of ${pagination.totalPages}|">Page 1</span>
         <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
            th:href="@{/requests/mine(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a>
       </nav>

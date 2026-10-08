@@ -1,74 +1,18 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Notifications - SmartFix</title>
-</head>
-
-<body>
-
-<main>
-
-    <h1>My Notifications</h1>
-
-    <p>
-        Unread notifications:
-        <strong th:text="${unreadCount}">0</strong>
-    </p>
-
-    <div th:if="${#lists.isEmpty(notifications)}">
-        <p>No notifications available.</p>
-    </div>
-
-    <section th:each="notification : ${notifications}">
-
-        <article>
-
-            <h2 th:text="${notification.title}">
-                Notification Title
-            </h2>
-
-            <p th:text="${notification.message}">
-                Notification message
-            </p>
-
-            <p>
-                Status:
-                <span th:if="${notification.read}">
-                    Read
-                </span>
-
-                <span th:unless="${notification.read}">
-                    Unread
-                </span>
-            </p>
-
-            <p th:text="${notification.createdAt}">
-                Created time
-            </p>
-
-            <form
-                th:if="${!notification.read}"
-                th:action="@{/notifications/{id}/read(id=${notification.id})}"
-                method="post">
-
-                <button type="submit">
-                    Mark as Read
-                </button>
-
-            </form>
-
-        </article>
-
-        <hr>
-
-    </section>
-
-</main>
-
-</body>
-</html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Notifications')}"><title>Notifications</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('notifications')}"></th:block>
+<div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('notifications')}"></th:block>
+<main id="main-content" class="content">
+<section class="card page-context"><div class="page-head-row"><div class="page-head">
+<h1 class="page-head__title">Notifications</h1><p class="page-head__subtitle">Updates on your campus activity.</p></div>
+<span class="result-count" th:text="|${unreadCount} unread|"></span></div></section>
+<section class="card discussion-feed"><header class="module-header"><h2>Recent updates</h2><span class="meta">Latest 20 notifications</span></header>
+<div th:if="${#lists.isEmpty(notifications)}"><div th:replace="~{fragments/components :: emptyState('You are all caught up.', 'Replies, accepted answers and moderation updates will appear here.')}"></div></div>
+<article class="notification-item" th:each="notification : ${notifications}" th:classappend="${!notification.read} ? 'notification-item--unread'">
+<div class="notification-item__heading"><h3 th:text="${notification.title}"></h3><span class="badge badge--neutral" th:text="${notification.read ? 'Read' : 'Unread'}"></span></div>
+<p th:text="${notification.message}"></p><time class="meta" th:datetime="${notification.createdAt}" th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}"></time>
+<div class="form-actions"><a class="btn btn--secondary btn--small" th:if="${notification.targetUrl != null}" th:href="${notification.targetUrl}">Open discussion</a>
+<form method="post" th:if="${!notification.read}" th:action="@{/notifications/{id}/read(id=${notification.id})}"><button class="btn btn--secondary btn--small" type="submit">Mark as read</button></form></div>
+</article></section>
+</main><footer th:replace="~{fragments/layout :: footer}"></footer></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

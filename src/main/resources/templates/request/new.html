@@ -1,59 +1,77 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Submit Maintenance Request')}"><title>Submit Maintenance Request · SmartFix</title></head>
+<head th:replace="~{fragments/layout :: head('New request')}"><title>New request · SmartFix</title></head>
 <body>
 <div class="app-shell">
-  <th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
-  <div class="app-main">
-    <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
-    <main id="main-content" class="content request-workflow workflow-stack">
-      <div th:replace="~{fragments/components :: pageHeading('Submit Maintenance Request', 'Tell us what needs repairing and where to find it.')}"></div>
-      <section class="card" aria-labelledby="request-fields-title">
-        <div class="card__header"><h2 class="card__title" id="request-fields-title">Request details</h2></div>
-        <div class="card__body">
-          <form class="workflow-stack" th:action="@{/requests}" th:object="${command}" method="post" enctype="multipart/form-data">
-            <ul class="alert alert--error" role="alert" th:if="${#fields.hasAnyErrors()}"><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
-            <div class="form-grid">
-              <div class="form-field">
-                <label class="form-field__label" for="locationId">Location</label>
-                <select id="locationId" th:field="*{locationId}" required><option value="">Select an active location</option><option th:each="location : ${locations}" th:value="${location.id}" th:text="${location.displayName}"></option></select>
-                <span class="form-field__error" th:errors="*{locationId}"></span>
-              </div>
-              <div class="form-field">
-                <label class="form-field__label" for="category">Category</label>
-                <select id="category" th:field="*{category}" required><option value="">Select a category</option><option th:each="category : ${categories}" th:value="${category}" th:text="${category}"></option></select>
-                <span class="form-field__error" th:errors="*{category}"></span>
-              </div>
-            </div>
-            <div class="form-field">
-              <label class="form-field__label" for="title">Title</label>
-              <input type="text" id="title" th:field="*{title}" maxlength="120" required>
-              <span class="form-field__error" th:errors="*{title}"></span>
-            </div>
-            <div class="form-field">
-              <label class="form-field__label" for="description">Description</label>
-              <textarea id="description" th:field="*{description}" maxlength="2000" rows="5" required></textarea>
-              <span class="form-field__error" th:errors="*{description}"></span>
-            </div>
-            <div class="form-field">
-              <label class="form-field__label" for="urgencyLevel">Reported urgency</label>
-              <select id="urgencyLevel" th:field="*{urgencyLevel}" required><option value="">Select urgency</option><option th:each="urgency : ${urgencyLevels}" th:value="${urgency}" th:text="${urgency}"></option></select>
-              <span class="form-field__error" th:errors="*{urgencyLevel}"></span>
-            </div>
-            <div class="form-field">
-              <label class="form-field__label" for="files">Photos (optional)</label>
-              <input id="files" name="files" type="file" accept="image/png,image/jpeg" multiple aria-describedby="upload-limits upload-reselect">
-              <p class="form-field__hint" id="upload-limits" th:text="${'Up to ' + uploadLimits.maxFiles + ' PNG/JPEG images, ' + #numbers.formatDecimal(uploadLimits.maxFileSize / 1048576.0, 1, 2) + ' MiB each and ' + #numbers.formatDecimal(uploadLimits.maxTotalSize / 1048576.0, 1, 2) + ' MiB in total.'}"></p>
-              <p class="form-field__hint" id="upload-reselect">After a validation error, select the photos again.</p>
-            </div>
-            <div class="workflow-actions"><button class="btn btn--primary" type="submit">Submit request</button><a class="btn btn--secondary" th:href="@{/requests/mine}">My requests</a></div>
-          </form>
-        </div>
-      </section>
-    </main>
-    <footer th:replace="~{fragments/layout :: footer}"></footer>
-  </div>
+<th:block th:replace="~{fragments/layout :: sidebar('my-requests')}"></th:block>
+<div class="app-main">
+<th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
+<main id="main-content" class="content request-create-page">
+<section class="card page-context"><nav class="request-breadcrumb" aria-label="Breadcrumb"><a th:href="@{/requests/mine}">My Requests</a><span aria-hidden="true">/</span><span aria-current="page">New request</span></nav>
+<div class="page-head-row"><div th:replace="~{fragments/components :: pageHeading('New maintenance request', 'A few details. One step closer to fixed.')}"></div></div>
+</section>
+<div class="request-create-layout">
+<form class="card request-form" th:action="@{/requests}" th:object="${command}" method="post" enctype="multipart/form-data" data-request-form>
+<div class="request-form__intro"><p>All fields required, except photos.</p></div>
+<div class="alert alert--error" role="alert" tabindex="-1" data-error-summary th:if="${#fields.hasAnyErrors()}"><div class="alert__body"><p class="alert__title">Your request has not been submitted</p><p>Check the highlighted fields and try again.</p><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul><p>Please select your photos again before resubmitting.</p></div></div>
+<fieldset class="form-section"><legend><span class="section-number">1</span> The problem</legend>
+<div class="form-field" th:classappend="${#fields.hasErrors('locationId')} ? 'form-field--invalid'">
+<label class="form-field__label" for="locationId">Location</label>
+<select id="locationId" th:field="*{locationId}" required aria-describedby="locationId-hint locationId-error" th:attr="aria-invalid=${#fields.hasErrors('locationId')}"><option value="">Select a location</option><option th:each="location : ${locations}" th:value="${location.id}" th:text="${location.displayName}"></option></select>
+<span class="form-field__hint request-field-meta" id="locationId-hint"><span class="visually-hidden">Choose the building, floor or room.</span></span>
+<span class="form-field__error" id="locationId-error" th:errors="*{locationId}"></span>
+</div>
+<p class="form-field__error" th:if="${#lists.isEmpty(locations)}">No active locations are available. Please contact the facility team.</p>
+<div class="form-field" th:classappend="${#fields.hasErrors('title')} ? 'form-field--invalid'">
+<label class="form-field__label" for="title">Request title</label>
+<input type="text" id="title" th:field="*{title}" maxlength="120" required aria-describedby="title-hint title-error" th:attr="aria-invalid=${#fields.hasErrors('title')}" placeholder="e.g. Leaking tap in the Level 1 pantry">
+<span class="form-field__hint request-field-meta" id="title-hint"><span class="visually-hidden">A short summary of the problem.</span><span data-count-for="title">0 / 120</span></span>
+<span class="form-field__error" id="title-error" th:errors="*{title}"></span>
+</div>
+<div class="form-field" th:classappend="${#fields.hasErrors('description')} ? 'form-field--invalid'">
+<label class="form-field__label" for="description">Description</label>
+<textarea id="description" th:field="*{description}" rows="4" maxlength="2000" required aria-describedby="description-hint description-error" th:attr="aria-invalid=${#fields.hasErrors('description')}" placeholder="What happened? When did it start?"></textarea>
+<span class="form-field__hint request-field-meta" id="description-hint"><span class="visually-hidden">Describe the problem.</span><span data-count-for="description">0 / 2000</span></span>
+<span class="form-field__error" id="description-error" th:errors="*{description}"></span>
+</div>
+</fieldset>
+<fieldset class="form-section"><legend><span class="section-number">2</span> Category &amp; urgency</legend><div class="form-grid">
+<div class="form-field" th:classappend="${#fields.hasErrors('category')} ? 'form-field--invalid'">
+<label class="form-field__label" for="category">Category</label>
+<select id="category" th:field="*{category}" required aria-describedby="category-hint category-error" th:attr="aria-invalid=${#fields.hasErrors('category')}"><option value="">Select a category</option><option th:each="category : ${categories}" th:value="${category}" th:text="${category.name() == 'HVAC' ? 'Heating &amp; air conditioning' : #strings.capitalize(#strings.toLowerCase(category.name()))}"></option></select>
+<span class="form-field__hint request-field-meta" id="category-hint"><span class="visually-hidden">Choose the closest match, or Other.</span></span>
+<span class="form-field__error" id="category-error" th:errors="*{category}"></span>
+</div>
+<div class="form-field" th:classappend="${#fields.hasErrors('urgencyLevel')} ? 'form-field--invalid'">
+<label class="form-field__label" for="urgencyLevel">Reported urgency</label>
+<select id="urgencyLevel" th:field="*{urgencyLevel}" required aria-describedby="urgencyLevel-hint urgencyLevel-error" th:attr="aria-invalid=${#fields.hasErrors('urgencyLevel')}"><option value="">Select urgency</option><option th:each="urgency : ${urgencyLevels}" th:value="${urgency}" th:text="${#strings.capitalize(#strings.toLowerCase(urgency.name()))}"></option></select>
+<span class="form-field__hint request-field-meta" id="urgencyLevel-hint"><span class="visually-hidden">Select the impact on facility use.</span></span>
+<span class="form-field__error" id="urgencyLevel-error" th:errors="*{urgencyLevel}"></span>
+</div>
+</div></fieldset>
+<fieldset class="form-section"><legend><span class="section-number">3</span> Add photos <span class="request-optional">Optional</span></legend>
+<div class="request-upload">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="15" rx="3"/><circle cx="8" cy="10" r="1.5"/><path d="m4 17 5-4 4 3 3-4 5 5M9 5l1-2h4l1 2"/></svg>
+<label class="form-field__label" for="files">Add photos of the problem</label>
+<p class="form-field__hint" id="files-hint" th:text="${'Up to ' + uploadLimits.maxFiles + ' PNG/JPEG images · ' + #numbers.formatDecimal(uploadLimits.maxFileSize / 1048576.0, 1, 2) + ' MiB each · ' + #numbers.formatDecimal(uploadLimits.maxTotalSize / 1048576.0, 1, 2) + ' MiB total'}"></p>
+<input id="files" name="files" type="file" accept="image/png,image/jpeg" multiple aria-describedby="files-hint files-error" th:attr="data-max-files=${uploadLimits.maxFiles},data-max-size=${uploadLimits.maxFileSize},data-max-total=${uploadLimits.maxTotalSize}">
+<p class="form-field__error" id="files-error" role="alert"></p>
+</div>
+<div class="request-photo-list" data-photo-list aria-live="polite"></div>
+</fieldset>
+<div class="form-actions request-form__actions"><button class="btn btn--primary" type="submit" th:disabled="${#lists.isEmpty(locations)}">Submit request</button><a class="btn btn--secondary" th:href="@{/requests/mine}">Cancel</a></div>
+</form>
+<aside class="request-guidance" aria-label="Request guidance">
+<section class="request-art-panel"><img th:src="@{/images/campus-maintenance.png}" alt="" width="280" height="260"><h2>Let’s get it fixed.</h2><p>Your report helps care for campus.</p></section>
+<details class="request-help"><summary>Which urgency should I choose?</summary><dl class="request-urgency-guide"><dt>Low</dt><dd>Minor inconvenience.</dd><dt>Medium</dt><dd>Disrupted use; a workaround exists.</dd><dt>High</dt><dd>Major disruption or a safety concern.</dd></dl></details>
+<details class="request-help"><summary>What happens next?</summary><p>You’ll get a ticket number. Follow updates in <a th:href="@{/requests/mine}">My Requests</a>.</p></details>
+</aside>
+</div>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</div>
 </div>
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/js/request-form.js}" defer></script>
 </body>
 </html>

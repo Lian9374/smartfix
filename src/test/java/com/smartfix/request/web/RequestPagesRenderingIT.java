@@ -90,6 +90,40 @@ class RequestPagesRenderingIT {
     }
 
     @Test
+    void newRequestUsesTheSharedShellAndKeepsCreationOutOfNavigation() throws Exception {
+        String page = mvc.perform(get("/requests/new").session(login("alice")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("New maintenance request")))
+                .andExpect(content().string(containsString("href=\"/css/site.css\"")))
+                .andExpect(content().string(containsString("src=\"/js/request-form.js\"")))
+                .andExpect(content().string(containsString("enctype=\"multipart/form-data\"")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")))
+                .andExpect(content().string(containsString("name=\"locationId\"")))
+                .andExpect(content().string(containsString("name=\"files\"")))
+                .andExpect(content().string(containsString("Heating &amp; air conditioning")))
+                .andReturn().getResponse().getContentAsString();
+        String navigation = page.substring(page.indexOf("<nav class=\"appbar__links\""),
+                page.indexOf("</nav>", page.indexOf("<nav class=\"appbar__links\"")));
+        org.junit.jupiter.api.Assertions.assertFalse(navigation.contains("/requests/new"));
+        org.junit.jupiter.api.Assertions.assertTrue(navigation.contains("aria-current=\"page\""));
+    }
+
+    @Test
+    void invalidSubmissionRetainsTextAndShowsFieldErrorsInTheSharedShell() throws Exception {
+        mvc.perform(post("/requests").session(login("alice")).with(csrf())
+                        .param("title", "Leaking pantry tap")
+                        .param("description", "The tap drips constantly."))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Your request has not been submitted")))
+                .andExpect(content().string(containsString("Location is required.")))
+                .andExpect(content().string(containsString("Category is required.")))
+                .andExpect(content().string(containsString("value=\"Leaking pantry tap\"")))
+                .andExpect(content().string(containsString("The tap drips constantly.")))
+                .andExpect(content().string(containsString("aria-invalid=\"true\"")))
+                .andExpect(content().string(containsString("Please select your photos again")));
+    }
+
+    @Test
     void overviewShowsTheRequestersOwnMostRecentRequests() throws Exception {
         seed("SF-2026-000105", overviewRequesterId, "Broken blinds in the reading room",
                 "The blinds in the reading room no longer close and let in full sun.",
@@ -122,11 +156,13 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("No requests yet")))
                 .andExpect(content().string(containsString(
                         "Your maintenance requests will appear here.")))
-                // One quiet line, and only one: the page does not repeat the
-                // unavailable-submission message in a second box.
-                .andExpect(content().string(containsString(
-                        "Online submission is currently unavailable. Please contact your facilities office.")))
-                .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
+                // Submission is implemented and authorised for a requester, so
+                // the overview offers the form instead of a note announcing that
+                // it is missing. The link is the real route the submission
+                // controller serves, not a placeholder.
+                .andExpect(content().string(containsString("href=\"/requests/new\"")))
+                .andExpect(content().string(not(containsString(
+                        "Online submission is currently unavailable."))));
     }
 
     @Test
@@ -134,10 +170,16 @@ class RequestPagesRenderingIT {
         mvc.perform(get("/").session(login("root.admin")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Administration")))
+                // The queue is a real, authorised administrator route, so the
+                // overview offers it beside the lookup rather than leaving the
+                // administrator to guess the path.
+                .andExpect(content().string(containsString("href=\"/admin/requests\"")))
                 .andExpect(content().string(containsString("href=\"/admin/users\"")))
                 .andExpect(content().string(containsString("href=\"/admin/requests/lookup\"")))
                 // No service exposes "every request", so no list is invented here.
-                .andExpect(content().string(not(containsString("Recent requests"))));
+                .andExpect(content().string(not(containsString("Recent requests"))))
+                // An administrator never sees the requester-only entry points.
+                .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
     }
 
     @Test
@@ -161,14 +203,14 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("HIGH")))
                 // Status and urgency are printed as words, not only coloured.
                 .andExpect(content().string(containsString("SUBMITTED")))
-                .andExpect(content().string(containsString("1 shown")))
+                .andExpect(content().string(containsString("Request history")))
                 // The card no longer restates the heading above it.
                 .andExpect(content().string(not(containsString("Submitted requests"))))
                 .andExpect(content().string(not(containsString("No requests yet"))))
                 // C3 supplies submission, filtering and real pagination metadata.
                 .andExpect(content().string(containsString("href=\"/requests/new\"")))
                 .andExpect(content().string(containsString("name=\"status\"")))
-                .andExpect(content().string(containsString("1 requests")));
+                .andExpect(content().string(containsString("1 request")));
     }
 
     @Test

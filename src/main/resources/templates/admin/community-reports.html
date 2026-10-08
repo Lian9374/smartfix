@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<!--
+  The moderation queue: reports filed by readers, oldest first, one card each.
+
+  Three rules this page must not break:
+
+    * the reported content is printed with th:text and never th:utext. A
+      moderator reads what a person typed, as text - the queue is not a place
+      where markup becomes live, and it is the page most likely to be shown
+      content somebody wrote in order to abuse it;
+    * every write is a POST form carrying CSRF (th:action injects the token),
+      one form per action, each control labelled with the report it belongs to;
+    * a link to the reported thread is offered only when that thread is publicly
+      visible. The detail page answers 404 to everybody but an author once a
+      question is hidden, and a moderator is not the author - so the queue shows
+      the content inline and sends no one to a page that does not render.
+
+  The controls here mirror rules the service enforces again. The buttons are
+  courtesy; CommunityModerationService refuses an unauthorised caller whatever
+  this page renders, and /admin/** is refused by SecurityConfig before the
+  request ever reaches the controller.
+
+  Nothing on this page can rewrite what somebody wrote, and nothing can accept
+  an answer on a question's author's behalf: moderation changes status, and only
+  status.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reported content')}">
+  <title>Reported content · SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('community-reports')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('community-reports')}"></th:block>
+
+    <main id="main-content" class="content">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a class="crumbs__link" th:href="@{/community}">Community</a><!--
+     --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
+     --><span class="crumbs__here" aria-current="page">Reported content</span>
+      </nav>
+
+      <div class="page-head-row card page-context">
+        <div th:replace="~{fragments/components :: pageHeading(
+             'Reported content',
+             'Reports filed by readers, oldest first. Deciding a report records who decided what and when; hiding is a separate choice.')}">
+          <h1 class="page-head__title">Reported content</h1>
+        </div>
+      </div>
+
+      <nav class="moderation-tabs card" aria-label="Report views">
+        <a class="btn btn--secondary" th:href="@{/admin/community/reports(view='OPEN')}"
+           th:attr="aria-current=${selectedView.name() == 'OPEN'} ? 'page' : null">Waiting</a>
+        <a class="btn btn--secondary" th:href="@{/admin/community/reports(view='HANDLED')}"
+           th:attr="aria-current=${selectedView.name() == 'HANDLED'} ? 'page' : null">Handled</a>
+        <a class="btn btn--secondary" th:href="@{/admin/community/reports(view='ALL')}"
+           th:attr="aria-current=${selectedView.name() == 'ALL'} ? 'page' : null">All reports</a>
+        <a class="btn btn--secondary" th:href="@{/admin/community/audit}">Audit history</a>
+      </nav>
+
+      <!-- Post/redirect/get feedback, from a flash attribute: it appears once. -->
+      <div th:if="${successMessage}">
+        <div th:replace="~{fragments/components :: alert('success', null, ${successMessage})}"></div>
+      </div>
+      <div th:if="${formError}">
+        <div th:replace="~{fragments/components :: alert('error', 'Nothing was changed', ${formError})}"></div>
+      </div>
+
+      <section class="card" aria-labelledby="queue-title">
+        <div class="card__header">
+          <h2 class="card__title" id="queue-title"
+              th:text="${selectedView.name() == 'OPEN' ? 'Waiting for a decision' : (selectedView.name() == 'HANDLED' ? 'Handled reports' : 'All reports')}">Waiting for a decision</h2>
+          <span class="card__hint" th:unless="${#lists.isEmpty(reports)}"
+                th:text="|${openCount} open|">0 open</span>
+        </div>
+
+        <div class="card__body card__body--flush">
+          <div th:if="${#lists.isEmpty(reports) and selectedView.name() == 'OPEN'}">
+            <div th:replace="~{fragments/components :: emptyState(
+                     'No reports are waiting.',
+                     'Reports filed by readers on questions and answers appear here for a moderator to decide.')}"></div>
+          </div>
+          <div th:if="${#lists.isEmpty(reports) and selectedView.name() != 'OPEN'}">
+            <div th:replace="~{fragments/components :: emptyState('No reports in this view.', 'Handled reports remain here so you can review decisions and restore hidden content.')}"></div>
+          </div>
+
+          <article class="card__body" th:each="report : ${reports}">
+
+            <!-- The report's own facts. The reason and the type are printed as the
+                 backend's own constants, like every other enumeration in the
+                 product, so what is on screen matches what the database holds. -->
+            <p class="page-head__eyebrow">
+              <span th:replace="~{fragments/components :: badge(${report.targetType}, 'neutral')}">QUESTION</span>
+              <span th:text="|Report #${report.id}|">Report #1</span>
+              <span aria-hidden="true"> &middot; </span>
+              <span th:text="${report.reason}">SPAM</span>
+              <span aria-hidden="true"> &middot; </span>
+              <span th:text="|reported by Account #${report.reporterId}|">reported by Account #7</span>
+              <span aria-hidden="true"> &middot; </span>
+              <span th:text="${#temporals.format(report.createdAt, 'yyyy-MM-dd HH:mm')}">2026-09-19 08:00</span>
+            </p>
+
+            <h3 class="card__title"
+                th:text="${report.questionTitle} ?: 'Content that is no longer available'">
+              Projector will not power on
+            </h3>
+
+            <p class="meta">
+              <span th:if="${report.targetType.name() == 'ANSWER'}">Reported answer</span>
+              <span th:if="${report.targetType.name() == 'QUESTION'}">Reported question</span>
+              <span aria-hidden="true"> &middot; </span>
+              <!-- The content's own state, which is what the decision above it may
+                   have changed. A withdrawn target is the author's doing and is not
+                   something a moderator can reverse. -->
+              <span th:if="${report.targetStatus != null}"
+                    th:replace="~{fragments/components :: badge(${report.targetStatus},
+                        ${report.targetVisible} ? 'success' : (${report.targetHidden} ? 'danger' : 'neutral'))}">
+                VISIBLE
+              </span>
+              <span th:if="${report.targetStatus == null}">The reported content is gone.</span>
+              <th:block th:if="${report.targetAuthorId != null}">
+                <span aria-hidden="true"> &middot; </span>
+                <span th:text="|written by Account #${report.targetAuthorId}|">written by Account #9</span>
+              </th:block>
+              <th:block th:if="${report.isThreadPubliclyVisible()}">
+                <span aria-hidden="true"> &middot; </span>
+                <a th:href="@{/community/questions/{id}(id=${report.questionId})}">Open the thread</a>
+              </th:block>
+            </p>
+
+            <!--
+              The text the decision is about, in full. Rendered as text: what the
+              author typed is what the moderator reads, and no part of it can
+              become markup on this page.
+            -->
+            <div class="report-quote">
+              <p class="prose" th:if="${report.targetBody != null}"
+                 th:text="${report.targetBody}">The projector in seminar room 3 does not power on.</p>
+              <p class="meta" th:unless="${report.targetBody != null}">
+                This content is no longer available.
+              </p>
+              <p class="prose" th:if="${report.detail != null}"
+                 th:text="|The reporter added: ${report.detail}|">
+                The reporter added: it is the same question as yesterday's.
+              </p>
+            </div>
+            <div class="alert alert--info" th:unless="${report.isOpen()}">
+              <strong th:text="${report.status}">ACTIONED</strong>
+              <span th:text="| · Account #${report.handledByUserId} · ${#temporals.format(report.handledAt, 'yyyy-MM-dd HH:mm')}|"></span>
+              <p th:if="${report.resolutionNote != null}" th:text="${report.resolutionNote}"></p>
+            </div>
+
+            <!--
+              Governance: the two actions that change a status, offered according
+              to the status the target is in. Hiding changes nothing else - a
+              hidden question keeps its answers, and hiding an accepted answer
+              opens the question in the same transaction, which the service does
+              and the message afterwards reports.
+            -->
+            <div class="form-actions">
+              <form class="inline-form" method="post"
+                    th:if="${report.targetType.name() == 'QUESTION' and report.targetVisible}"
+                    th:action="@{/admin/community/questions/{id}/hide(id=${report.targetId})}">
+                <input type="hidden" name="view" th:value="${selectedView}">
+                <input type="hidden" name="page" th:value="${pagination.number}">
+                <input type="hidden" name="size" th:value="${pagination.size}">
+                <button class="btn btn--secondary btn--small" type="submit"
+                        th:attr="aria-label=|Hide question #${report.targetId}|">Hide question</button>
+              </form>
+              <form class="inline-form" method="post"
+                    th:if="${report.targetType.name() == 'QUESTION' and report.targetHidden}"
+                    th:action="@{/admin/community/questions/{id}/restore(id=${report.targetId})}">
+                <input type="hidden" name="view" th:value="${selectedView}">
+                <input type="hidden" name="page" th:value="${pagination.number}">
+                <input type="hidden" name="size" th:value="${pagination.size}">
+                <button class="btn btn--secondary btn--small" type="submit"
+                        th:attr="aria-label=|Restore question #${report.targetId}|">Restore question</button>
+              </form>
+
+              <form class="inline-form" method="post"
+                    th:if="${report.targetType.name() == 'ANSWER' and report.targetVisible}"
+                    th:action="@{/admin/community/answers/{id}/hide(id=${report.targetId})}">
+                <input type="hidden" name="view" th:value="${selectedView}">
+                <input type="hidden" name="page" th:value="${pagination.number}">
+                <input type="hidden" name="size" th:value="${pagination.size}">
+                <button class="btn btn--secondary btn--small" type="submit"
+                        th:attr="aria-label=|Hide answer #${report.targetId}|">Hide answer</button>
+              </form>
+              <form class="inline-form" method="post"
+                    th:if="${report.targetType.name() == 'ANSWER' and report.targetHidden}"
+                    th:action="@{/admin/community/answers/{id}/restore(id=${report.targetId})}">
+                <input type="hidden" name="view" th:value="${selectedView}">
+                <input type="hidden" name="page" th:value="${pagination.number}">
+                <input type="hidden" name="size" th:value="${pagination.size}">
+                <button class="btn btn--secondary btn--small" type="submit"
+                        th:attr="aria-label=|Restore answer #${report.targetId}|">Restore answer</button>
+              </form>
+
+              <!-- Said, rather than left as a missing button: withdrawn content is
+                   not a moderator's to restore, and an absent control with no
+                   explanation reads as a broken page. -->
+              <p class="meta" th:if="${report.targetStatus != null
+                                     and report.targetStatus.name() == 'WITHDRAWN'}">
+                Its author withdrew this content. Moderators cannot restore withdrawn content.
+              </p>
+            </div>
+
+            <!--
+              The decision. One form per report, with the report id in the path, so
+              a submission cannot be aimed at a different report by editing a
+              hidden field.
+
+              The two radios are a native group with the same name, and each one
+              is wrapped by its own label, which is what gives it an accessible
+              name and a click target without any script. There is no separate
+              "unhandled" option: a report is decided by taking one of the two,
+              and the service refuses anything else.
+            -->
+            <form method="post" th:if="${report.isOpen()}"
+                  th:action="@{/admin/community/reports/{id}/resolve(id=${report.id})}">
+                <input type="hidden" name="view" th:value="${selectedView}">
+                <input type="hidden" name="page" th:value="${pagination.number}">
+                <input type="hidden" name="size" th:value="${pagination.size}">
+
+              <fieldset class="form-section">
+                <legend th:text="|Decision on report #${report.id}|">Decision on report #1</legend>
+
+                <p class="form-field">
+                  <label>
+                    <input type="radio" name="decision" value="ACTIONED" required>
+                    Uphold the report
+                  </label>
+                  <label>
+                    <input type="radio" name="decision" value="DISMISSED">
+                    Dismiss the report
+                  </label>
+                  <span class="form-field__hint">
+                    Upholding records that the report was justified. Dismissing records
+                    that it was not. Neither one changes the content by itself.
+                  </span>
+                </p>
+
+                <div class="form-grid">
+                  <p class="form-field">
+                    <label class="form-field__label"
+                           for="resolve-note" th:for="|resolve-note-${report.id}|"
+                           th:text="|Note for report #${report.id}|">Note</label>
+                    <input type="text" id="resolve-note" th:id="|resolve-note-${report.id}|"
+                           name="note" maxlength="500" autocomplete="off"
+                           th:attr="aria-describedby=|resolve-note-hint-${report.id}|">
+                    <span class="form-field__hint" th:id="|resolve-note-hint-${report.id}|">
+                      Optional, up to 500 characters. Recorded with your decision.
+                    </span>
+                  </p>
+                </div>
+
+                <p class="form-field">
+                  <label>
+                    <input type="checkbox" name="hideContent">
+                    Also hide the reported content
+                  </label>
+                  <span class="form-field__hint">
+                    Separate from the decision on purpose: a report can be upheld with the
+                    content left up, and dismissed with the content hidden. Hiding an
+                    accepted answer also opens its question, in the same transaction.
+                  </span>
+                </p>
+              </fieldset>
+
+              <div class="form-actions">
+                <button class="btn btn--primary btn--small" type="submit"
+                        th:attr="aria-label=|Save the decision on report #${report.id}|">
+                  Save decision
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
+      </section>
+
+      <nav th:if="${pagination != null}" aria-label="Reported content pagination">
+        <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
+           th:href="@{/admin/community/reports(view=${selectedView}, page=${pagination.number - 1}, size=${pagination.size})}">
+          Previous
+        </a>
+        <span th:text="|${pagination.totalElements} reports|">0 reports</span>
+        <a class="btn btn--secondary" th:if="${pagination.hasNext()}"
+           th:href="@{/admin/community/reports(view=${selectedView}, page=${pagination.number + 1}, size=${pagination.size})}">
+          Next
+        </a>
+      </nav>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

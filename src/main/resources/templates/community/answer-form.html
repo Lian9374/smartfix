@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<!--
+  The edit form for one answer.
+
+  Only editing has a page of its own. Posting an answer happens on the thread it
+  belongs to, in a box under the question, because writing a reply while looking
+  at what is being replied to is the whole point; an edit is a change to something
+  already written, so it can stand apart.
+
+  The form carries a body and nothing else. There is no field for the author, the
+  question or the status, so a forged value of any of those names has nowhere to
+  bind - the answer keeps its author and stays on its question no matter what is
+  posted here.
+
+  maxlength matches the DTO annotation and the database column, so the browser
+  stops a value the server would reject rather than letting someone type a long
+  answer and lose it to a validation error.
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Edit answer')}">
+  <title>Edit answer · SmartFix</title>
+</head>
+<body>
+<div class="app-shell">
+  <th:block th:replace="~{fragments/layout :: sidebar('my-questions')}"></th:block>
+
+  <div class="app-main">
+    <th:block th:replace="~{fragments/layout :: appbar('my-questions')}"></th:block>
+
+    <main id="main-content" class="content">
+      <div class="page-head-row">
+        <div th:replace="~{fragments/components :: pageHeading(
+             'Edit answer',
+             'Change what you wrote. The answer keeps its author, its question and its place in the thread.')}">
+          <h1 class="page-head__title">Edit answer</h1>
+        </div>
+
+        <div class="page-head-row__actions">
+          <a class="btn btn--secondary"
+             th:href="@{/community/questions/{id}(id=${answer.questionId})}">Back to the question</a>
+        </div>
+      </div>
+
+      <form th:action="@{/community/answers/{id}(id=${answer.answerId})}"
+            th:object="${command}" method="post">
+
+        <!--
+          The form-wide error, inside the form because #fields is only bound where
+          a th:object is in scope. The wrapper carries th:if and the inner element
+          carries th:replace: th:replace is processed first, so a th:if beside it
+          would never run.
+        -->
+        <div th:if="${#fields.hasGlobalErrors()}">
+          <div th:replace="~{fragments/components :: alert('error',
+               'That answer was not saved',
+               ${#fields.globalErrors()[0].defaultMessage})}"></div>
+        </div>
+
+        <fieldset class="form-section">
+          <legend>Your answer</legend>
+
+          <div class="form-field"
+               th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
+            <label class="form-field__label" for="body">Answer</label>
+            <textarea id="body" th:field="*{body}" rows="10" maxlength="4000"
+                      placeholder="What the person asking should try, and why."
+                      aria-describedby="body-hint body-error"
+                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+            <span class="form-field__hint" id="body-hint">
+              Between 10 and 4000 characters. Line breaks are kept exactly as you type them.
+            </span>
+            <span class="form-field__error" id="body-error" th:errors="*{body}">
+              Answer is required.
+            </span>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button class="btn btn--primary" type="submit">Save changes</button>
+          <a class="btn btn--secondary"
+             th:href="@{/community/questions/{id}(id=${answer.questionId})}">Cancel</a>
+        </div>
+      </form>
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
