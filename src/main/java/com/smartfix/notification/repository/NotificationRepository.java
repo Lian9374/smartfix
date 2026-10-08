@@ -22,4 +22,6 @@ public interface NotificationRepository
             Long id,
             Long recipientId
     );
+
+    boolean existsByDedupKey(String dedupKey);
 }

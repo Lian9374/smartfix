@@ -24,6 +24,9 @@ public class Notification {
     @Column(name = "event_type", nullable = false, length = 80)
     private String eventType;
 
+    @Column(name = "dedup_key", nullable = false, unique = true, length = 200)
+    private String dedupKey;
+
     @Column(name = "title", nullable = false, length = 150)
     private String title;
 
@@ -48,14 +51,16 @@ public class Notification {
             String title,
             String message,
             Long referenceId,
-            Instant createdAt
+            Instant createdAt,
+            String dedupKey
     ) {
         this.recipientId = Objects.requireNonNull(recipientId);
-        this.eventType = Objects.requireNonNull(eventType);
-        this.title = Objects.requireNonNull(title);
-        this.message = Objects.requireNonNull(message);
+        this.eventType = requireText(eventType, 80);
+        this.title = requireText(title, 150);
+        this.message = requireText(message, 1000);
         this.referenceId = referenceId;
         this.createdAt = Objects.requireNonNull(createdAt);
+        this.dedupKey = requireText(dedupKey, 200);
     }
 
     public static Notification create(
@@ -64,7 +69,8 @@ public class Notification {
             String title,
             String message,
             Long referenceId,
-            Instant createdAt
+            Instant createdAt,
+            String dedupKey
     ) {
         return new Notification(
                 recipientId,
@@ -72,8 +78,19 @@ public class Notification {
                 title,
                 message,
                 referenceId,
-                createdAt
+                createdAt,
+                dedupKey
         );
+    }
+
+    private static String requireText(String value, int maxLength) {
+        if (value == null || value.isBlank()
+                || value.length() > maxLength) {
+            throw new IllegalArgumentException(
+                    "Invalid notification field"
+            );
+        }
+        return value;
     }
 
     public void markAsRead(Instant readAt) {
@@ -92,6 +109,10 @@ public class Notification {
 
     public String getEventType() {
         return eventType;
+    }
+
+    public String getDedupKey() {
+        return dedupKey;
     }
 
     public String getTitle() {
