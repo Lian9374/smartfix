@@ -5,6 +5,7 @@ import com.smartfix.dispatch.repository.AssignmentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
+import java.util.Set;
 
 /** Separate from the write orchestrator so C can read assignments without a service cycle. */
 @Service
@@ -16,5 +17,9 @@ public class AssignmentReadService {
 
     public Optional<AssignmentResponse> findActiveAssignment(Long requestId) {
         return assignments.findByRequestIdAndActiveTrue(requestId).map(AssignmentResponse::from);
+    }
+
+    public Set<Long> findActiveRequestIdsForTechnician(Long technicianId) {
+        return Set.copyOf(assignments.findActiveRequestIdsForTechnician(technicianId));
     }
 }

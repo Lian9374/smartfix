@@ -128,7 +128,7 @@ class RequestAccessServiceTest {
     }
 
     @Test
-    void technicianCannotReadRequest() {
+    void technicianWithoutAssignmentAdapterCannotReadRequest() {
         MaintenanceRequest request =
             mock(MaintenanceRequest.class);
 
@@ -172,5 +172,30 @@ class RequestAccessServiceTest {
         );
 
         verifyNoInteractions(userService);
+    }
+
+    @Test
+    void activeTechnicianCanReadOnlyTheirCurrentAssignment() {
+        var assignments = mock(RequestAssignmentAccessService.class);
+        var request = mock(MaintenanceRequest.class);
+        when(request.getId()).thenReturn(1L);
+        when(requestRepository.findByTicketNumber("SF-2026-000001")).thenReturn(Optional.of(request));
+        when(userService.getUserAccess(30L)).thenReturn(new UserAccessResponse(30L, Role.TECHNICIAN, AccountStatus.ACTIVE, 0L));
+        var service = new RequestAccessService(requestRepository, userService, assignments);
+        when(assignments.isAssignedTo(1L, 30L)).thenReturn(true);
+        assertSame(request, service.requireReadableRequest("SF-2026-000001", 30L));
+        when(assignments.isAssignedTo(1L, 30L)).thenReturn(false);
+        assertThrows(ResourceNotFoundException.class, () -> service.requireReadableRequest("SF-2026-000001", 30L));
+    }
+
+    @Test
+    void disabledTechnicianIsDeniedBeforeConsultingTheirAssignment() {
+        var assignments = mock(RequestAssignmentAccessService.class);
+        var request = mock(MaintenanceRequest.class);
+        when(requestRepository.findByTicketNumber("SF-2026-000001")).thenReturn(Optional.of(request));
+        when(userService.getUserAccess(30L)).thenReturn(new UserAccessResponse(30L, Role.TECHNICIAN, AccountStatus.DISABLED, 0L));
+        var service = new RequestAccessService(requestRepository, userService, assignments);
+        assertThrows(ResourceNotFoundException.class, () -> service.requireReadableRequest("SF-2026-000001", 30L));
+        verifyNoInteractions(assignments);
     }
 }

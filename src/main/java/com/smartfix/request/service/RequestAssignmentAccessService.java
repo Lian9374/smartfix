@@ -40,7 +40,7 @@ public class RequestAssignmentAccessService {
     public Set<Long> findActiveRequestIds(Long technicianId, Collection<Long> candidateRequestIds) {
         ActiveAssignmentLookup adapter = lookup.getIfAvailable();
         if (adapter == null || candidateRequestIds.isEmpty()) return Set.of();
-        return adapter.findActiveRequestIds(technicianId, candidateRequestIds);
+        return Set.copyOf(adapter.findActiveRequestIds(technicianId, candidateRequestIds));
     }
 
     public ActiveAssignment requireActiveAssignment(Long requestId) {
