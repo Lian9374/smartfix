@@ -1,7 +1,7 @@
 # S3-B-06：技师读取权限与撤回后的列表修复
 
 日期：2026-10-08。初始代码基线：团队 B3 的 `b3baaf8`（S3-B-04）。
-独立交付分支：`feature/SCRUM-UserB6-WANGPENGRUI`，接入主干 `c658b0a`。
+独立交付分支：`feature/SCRUM-UserB6-WANGPENGRUI`，PR #24；接入主干 `c658b0a` 及前置集成修复 PR #25。
 本机验证与 C 联合评审分开记录；不将合并授权或自动化测试记作队友评审。
 
 ## 已复现的问题
@@ -91,5 +91,7 @@ Maven 3.9.14 / JDK 25.0.4，编译目标 Java 21；JDK 21 CI 结果仍需团队�
 - 默认测试仍使用 H2，全部 PostgreSQL 测试由 `postgres-it` 启用；恢复主干合并时遗漏的既有 B 原生测试配置。
 - 指派、页面与本次权限测试均在清理用户之前清理通知，适配最新主干的外键和提交后通知。
 - 在主干 `c658b0a` 上，`mvn -B clean verify` 被通知模块测试编译错误阻塞：`NotificationTransactionTest` 调用六参数 `createNotification`，服务只剩五参数方法；独立主干目录的 `mvn -B test-compile` 复现同一错误。
-- 主干 V14 与 V20 同时创建 `notifications`，还需在确认 V20 执行状态后修复。不会通过跳过测试、删除已执行迁移或关闭校验来宣称验证通过。
-- 最新主干的完整验证结果将在上述集成问题处理后补录。
+- 前置 PR #25 恢复通知双接口兼容、E 的去重能力及已有授权规则，同时清理重复的测试路由；没有修改数据库迁移。该修复独立验证 657 项通过。
+- B06 接入 PR #25 后，`mvn -B clean verify` **453 单元/Web/仓储 + 225 集成，共 678 项通过；零失败、错误、跳过**。日志位于本机临时目录 `smartfix-b06-integrated-verify.log`。
+- 主干 V14 与 V20 同时创建 `notifications`，还需在确认 V20 执行状态后修复。Docker Desktop 本轮也因 Secrets Engine 的失效 socket 无法启动，因此没有执行最新集成版本的 PostgreSQL 测试；前述 483 项仅属于旧基线。
+- 不通过跳过测试、修改已执行迁移或关闭数据库校验来宣称 Docker 验证通过。

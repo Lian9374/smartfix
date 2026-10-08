@@ -89,17 +89,6 @@ public class SecurityConfig {
                                 "/admin/requests/*/reassign", "/admin/requests/*/withdraw").denyAll()
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
-                        // Sprint 3 community: every route is for signed-in users of any role.
-                        // Two exceptions sit outside this pattern and are matched above:
-                        // the moderation routes - GET /admin/community/reports and the five
-                        // POSTs beside it - are administrator-only through /admin/**, and
-                        // the two report routes (POST /community/questions/{id}/reports and
-                        // POST /community/answers/{id}/reports) are ordinary signed-in
-                        // routes, matched here. Deliberately .authenticated() rather than
-                        // permitAll: a signed-out visitor must not reach the board at all, and
-                        // ownership is checked again in the service layer.
-                        .requestMatchers("/community/**").authenticated()
-                        .requestMatchers("/notifications", "/notifications/*/read").authenticated()
                         .anyRequest().denyAll())
                 .formLogin(login -> login.loginPage("/login")
                         // The account-type choice rides along as the request's details. It is
