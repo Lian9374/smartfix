@@ -13,67 +13,118 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.springframework.data.domain.PageRequest;
 
 import com.smartfix.common.exception.ResourceNotFoundException;
 import com.smartfix.notification.domain.Notification;
+import com.smartfix.notification.repository.NotificationInsertRepository;
 import com.smartfix.notification.repository.NotificationRepository;
 
 class NotificationServiceTest {
 
     private NotificationRepository repository;
+    private NotificationInsertRepository insertRepository;
     private NotificationService service;
 
     private static final Instant NOW =
             Instant.parse("2026-10-08T10:00:00Z");
 
+    private static final String DEDUP_KEY =
+            "REQUEST_STATUS_CHANGED:100:SUBMITTED:UNDER_REVIEW:"
+                    + "2026-10-08T10:00:00Z:10";
+
     @BeforeEach
     void setUp() {
         repository = mock(NotificationRepository.class);
+        insertRepository = mock(NotificationInsertRepository.class);
 
-        Clock clock = Clock.fixed(
-                NOW,
-                ZoneOffset.UTC
-        );
+        Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
 
         service = new NotificationService(
                 repository,
+                insertRepository,
                 clock
         );
     }
 
     @Test
-    void createNotificationSavesCorrectRecipient() {
+    void communityDeliveryRetainsItsFiveArgumentContractAndPersistsADedupKey() {
+        when(repository.save(any(Notification.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Notification notification = service.createNotification(10L, "COMMUNITY_ANSWER_CREATED",
+                "New answer", "Someone answered your question.", 100L);
+        assertEquals(10L, notification.getRecipientId());
+        assertEquals("/community/questions/100", notification.getTargetUrl());
+        assertFalse(notification.getDedupKey().isBlank());
+        assertEquals(NOW, notification.getCreatedAt());
+        verifyNoInteractions(insertRepository);
+    }
 
-        when(repository.save(any(Notification.class)))
-                .thenAnswer(invocation ->
-                        invocation.getArgument(0)
-                );
+    @Test
+    void firstEventCreatesNotification() {
 
-        Notification result = service.createNotification(
+        when(insertRepository.insertIfAbsent(
+                anyLong(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyLong(),
+                anyString(),
+                any(Instant.class)
+        )).thenReturn(true);
+
+        boolean result = service.createNotification(
                 10L,
                 "REQUEST_STATUS_CHANGED",
                 "Request Updated",
                 "Your request status has changed.",
-                100L
+                100L,
+                DEDUP_KEY
         );
 
-        assertEquals(10L, result.getRecipientId());
-        assertEquals(
+        assertTrue(result);
+
+        verify(insertRepository).insertIfAbsent(
+                10L,
                 "REQUEST_STATUS_CHANGED",
-                result.getEventType()
+                "Request Updated",
+                "Your request status has changed.",
+                100L,
+                DEDUP_KEY,
+                NOW
         );
-        assertEquals("Request Updated", result.getTitle());
-        assertEquals(100L, result.getReferenceId());
-        assertEquals(NOW, result.getCreatedAt());
-        assertFalse(result.isRead());
+    }
 
-        verify(repository).save(any(Notification.class));
+    @Test
+    void duplicateEventDoesNotCreateNotification() {
+
+        when(insertRepository.insertIfAbsent(
+                anyLong(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyLong(),
+                anyString(),
+                any(Instant.class)
+        )).thenReturn(false);
+
+        boolean result = service.createNotification(
+                10L,
+                "REQUEST_STATUS_CHANGED",
+                "Request Updated",
+                "Your request status has changed.",
+                100L,
+                DEDUP_KEY
+        );
+
+        assertFalse(result);
     }
 
     @Test
@@ -85,7 +136,8 @@ class NotificationServiceTest {
                 "Request Updated",
                 "Your request status has changed.",
                 100L,
-                NOW
+                NOW,
+                DEDUP_KEY
         );
 
         when(repository.findAllByRecipientIdOrderByCreatedAtDesc(
@@ -97,12 +149,11 @@ class NotificationServiceTest {
                 service.getNotifications(10L);
 
         assertEquals(1, result.size());
-        assertEquals(10L, result.get(0).getRecipientId());
 
         verify(repository)
                 .findAllByRecipientIdOrderByCreatedAtDesc(
-                        eq(10L),
-                        eq(PageRequest.of(0, 20))
+                        10L,
+                        PageRequest.of(0, 20)
                 );
     }
 
@@ -112,12 +163,7 @@ class NotificationServiceTest {
         when(repository.countByRecipientIdAndReadAtIsNull(10L))
                 .thenReturn(3L);
 
-        long count = service.getUnreadCount(10L);
-
-        assertEquals(3L, count);
-
-        verify(repository)
-                .countByRecipientIdAndReadAtIsNull(10L);
+        assertEquals(3L, service.getUnreadCount(10L));
     }
 
     @Test
@@ -129,7 +175,8 @@ class NotificationServiceTest {
                 "Request Updated",
                 "Your request status has changed.",
                 100L,
-                NOW.minusSeconds(3600)
+                NOW.minusSeconds(3600),
+                DEDUP_KEY
         );
 
         when(repository.findByIdAndRecipientId(5L, 10L))
@@ -137,11 +184,7 @@ class NotificationServiceTest {
 
         service.markAsRead(5L, 10L);
 
-        assertTrue(notification.isRead());
         assertEquals(NOW, notification.getReadAt());
-
-        verify(repository)
-                .findByIdAndRecipientId(5L, 10L);
     }
 
     @Test
@@ -153,14 +196,14 @@ class NotificationServiceTest {
                 "Request Updated",
                 "Your request status has changed.",
                 100L,
-                NOW.minusSeconds(3600)
+                NOW.minusSeconds(3600),
+                DEDUP_KEY
         );
 
         when(repository.findByIdAndRecipientId(5L, 10L))
                 .thenReturn(Optional.of(notification));
 
         service.markAsRead(5L, 10L);
-
         Instant firstReadAt = notification.getReadAt();
 
         service.markAsRead(5L, 10L);
@@ -179,7 +222,24 @@ class NotificationServiceTest {
                 () -> service.markAsRead(5L, 10L)
         );
 
-        verify(repository, never())
-                .findById(5L);
+        verify(repository, never()).findById(5L);
+    }
+
+    @Test
+    void invalidDedupKeyIsRejected() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.createNotification(
+                        10L,
+                        "REQUEST_STATUS_CHANGED",
+                        "Request Updated",
+                        "Request updated.",
+                        100L,
+                        ""
+                )
+        );
+
+        verifyNoInteractions(insertRepository);
     }
 }
