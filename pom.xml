@@ -114,6 +114,7 @@
                         <exclude>**/CommunityAnswerConcurrencyPostgresIT.java</exclude>
                         <exclude>**/CommunityModerationPostgresIT.java</exclude>
                         <exclude>**/RegistrationConcurrencyPostgresIT.java</exclude>
+                        <exclude>**/CampusCatalogueMigrationPostgresIT.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>

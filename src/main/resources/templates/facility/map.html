@@ -1,112 +1,150 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Campus Map')}">
-  <title>Campus Map | SmartFix</title>
-</head>
+<head th:replace="~{fragments/layout :: head('Campus Map')}"><title>Campus Map · SmartFix</title></head>
 <body>
 <div class="app-shell">
   <th:block th:replace="~{fragments/layout :: sidebar('campus-map')}"></th:block>
-
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('campus-map')}"></th:block>
-
-    <main id="main-content" class="content">
-      <div class="page-head-row">
-        <div class="page-head">
-          <h1 class="page-head__title">Campus Map</h1>
-          <p class="page-head__subtitle">
-            Find facilities by building, floor and room.
-          </p>
-        </div>
-
-        <p class="page-head-row__meta"
-           th:unless="${#lists.isEmpty(facilities)}"
-           th:text="|${#lists.size(facilities)} facilities|">
-          0 facilities
-        </p>
-      </div>
-
-      <section class="card" aria-label="Campus facilities">
-        <div class="card__body card__body--flush">
-
-          <div th:if="${#lists.isEmpty(facilities)}">
-            <div th:replace="~{fragments/components :: emptyState(
-                     'No facilities available.',
-                     'Campus facility information will appear here when available.')}">
-            </div>
-          </div>
-
-          <div class="table-scroll"
-               th:unless="${#lists.isEmpty(facilities)}">
-
-            <table class="data-table data-table--stack">
-              <caption class="visually-hidden">
-                Campus facilities grouped by their physical location.
-              </caption>
-
-              <thead>
-              <tr>
-                <th scope="col">Facility</th>
-                <th scope="col">Location</th>
-                <th scope="col">Building</th>
-                <th scope="col">Floor</th>
-                <th scope="col">Room</th>
-                <th scope="col">Status</th>
-              </tr>
-              </thead>
-
-              <tbody>
-              <tr th:each="facility : ${facilities}">
-                <th scope="row"
-                    data-label="Facility"
-                    th:text="${facility.name}">
-                  Facility
-                </th>
-
-                <td data-label="Location"
-                    class="data-table__wrap"
-                    th:text="${facility.locationDisplayName}">
-                  Location
-                </td>
-
-                <td data-label="Building"
-                    th:text="${facility.building != null
-                              ? facility.building
-                              : '—'}">
-                  Building
-                </td>
-
-                <td data-label="Floor"
-                    th:text="${facility.floor != null
-                              ? facility.floor
-                              : '—'}">
-                  Floor
-                </td>
-
-                <td data-label="Room"
-                    th:text="${facility.room != null
-                              ? facility.room
-                              : '—'}">
-                  Room
-                </td>
-
-                <td data-label="Status">
-                  <span th:replace="~{fragments/components :: statusBadge(${facility.status})}">
-                    OPERATIONAL
-                  </span>
-                </td>
-              </tr>
-              </tbody>
-            </table>
+    <main id="main-content" class="content campus-map-page">
+      <section class="campus-map-hero" aria-labelledby="campus-map-heading">
+        <div>
+          <span class="section-kicker">NATIONAL UNIVERSITY OF SINGAPORE</span>
+          <h1 id="campus-map-heading">Campus Map</h1>
+          <p>A real campus view. See where something needs fixing.</p>
+          <div class="campus-map-totals" aria-label="Campus overview">
+            <span><strong th:text="${#lists.size(atlas.buildings)}">0</strong> mapped places</span>
+            <span><strong>4</strong> campus areas</span>
+            <span>Building-level status</span>
           </div>
         </div>
+        <div class="campus-map-art" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: map}"></svg></div>
       </section>
-    </main>
 
+      <section class="card campus-atlas" aria-labelledby="atlas-heading" th:attr="data-status-url=@{/campus-map/status}">
+        <header class="module-header atlas-header">
+          <div><h2 id="atlas-heading">Explore NUS</h2><p class="atlas-subtitle">Online map · SmartFix maintenance updates</p></div>
+          <div class="atlas-refresh"><span class="atlas-live-dot" aria-hidden="true"></span><span id="atlas-sync" role="status" aria-live="polite">Updates every 30 seconds</span></div>
+        </header>
+        <div class="atlas-toolbar">
+          <div class="atlas-campus-tabs" role="group" aria-label="Map campus area">
+            <button type="button" data-campus="KENT_RIDGE" aria-pressed="true">Kent Ridge</button>
+            <button type="button" data-campus="UTOWN" aria-pressed="false">UTown</button>
+            <button type="button" data-campus="BUKIT_TIMAH" aria-pressed="false">Bukit Timah</button>
+            <button type="button" data-campus="OUTRAM" aria-pressed="false">Outram</button>
+          </div>
+          <form id="atlas-find-form" class="atlas-find" role="search" aria-label="Locate a NUS building">
+            <label class="visually-hidden" for="atlas-find">Building name</label>
+            <input id="atlas-find" type="search" list="atlas-places" placeholder="Find a building, e.g. COM3" maxlength="150" autocomplete="off">
+            <datalist id="atlas-places"><option th:each="point : ${atlas.buildings}" th:value="${point.name}"></option></datalist>
+            <button class="btn btn--secondary" type="submit">Locate</button>
+          </form>
+        </div>
+        <div class="atlas-body">
+          <div class="atlas-map-wrap">
+            <div id="nus-online-map" class="atlas-map" role="region" aria-label="NUS geographic map. Use plus and minus to zoom, or arrow keys to move."></div>
+            <p id="atlas-map-notice" class="atlas-map-notice" role="status" hidden></p>
+            <noscript><p class="atlas-map-notice">Enable JavaScript for the online map. Building names and current statuses remain available below.</p></noscript>
+            <div class="atlas-map-legend" aria-label="Map key"><span><i class="atlas-dot atlas-dot--fault" aria-hidden="true"></i>Fault reported</span><span><i class="atlas-dot atlas-dot--repair" aria-hidden="true"></i>Under repair</span><span><i class="atlas-dot atlas-dot--quiet" aria-hidden="true"></i>Other buildings</span></div>
+          </div>
+          <aside class="atlas-activity" aria-labelledby="atlas-activity-heading">
+            <span class="section-kicker">MAINTENANCE OVERVIEW</span>
+            <h3 id="atlas-activity-heading">Across the campus</h3>
+            <div class="atlas-activity-totals"><div><strong id="atlas-fault-count" th:text="${atlas.faultBuildings}">0</strong><span>with faults</span></div><div><strong id="atlas-repair-count" th:text="${atlas.repairBuildings}">0</strong><span>under repair</span></div></div>
+            <p class="atlas-count-help">Buildings with active reports or facility updates.</p>
+            <div id="atlas-activity-list" class="atlas-activity-list">
+              <p class="atlas-no-activity" th:if="${#lists.isEmpty(atlas.activeBuildings)}">No active faults or repairs recorded on the map.</p>
+              <article class="atlas-activity-item" th:each="point : ${atlas.activeBuildings}">
+                <i class="atlas-dot" th:classappend="${point.hasFault() ? 'atlas-dot--fault' : 'atlas-dot--repair'}" aria-hidden="true"></i>
+                <div><h4 th:text="${point.name}"></h4><p><span th:if="${point.faultReports > 0}" th:text="|${point.faultReports} outstanding reports. |"></span><span th:if="${point.repairs > 0}" th:text="|${point.repairs} repairs in progress. |"></span><span th:if="${point.outOfServiceFacilities > 0}" th:text="|${point.outOfServiceFacilities} facilities out of service. |"></span><span th:if="${point.maintenanceFacilities > 0}" th:text="|${point.maintenanceFacilities} facilities under maintenance.|"></span></p></div>
+              </article>
+            </div>
+            <p id="atlas-unmapped" class="atlas-unmapped" th:hidden="${atlas.unmappedRequests == 0 and atlas.unmappedFacilities == 0}" th:text="|Not positioned: ${atlas.unmappedRequests} active reports · ${atlas.unmappedFacilities} facilities.|"></p>
+            <p class="atlas-data-note">Statuses come from SmartFix records. A grey point does not confirm that a building is fault-free.</p>
+            <a class="btn btn--primary" th:if="${navRole == 'REQUESTER'}" th:href="@{/requests/new}">Report an issue <span aria-hidden="true">↗</span></a>
+          </aside>
+        </div>
+        <div class="atlas-source"><span>Basemap: <a href="https://www.onemap.gov.sg/" target="_blank" rel="noopener">OneMap</a> · <a href="https://www.sla.gov.sg/" target="_blank" rel="noopener">Singapore Land Authority</a> · <a href="https://www.onemap.gov.sg/legal/opendatalicence.html" target="_blank" rel="noopener">Open Data Licence</a></span><span>Places: <a href="https://map.nus.edu.sg/" target="_blank" rel="noopener">NUS</a> / OneMap · Checked <time th:text="${atlas.catalogueVerifiedOn}"></time></span></div>
+        <details class="atlas-directory">
+          <summary>Building &amp; landmark directory <span th:text="|${#lists.size(atlas.buildings)} places|"></span></summary>
+          <div class="atlas-directory-grid"><span th:each="point : ${atlas.buildings}"><strong th:text="${point.name}"></strong><small th:text="${point.campus == 'KENT_RIDGE' ? 'Kent Ridge' : (point.campus == 'UTOWN' ? 'UTown' : (point.campus == 'BUKIT_TIMAH' ? 'Bukit Timah' : 'Outram'))}"></small></span></div>
+        </details>
+      </section>
+
+      <details class="campus-facility-details">
+      <summary>Facility directory <span th:text="|${campus.facilityCount} registered facilities|"></span></summary>
+      <div class="campus-map-workspace">
+        <aside class="card campus-building-directory" aria-labelledby="map-buildings-heading">
+          <header class="module-header"><h2 id="map-buildings-heading">Buildings</h2></header>
+          <nav aria-label="Choose a campus building">
+            <a class="campus-building" th:href="@{/campus-map(q=${query},status=${selectedStatus},size=${pagination.size})}"
+               th:attr="aria-current=${selectedBuilding == ''} ? 'true' : null">
+              <span class="campus-building__icon"><svg th:replace="~{fragments/ui-icons :: map}"></svg></span>
+              <span><strong>All campus</strong><small th:text="|${campus.facilityCount} facilities|"></small></span>
+            </a>
+            <a class="campus-building" th:each="entry : ${campus.buildings}"
+               th:href="@{/campus-map(building=${entry.name},q=${query},status=${selectedStatus},size=${pagination.size})}"
+               th:attr="aria-current=${selectedBuilding == entry.name} ? 'true' : null">
+              <span class="campus-building__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 21V3h14v18M3 21h18M9 7h2m2 0h2M9 11h2m2 0h2M10 21v-5h4v5"/></svg></span>
+              <span><strong th:text="${entry.name}"></strong><small th:text="${#lists.isEmpty(entry.floors) ? 'Building-level location' : #lists.size(entry.floors) + ' floors · ' + entry.facilityCount + ' facilities'}"></small></span>
+            </a>
+          </nav>
+          <p class="campus-directory-note" th:if="${#lists.isEmpty(campus.buildings)}">Buildings will appear when active campus locations are added.</p>
+          <div class="campus-directory-actions" th:if="${navRole == 'ADMINISTRATOR'}"><a th:href="@{/admin/facilities}">Manage facilities <span aria-hidden="true">↗</span></a></div>
+        </aside>
+
+        <div class="campus-map-results">
+          <form class="card campus-map-filters" method="get" th:action="@{/campus-map}" role="search" aria-label="Find campus facilities">
+            <input type="hidden" name="building" th:value="${selectedBuilding}">
+            <input type="hidden" name="size" th:value="${pagination.size}">
+            <div class="form-field"><label for="map-search">Find a facility</label><input id="map-search" type="search" name="q" maxlength="100" th:value="${query}" placeholder="Facility or building name"></div>
+            <div class="form-field"><label for="map-floor">Floor</label><select id="map-floor" name="floor"><option value="">All floors</option><option th:each="value : ${campus.floors}" th:value="${value}" th:text="${value}" th:selected="${selectedFloor == value}"></option></select></div>
+            <div class="form-field"><label for="map-status">Status</label><select id="map-status" name="status"><option value="">Any status</option><option value="OPERATIONAL" th:selected="${selectedStatus != null and selectedStatus.name() == 'OPERATIONAL'}">Operational</option><option value="UNDER_MAINTENANCE" th:selected="${selectedStatus != null and selectedStatus.name() == 'UNDER_MAINTENANCE'}">Under maintenance</option><option value="OUT_OF_SERVICE" th:selected="${selectedStatus != null and selectedStatus.name() == 'OUT_OF_SERVICE'}">Out of service</option></select></div>
+            <div class="campus-map-filter-actions"><button class="btn btn--primary" type="submit">Find</button><a class="text-link" th:href="@{/campus-map}">Reset</a></div>
+          </form>
+
+          <section class="campus-status-summary" aria-label="Facility statuses in this area">
+            <div class="campus-status-tile campus-status-tile--green"><span class="campus-status-dot" aria-hidden="true"></span><span>Operational</span><strong th:text="${campus.operationalCount}">0</strong></div>
+            <div class="campus-status-tile campus-status-tile--amber"><span class="campus-status-dot" aria-hidden="true"></span><span>Under maintenance</span><strong th:text="${campus.maintenanceCount}">0</strong></div>
+            <div class="campus-status-tile campus-status-tile--red"><span class="campus-status-dot" aria-hidden="true"></span><span>Out of service</span><strong th:text="${campus.outOfServiceCount}">0</strong></div>
+          </section>
+
+          <section class="card campus-facility-feed" aria-labelledby="map-results-heading">
+            <header class="module-header"><h2 id="map-results-heading" th:text="${selectedBuilding == '' ? 'Campus facilities' : selectedBuilding}">Campus facilities</h2><span class="result-count" th:text="|${pagination.totalElements} found|"></span></header>
+            <div class="campus-map-empty" th:if="${#lists.isEmpty(facilities)}">
+              <svg th:replace="~{fragments/ui-icons :: map}"></svg>
+              <h3 th:text="${campus.facilityCount == 0 ? 'No facilities added yet' : 'No facilities match'}"></h3>
+              <p th:text="${campus.facilityCount == 0 ? (campus.activeLocationCount > 0 ? 'Campus locations are ready. Facility details will appear when they are added.' : 'Buildings and facilities will appear when campus data is added.') : 'Try another building, floor or status, or clear your search.'}"></p>
+              <a class="btn btn--secondary" th:if="${campus.facilityCount > 0}" th:href="@{/campus-map}">Clear filters</a>
+              <a class="btn btn--primary" th:if="${navRole == 'REQUESTER' and campus.facilityCount == 0}" th:href="@{/requests/new}">Report an issue</a>
+            </div>
+            <div class="campus-facility-grid" th:unless="${#lists.isEmpty(facilities)}">
+              <article class="campus-facility" th:each="facility : ${facilities}">
+                <div class="campus-facility__top"><span class="campus-facility__icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="16" height="12" rx="2"/><path d="M8 20h8m-4-4v4M8 8h8m-8 4h4"/></svg></span><span class="campus-status-badge" th:classappend="${facility.status.name() == 'OPERATIONAL' ? 'campus-status-badge--green' : (facility.status.name() == 'UNDER_MAINTENANCE' ? 'campus-status-badge--amber' : 'campus-status-badge--red')}" th:text="${facility.status.name() == 'OPERATIONAL' ? 'Operational' : (facility.status.name() == 'UNDER_MAINTENANCE' ? 'Under maintenance' : 'Out of service')}"></span></div>
+                <h3 th:text="${facility.name}">Facility</h3>
+                <p class="campus-facility__address" th:text="|${facility.building} · ${facility.floor}|"></p>
+                <p class="campus-facility__room" th:if="${facility.room != null}" th:text="|Room ${facility.room}|"></p>
+                <p class="campus-facility__detail" th:if="${navRole == 'ADMINISTRATOR'}" th:text="${facility.locationDisplayName}"></p>
+                <a class="campus-facility__action" th:if="${navRole == 'REQUESTER'}" th:href="@{/requests/new(locationId=${facility.locationId})}">Report an issue <span aria-hidden="true">↗</span></a>
+              </article>
+            </div>
+            <nav class="list-pagination" th:if="${pagination.hasPrevious() or pagination.hasNext()}" aria-label="Facility pages">
+              <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}" th:href="@{/campus-map(q=${query},building=${selectedBuilding},floor=${selectedFloor},status=${selectedStatus},page=${pagination.number - 1},size=${pagination.size})}">Previous</a>
+              <span th:text="|Page ${pagination.number + 1} of ${pagination.totalPages}|"></span>
+              <a class="btn btn--secondary" th:if="${pagination.hasNext()}" th:href="@{/campus-map(q=${query},building=${selectedBuilding},floor=${selectedFloor},status=${selectedStatus},page=${pagination.number + 1},size=${pagination.size})}">Next</a>
+            </nav>
+          </section>
+        </div>
+      </div>
+      </details>
+    </main>
     <footer th:replace="~{fragments/layout :: footer}"></footer>
   </div>
 </div>
-
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<link rel="stylesheet" th:href="@{/css/vendor/leaflet/leaflet.css}">
+<script th:inline="javascript">window.smartfixCampusSnapshot = /*[[${atlas}]]*/ null;</script>
+<script th:src="@{/js/vendor/leaflet/leaflet.js}"></script>
+<script th:src="@{/js/campus-map.js}"></script>
 </body>
 </html>

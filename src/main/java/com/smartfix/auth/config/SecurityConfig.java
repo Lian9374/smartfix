@@ -51,7 +51,7 @@ public class SecurityConfig {
                         // carries the token like every other write does.
                         .requestMatchers(HttpMethod.GET, "/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
