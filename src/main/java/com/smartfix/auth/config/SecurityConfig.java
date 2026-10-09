@@ -53,6 +53,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status").authenticated()
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
+                        .requestMatchers("/account/password").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/technician", "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers("/admin").hasRole("ADMINISTRATOR")
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")

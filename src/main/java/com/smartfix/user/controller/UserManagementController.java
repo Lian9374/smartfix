@@ -51,24 +51,43 @@ public class UserManagementController {
     private static final String REDIRECT_TO_USER_LIST = "redirect:/admin/users";
     private static final String SHOW_CREATE_FORM = "showCreateForm";
     private final UserService userService;
+    private final com.smartfix.user.service.AccountAdministrationService administration;
 
-    public UserManagementController(UserService userService) {
+    public UserManagementController(UserService userService, com.smartfix.user.service.AccountAdministrationService administration) {
         this.userService = userService;
+        this.administration = administration;
+    }
+
+    @org.springframework.web.bind.annotation.InitBinder(CREATE_FORM)
+    void bindCreation(org.springframework.web.bind.WebDataBinder binder) {
+        binder.setAllowedFields("username", "displayName", "password", "role");
     }
 
     /** @return the account list, with the creation form collapsed */
     @GetMapping
-    public String listUsers(Model model) {
+    public String listUsers(Model model,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "") String search,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Role role,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) AccountStatus status) {
         populateForListing(model);
+        String term = search.trim().toLowerCase(java.util.Locale.ROOT);
+        model.addAttribute("users", userService.listUsers().stream()
+                .filter(u -> role == null || u.role() == role)
+                .filter(u -> status == null || u.accountStatus() == status)
+                .filter(u -> term.isEmpty() || u.username().contains(term) || u.displayName().toLowerCase(java.util.Locale.ROOT).contains(term)).toList());
+        model.addAttribute("search", search);
+        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedAccountStatus", status);
         model.addAttribute(SHOW_CREATE_FORM, false);
         return VIEW;
     }
 
     /** @return the account list with the creation form expanded */
     @GetMapping("/new")
-    public String showCreateForm(Model model) {
+    public String showCreateForm(Model model, @org.springframework.web.bind.annotation.RequestParam(required = false) Role role) {
         populateForListing(model);
         registerEmptyCreateForm(model);
+        ((CreateUserCommand) model.getAttribute(CREATE_FORM)).setRole(role);
         model.addAttribute(SHOW_CREATE_FORM, true);
         return VIEW;
     }
@@ -90,7 +109,7 @@ public class UserManagementController {
             return renderListing(model, HttpStatus.BAD_REQUEST, null);
         }
         try {
-            userService.createUser(command, resolveActorUserId(principal));
+            administration.createUser(command, resolveActorUserId(principal));
         } catch (BusinessConflictException ex) {
             // A field-level error, because the username is the field to correct.
             bindingResult.rejectValue("username", "conflict", ex.getMessage());
@@ -118,7 +137,7 @@ public class UserManagementController {
             return renderListing(model, HttpStatus.BAD_REQUEST, "Select a role before submitting.");
         }
         try {
-            userService.changeRole(userId, command, resolveActorUserId(principal));
+            administration.changeRole(userId, command, resolveActorUserId(principal));
         } catch (BusinessConflictException ex) {
             return renderListing(model, HttpStatus.CONFLICT, ex.getMessage());
         }
@@ -144,7 +163,7 @@ public class UserManagementController {
             return renderListing(model, HttpStatus.BAD_REQUEST, "Select an account status before submitting.");
         }
         try {
-            userService.changeAccountStatus(userId, command, resolveActorUserId(principal));
+            administration.changeAccountStatus(userId, command, resolveActorUserId(principal));
         } catch (BusinessConflictException ex) {
             return renderListing(model, HttpStatus.CONFLICT, ex.getMessage());
         }
@@ -156,6 +175,21 @@ public class UserManagementController {
         model.addAttribute("users", userService.listUsers());
         model.addAttribute("roles", Role.values());
         model.addAttribute("accountStatuses", AccountStatus.values());
+    }
+
+    @PostMapping("/{userId}/password")
+    public ModelAndView resetPassword(@PathVariable Long userId,
+            @org.springframework.web.bind.annotation.RequestParam String adminPassword,
+            @org.springframework.web.bind.annotation.RequestParam String newPassword,
+            @org.springframework.web.bind.annotation.RequestParam String confirmPassword,
+            Model model, Principal principal, RedirectAttributes redirect) {
+        try {
+            administration.resetPassword(userId, resolveActorUserId(principal), adminPassword, newPassword, confirmPassword);
+        } catch (InputValidationException ex) {
+            return renderListing(model, HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+        redirect.addFlashAttribute(SUCCESS_MESSAGE, "Temporary password reset. Existing sessions were revoked; the account must change it at next login.");
+        return new ModelAndView(REDIRECT_TO_USER_LIST);
     }
 
     /**

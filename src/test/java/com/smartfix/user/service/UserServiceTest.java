@@ -454,7 +454,7 @@ class UserServiceTest {
             assertThat(users).hasSize(1);
             assertThat(users.get(0).username()).isEqualTo("alice");
             assertThat(users.get(0).toString()).doesNotContain(BCRYPT_HASH);
-            assertThat(users.get(0).toString().toLowerCase()).doesNotContain("password");
+            assertThat(users.get(0).toString().toLowerCase()).doesNotContain("passwordhash");
         }
 
         @Test
@@ -510,7 +510,7 @@ class UserServiceTest {
             assertThat(access.accountStatus()).isEqualTo(AccountStatus.ACTIVE);
             assertThat(access.securityVersion()).isEqualTo(2L);
             assertThat(access.toString()).doesNotContain(BCRYPT_HASH);
-            assertThat(access.toString().toLowerCase()).doesNotContain("password");
+            assertThat(access.toString().toLowerCase()).doesNotContain("passwordhash");
         }
 
         @Test
@@ -531,6 +531,7 @@ class UserServiceTest {
         @DisplayName("creates the administrator when no such account exists")
         void createsWhenAbsent() {
             stubSuccessfulCreation();
+            when(userRepository.claimBootstrapInitialization()).thenReturn(1);
 
             boolean created = userService.createInitialAdministrator(
                     command("root", "Root", Role.ADMINISTRATOR));

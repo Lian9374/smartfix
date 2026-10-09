@@ -43,6 +43,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     /** @param username an <em>already normalized</em> username */
     boolean existsByUsername(String username);
 
+    boolean existsByRole(Role role);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "UPDATE account_initialization SET completed = TRUE, completed_at = CURRENT_TIMESTAMP WHERE id = 1 AND completed = FALSE", nativeQuery = true)
+    int claimBootstrapInitialization();
+
     /** The user-management listing: stable, oldest first. */
     List<User> findAllByOrderByIdAsc();
 

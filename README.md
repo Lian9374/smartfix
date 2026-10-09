@@ -14,6 +14,9 @@ This README is the team's engineering handbook. If you are new to the repository
 start here: it tells you what SmartFix is, what currently works, where code belongs,
 and how to work safely with the shared project. Detailed guides live in [`docs/`](docs/).
 
+Administrator and engineer workspaces, secure managed-account password setup and the next
+V23/V24 migrations are documented in [the role workspace handoff](docs/sprint3/Admin_Engineer_Workspaces_CN.md).
+
 ---
 
 ## Table of contents

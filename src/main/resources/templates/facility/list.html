@@ -10,8 +10,8 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('facilities')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content workspace-page">
+      <div class="page-head-row card page-context workspace-heading">
         <div class="page-head">
           <h1 class="page-head__title">Facilities</h1>
           <p class="page-head__subtitle">
@@ -91,7 +91,7 @@
                 <td data-label="Update status">
                   <form th:action="@{/admin/facilities/{facilityId}/status(
                                     facilityId=${facility.id})}"
-                        method="post">
+                        method="post" data-confirm="Change this facility’s operational status?">
 
                     <label class="visually-hidden"
                            for="facility-status"

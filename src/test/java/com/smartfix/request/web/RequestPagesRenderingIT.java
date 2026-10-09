@@ -168,6 +168,8 @@ class RequestPagesRenderingIT {
     @Test
     void overviewGivesAnAdministratorTheirOwnEntriesAndNoRequestList() throws Exception {
         mvc.perform(get("/").session(login("root.admin")))
+                .andExpect(redirectedUrl("/admin"));
+        mvc.perform(get("/admin").session(login("root.admin")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Administration")))
                 // The queue is a real, authorised administrator route, so the
