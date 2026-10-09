@@ -76,6 +76,15 @@ class SecurityConfigTest {
         for (Role role : Role.values()) {
             cases.add(Arguments.of(role, "/technician/profile", role == Role.TECHNICIAN ? 200 : 403));
             cases.add(Arguments.of(role, "/campus-map", 200));
+            cases.add(Arguments.of(
+                role,
+                "/dashboard",
+                role == Role.ADMINISTRATOR ? 200 : 403));
+
+            cases.add(Arguments.of(
+                role,
+                "/technician/dashboard",
+                role == Role.TECHNICIAN ? 200 : 403));
             for (String route : List.of("/requests/new", "/requests/mine")) {
                 cases.add(Arguments.of(role, route, role == Role.REQUESTER ? 200 : 403));
             }
@@ -110,7 +119,8 @@ class SecurityConfigTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"/", "/home", "/campus-map", "/requests/new", "/requests/mine", "/admin/users",
-        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1", "/community"})
+        "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1", "/community","/dashboard",
+        "/technician/dashboard",})
     void anonymousPageAccessRedirectsToLogin(String route) throws Exception {
         mvc.perform(get(route)).andExpect(status().isFound()).andExpect(redirectedUrl("http://localhost/login"));
     }
@@ -230,7 +240,9 @@ class SecurityConfigTest {
             for (String route : ADMINISTRATOR_READS) {
                 mvc.perform(get(route).with(account(role))).andExpect(status().is(role == Role.ADMINISTRATOR ? 200 : 403));
             }
-            mvc.perform(get("/dashboard").with(account(role))).andExpect(status().is(role == Role.REQUESTER ? 403 : 200));
+            mvc.perform(get("/dashboard").with(account(role)))
+                .andExpect(status().is(
+                    role == Role.ADMINISTRATOR ? 200 : 403));
             for (String route : AUTHENTICATED_WRITES) {
                 mvc.perform(post(route).with(account(role)).with(csrf())).andExpect(status().isOk());
                 mvc.perform(post(route).with(account(role))).andExpect(status().isForbidden());
@@ -309,7 +321,8 @@ class SecurityConfigTest {
             "/community/answers/{id}/edit", "/notifications", "/announcements", "/dashboard",
             "/admin/community/reports", "/admin/sla/policies", "/admin/reports", "/admin/reports/export.csv",
             "/admin/announcements", "/admin/audit",
-            "/technician/profile"
+            "/technician/profile",
+            "/technician/dashboard"
         })
         String read() {
             return "authorized route probe";
