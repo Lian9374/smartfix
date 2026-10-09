@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Announcements')}">
+  <title>Announcements | SmartFix</title>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <th:block th:replace="~{fragments/layout :: sidebar('announcements')}"></th:block>
+
+  <div class="app-main">
+
+    <th:block th:replace="~{fragments/layout :: appbar('announcements')}"></th:block>
+
+    <main id="main-content" class="content">
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Announcements</h1>
+          <p class="page-head__subtitle">
+            Current campus maintenance announcements.
+          </p>
+        </div>
+      </div>
+
+      <section class="card" aria-label="Current announcements">
+        <div class="card__body">
+
+          <p th:if="${#lists.isEmpty(announcements)}">
+            No current announcements.
+          </p>
+
+          <article th:each="announcement : ${announcements}">
+            <h2 th:text="${announcement.title}">
+              Announcement title
+            </h2>
+
+            <p th:text="${announcement.content}">
+              Announcement content
+            </p>
+
+            <p>
+              <strong>Valid from:</strong>
+              <span th:text="${announcement.validFrom}">
+                Start time
+              </span>
+            </p>
+
+            <p th:if="${announcement.validTo != null}">
+              <strong>Valid until:</strong>
+              <span th:text="${announcement.validTo}">
+                End time
+              </span>
+            </p>
+
+            <hr>
+          </article>
+
+        </div>
+      </section>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

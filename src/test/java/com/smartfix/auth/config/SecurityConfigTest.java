@@ -67,9 +67,16 @@ class SecurityConfigTest {
             "/admin/community/reports", "/admin/sla/policies", "/admin/reports", "/admin/reports/export.csv",
             "/admin/announcements", "/admin/audit");
     private static final List<String> ADMINISTRATOR_WRITES = List.of(
-            "/admin/community/reports/1/resolve", "/admin/community/questions/1/hide", "/admin/community/questions/1/restore",
-            "/admin/community/answers/1/hide", "/admin/community/answers/1/restore", "/admin/sla/policies",
-            "/admin/facilities/1/status", "/admin/announcements");
+        "/admin/community/reports/1/resolve",
+        "/admin/community/questions/1/hide",
+        "/admin/community/questions/1/restore",
+        "/admin/community/answers/1/hide",
+        "/admin/community/answers/1/restore",
+        "/admin/sla/policies",
+        "/admin/facilities/1/status",
+        "/admin/announcements",
+        "/admin/announcements/5/publish",
+        "/admin/announcements/5/withdraw");
 
     static Stream<Arguments> routes() {
         List<Arguments> cases = new ArrayList<>();
@@ -295,6 +302,28 @@ class SecurityConfigTest {
         mvc.perform(get("/community/unknown").with(account(Role.REQUESTER))).andExpect(status().isForbidden());
     }
 
+    @Test
+    void announcementWritesRequireAdministratorAndCsrf() throws Exception {
+        for (Role role : Role.values()) {
+            boolean allowed = role == Role.ADMINISTRATOR;
+
+            for (String route : List.of(
+                "/admin/announcements",
+                "/admin/announcements/5/publish",
+                "/admin/announcements/5/withdraw")) {
+
+                mvc.perform(post(route)
+                        .with(account(role))
+                        .with(csrf()))
+                    .andExpect(status().is(allowed ? 200 : 403));
+
+                mvc.perform(post(route)
+                        .with(account(role)))
+                    .andExpect(status().isForbidden());
+            }
+        }
+    }
+
     private RequestPostProcessor account(Role role) {
         when(users.getUserAccess(7L)).thenReturn(new UserAccessResponse(7L, role, AccountStatus.ACTIVE, 0L));
         return user(new SmartFixUserDetails(new UserAuthenticationData(
@@ -331,19 +360,34 @@ class SecurityConfigTest {
         @GetMapping("/community/questions/new")
         String questionForm() { return "question form route probe"; }
 
-        @PostMapping({"/requests", "/requests/{ticket}/confirm", "/requests/{ticket}/feedback",
-                "/requests/{ticket}/reopen", "/requests/{ticket}/cancel", "/requests/{ticket}/review",
-                "/requests/{ticket}/close", "/workorders/{id}/accept", "/workorders/{id}/records", "/workorders/{id}/complete",
-                "/admin/requests/{ticket}/assign", "/admin/requests/{ticket}/reassign", "/admin/requests/{ticket}/withdraw",
-                "/technician/profile", "/community/questions", "/community/questions/{id}",
-                "/community/questions/{id}/withdraw", "/community/questions/{id}/answers",
-                "/community/answers/{id}", "/community/answers/{id}/withdraw",
-                "/community/questions/{id}/answers/{answerId}/accept", "/community/questions/{id}/acceptance/remove",
-                "/community/questions/{id}/reports", "/community/answers/{id}/reports", "/notifications/{id}/read",
-                "/admin/community/reports/{id}/resolve", "/admin/community/questions/{id}/hide", "/admin/community/questions/{id}/restore",
-                "/admin/community/answers/{id}/hide", "/admin/community/answers/{id}/restore", "/admin/sla/policies",
-                "/admin/facilities/{id}/status", "/admin/announcements"})
-        String submit() { return "authorized route probe"; }
+        @PostMapping({
+            "/requests", "/requests/{ticket}/confirm", "/requests/{ticket}/feedback",
+            "/requests/{ticket}/reopen", "/requests/{ticket}/cancel", "/requests/{ticket}/review",
+            "/requests/{ticket}/close", "/workorders/{id}/accept",
+            "/workorders/{id}/records", "/workorders/{id}/complete",
+            "/admin/requests/{ticket}/assign", "/admin/requests/{ticket}/reassign",
+            "/admin/requests/{ticket}/withdraw",
+            "/technician/profile", "/community/questions", "/community/questions/{id}",
+            "/community/questions/{id}/withdraw", "/community/questions/{id}/answers",
+            "/community/answers/{id}", "/community/answers/{id}/withdraw",
+            "/community/questions/{id}/answers/{answerId}/accept",
+            "/community/questions/{id}/acceptance/remove",
+            "/community/questions/{id}/reports", "/community/answers/{id}/reports",
+            "/notifications/{id}/read",
+            "/admin/community/reports/{id}/resolve",
+            "/admin/community/questions/{id}/hide",
+            "/admin/community/questions/{id}/restore",
+            "/admin/community/answers/{id}/hide",
+            "/admin/community/answers/{id}/restore",
+            "/admin/sla/policies",
+            "/admin/facilities/{id}/status",
+            "/admin/announcements",
+            "/admin/announcements/{id}/publish",
+            "/admin/announcements/{id}/withdraw"
+        })
+        String submit() {
+            return "authorized route probe";
+        }
 
     }
 }
