@@ -1,0 +1,2253 @@
+{
+  "verifiedOn": "2026-10-08",
+  "buildings": [
+    {
+      "id": "nus-6bb357811e32",
+      "name": "Block B",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.319009295,
+      "longitude": 103.8167994,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-d91055f56ee4",
+      "name": "Eu Tong Sen Building",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.318194812,
+      "longitude": 103.8169349,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-b4894e2ceb0e",
+      "name": "Lee Kuan Yew School of Public Policy",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.319558532,
+      "longitude": 103.8178308,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-e2dfe4b3ba8d",
+      "name": "Li Ka Shing Building",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.319672204,
+      "longitude": 103.8174717,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-cb95b0c625ed",
+      "name": "Manasseh Mayer",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.319244223,
+      "longitude": 103.8174218,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-d7003a58fd6f",
+      "name": "Oei Tiong Ham Building",
+      "campus": "BUKIT_TIMAH",
+      "latitude": 1.319558532,
+      "longitude": 103.8178308,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-63088bd8be00",
+      "name": "25 Heng Mui Keng Terrace",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29216429,
+      "longitude": 103.7765431,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-d5d304d1150d",
+      "name": "AS1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295194128756838,
+      "longitude": 103.7721425913213,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9eb5d65bc857",
+      "name": "AS2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295183180223422,
+      "longitude": 103.771323935857,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-c9cc024a4766",
+      "name": "AS3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294728419483916,
+      "longitude": 103.7712619068478,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-e71814b35d13",
+      "name": "AS4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294702912850767,
+      "longitude": 103.7721261575742,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6c88fc000e08",
+      "name": "AS5",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294234380351985,
+      "longitude": 103.7718169938925,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-a9a8aad4610f",
+      "name": "AS6",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295561961375663,
+      "longitude": 103.7732566601491,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-3267def2aaa8",
+      "name": "AS7",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294490848557775,
+      "longitude": 103.7709913618754,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-49b6fe82c501",
+      "name": "AS8",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296086762317243,
+      "longitude": 103.7723482217768,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-4b24a216797a",
+      "name": "BIZ2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293367046314056,
+      "longitude": 103.7751617040702,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ff65cfdc257d",
+      "name": "Block 10",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300470473214583,
+      "longitude": 103.7752040099441,
+      "aliases": [
+        "BLOCK 10"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-696d01223ee7",
+      "name": "CDE1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297518307840556,
+      "longitude": 103.7706874809789,
+      "aliases": [
+        "SDE1"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b85092c6c909",
+      "name": "CDE2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297395429837487,
+      "longitude": 103.7711221733752,
+      "aliases": [
+        "SDE2"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b1b9eab80885",
+      "name": "CDE3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298031977262597,
+      "longitude": 103.7704974592784,
+      "aliases": [
+        "SDE3"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-e6f085ab90cc",
+      "name": "Central Library",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296728869134907,
+      "longitude": 103.7731517543937,
+      "aliases": [
+        "CENTRAL LIBRARY/CHINESE LIBRARY"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-fe8a8f73ee13",
+      "name": "Central Library Annexe",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296991778233589,
+      "longitude": 103.7737578755094,
+      "aliases": [
+        "CENTRAL LIBRARY ANNEXE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0f1e57df2df4",
+      "name": "Centre for Development of Teaching and Learning",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297184241553568,
+      "longitude": 103.7738203900724,
+      "aliases": [
+        "CTR FOR DVLPT OF TCHG AND LRNG"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-dfe9800a921c",
+      "name": "Centre for English Language Communication",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296990163622713,
+      "longitude": 103.7714065430708,
+      "aliases": [
+        "CTR FOR ENG LANG COMN"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ee77a5a57139",
+      "name": "Centre for Instructional Technology",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297008878926111,
+      "longitude": 103.7754243654143,
+      "aliases": [
+        "CTR FOR INSTRUCTIONAL TECH"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-d2c9c9701229",
+      "name": "Centre for Life Sciences (CeLS)",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294421593452955,
+      "longitude": 103.7806522165385,
+      "aliases": [
+        "CENTRE FOR LIFE SCIENCES"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-840fbd87de44",
+      "name": "Centre for Protective Technology",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297243926222173,
+      "longitude": 103.7751993540919,
+      "aliases": [
+        "CTRFOR PROTECTIVE TECHNOLOGY"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b2d3b66bdbf7",
+      "name": "Centre for the Arts Studio",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29920050155206,
+      "longitude": 103.7737496712072,
+      "aliases": [
+        "CENTRE FOR THE ARTS STUDIO"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-532e7b746968",
+      "name": "College of Design and Engineering",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300385691,
+      "longitude": 103.7712593,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-957a49c3e803",
+      "name": "COM1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294990290797815,
+      "longitude": 103.7739123266127,
+      "aliases": [
+        "School of Computing",
+        "COMPUTING1"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-3b950c6c79b9",
+      "name": "COM2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293731857767132,
+      "longitude": 103.7741618832574,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6e75320ebb59",
+      "name": "COM3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294640832761884,
+      "longitude": 103.7745659764451,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0a7f621f982f",
+      "name": "DSO @ Kent Ridge",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296333131,
+      "longitude": 103.7813558,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-8b5cc4df7eec",
+      "name": "E1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298752316392317,
+      "longitude": 103.7711007972773,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-683c9f0ebc93",
+      "name": "E1A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299513066587703,
+      "longitude": 103.7707973977327,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ac0f09c0f8bf",
+      "name": "E2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299460244370393,
+      "longitude": 103.7711392192837,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-5d87a8043d21",
+      "name": "E2A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299396026,
+      "longitude": 103.7709127,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-cef7fc13a381",
+      "name": "E3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299587082179698,
+      "longitude": 103.771744521389,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-98cf27e460d9",
+      "name": "E3A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300407720081186,
+      "longitude": 103.771444631885,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-449777124b14",
+      "name": "E4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298547651427442,
+      "longitude": 103.7722329662117,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-93795e6d8110",
+      "name": "E4A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298793957471601,
+      "longitude": 103.7726112811763,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-43700797e2f9",
+      "name": "E5",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298114020500139,
+      "longitude": 103.7724333624821,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-f33422b95e3b",
+      "name": "E6",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299326258222476,
+      "longitude": 103.772969227216,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-f3e2e400523c",
+      "name": "E7",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298608812522158,
+      "longitude": 103.7734323268133,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-c33352e36a52",
+      "name": "E8",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299356655871087,
+      "longitude": 103.7724545818509,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-8405ae6de3eb",
+      "name": "EA",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300160335096777,
+      "longitude": 103.7704743342858,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9dd9e9e2c401",
+      "name": "Eusoff Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292850443495896,
+      "longitude": 103.7700690758658,
+      "aliases": [
+        "EUSOFF HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b1c1f3ecad13",
+      "name": "EW1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298560883514507,
+      "longitude": 103.770758741678,
+      "aliases": [
+        "Engineering Workshop 1"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-fe640f77fd51",
+      "name": "EW2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29971937,
+      "longitude": 103.7721919,
+      "aliases": [
+        "Engineering Workshop 2"
+      ],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-67634c814952",
+      "name": "Faculty of Dentistry",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297037845262674,
+      "longitude": 103.7815859056655,
+      "aliases": [
+        "FACULTY OF DENTISTRY"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9c5b9af333e3",
+      "name": "Faculty of Science",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296729166,
+      "longitude": 103.7803005,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-400f232615a3",
+      "name": "Fire Fighting Training Shed",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.301327318853279,
+      "longitude": 103.7742772562969,
+      "aliases": [
+        "FIRE FIGHTING TRAINING SHED"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b044881d7684",
+      "name": "Former Visitor's Lodge",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298595563,
+      "longitude": 103.7734108,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-c7575274a20d",
+      "name": "Frontier",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296522072469859,
+      "longitude": 103.7804625721294,
+      "aliases": [
+        "FRONTIER CANTEEN"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-db50f582eeb4",
+      "name": "Graduate Student Apartments",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291675976990053,
+      "longitude": 103.7796243594535,
+      "aliases": [
+        "GRADUATE STUDENT APARTMENTS"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-f12452a32cd6",
+      "name": "Helix House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2912390361958592,
+      "longitude": 103.77995021491414,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-799802fe2496",
+      "name": "Hon Sui Sen Memorial Library",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292938438901201,
+      "longitude": 103.7744749158138,
+      "aliases": [
+        "HON SUI SEN MEMORIAL LIBRARY"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9a83c6cb1126",
+      "name": "I3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292296996359114,
+      "longitude": 103.775867131232,
+      "aliases": [],
+      "sources": [
+        "OneMap",
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-1d9952300a1f",
+      "name": "Information Technology",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29758,
+      "longitude": 103.77251,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-0c2ef2ce87aa",
+      "name": "Innovation 4.0",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2947924121595153,
+      "longitude": 103.77574074420723,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-44940d05749d",
+      "name": "Institute for Mathematical Sciences",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292561476796679,
+      "longitude": 103.7797751803439,
+      "aliases": [
+        "INST FOR MATHEMATICAL SCIENCES"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b1ca100bcb94",
+      "name": "Institute of Systems Science",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292148512297166,
+      "longitude": 103.776550885502,
+      "aliases": [
+        "INSTITUTE OF SYSTEM SCIENCE"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-59ba5d0b7876",
+      "name": "Kent Ridge Guild House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293791478782319,
+      "longitude": 103.7726225214926,
+      "aliases": [
+        "NUS Society",
+        "KENT RIDGE GUILD HOUSE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-022ed1f971ad",
+      "name": "Kent Ridge Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291820330255997,
+      "longitude": 103.7744766364728,
+      "aliases": [
+        "KENT RIDGE HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-562b6e4cd552",
+      "name": "Kent Vale",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.301384622,
+      "longitude": 103.7681933,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-b8c8afe547d7",
+      "name": "King Edward VII Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291317509187464,
+      "longitude": 103.7808579665794,
+      "aliases": [
+        "KING EDWARD VII HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-481e6e248660",
+      "name": "Kuok Foundation House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300342332131371,
+      "longitude": 103.7736120552293,
+      "aliases": [
+        "KUOK FOUNDATION HOUSE"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-2baf774aa6fe",
+      "name": "Lee Kong Chian Natural History Museum",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.3014987125042,
+      "longitude": 103.77363491225,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-b370de14e941",
+      "name": "LightHouse",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2906476795806099,
+      "longitude": 103.78160209918427,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-64e799323bf8",
+      "name": "LT1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299639976188836,
+      "longitude": 103.7712583121897,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0424aa2f2810",
+      "name": "LT2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299451058525209,
+      "longitude": 103.7713638661201,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1353555fbcbe",
+      "name": "LT3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297709392526819,
+      "longitude": 103.7733129358201,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ec5d62da3af3",
+      "name": "LT4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297664303085623,
+      "longitude": 103.773524135465,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-04ac239a178a",
+      "name": "LT6",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29888199110101,
+      "longitude": 103.7719379556646,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-eb48ade2aad1",
+      "name": "LT7",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300207996890035,
+      "longitude": 103.7710883885881,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-d791c34766cb",
+      "name": "LT7A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299548757042745,
+      "longitude": 103.7706686535538,
+      "aliases": [
+        "LT7A ENGINEERING AUDITORIUM",
+        "ENGINEERING AUDITORIUM"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-2889843f2da7",
+      "name": "LT8",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294134904081707,
+      "longitude": 103.7719808640604,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-5a26e78c0df1",
+      "name": "LT9",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29500149952436,
+      "longitude": 103.7722832798926,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-00c84974de9e",
+      "name": "LT10",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294921774290149,
+      "longitude": 103.7720467406707,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-eb09ce3ab381",
+      "name": "LT11",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295470875829412,
+      "longitude": 103.771398838601,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-727ef4482916",
+      "name": "LT12",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295003631913628,
+      "longitude": 103.7711091314558,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-df7f8a2ac7c4",
+      "name": "LT13",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295070327065941,
+      "longitude": 103.7709048482324,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9daac97a3974",
+      "name": "LT14",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29452146733146,
+      "longitude": 103.7801686134838,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-f8901eaacaac",
+      "name": "LT15",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295590625487062,
+      "longitude": 103.7734248786043,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9c092527ed73",
+      "name": "LT16",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293943182668247,
+      "longitude": 103.7738879019123,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-af419a6d5799",
+      "name": "LT17",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293622864272217,
+      "longitude": 103.7740373594052,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-c6b119119e21",
+      "name": "LT18",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29355803756114,
+      "longitude": 103.7745431852061,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-cf5c13bbcc69",
+      "name": "LT19",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293781536370273,
+      "longitude": 103.7744391200115,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-a250faad03b7",
+      "name": "LT20",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295860847565225,
+      "longitude": 103.7787379615499,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-3e3bc6065287",
+      "name": "LT21",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295391365897963,
+      "longitude": 103.779388110558,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-89660881d191",
+      "name": "LT26",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296457483116159,
+      "longitude": 103.7810705066311,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-caf26be59545",
+      "name": "LT27",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297034242014875,
+      "longitude": 103.7808413203197,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-f47f1b5e1ef7",
+      "name": "LT28",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29724508368901,
+      "longitude": 103.7811577795849,
+      "aliases": [
+        "LT 28"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-c1a7faae9fff",
+      "name": "LT29",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297177752790137,
+      "longitude": 103.7812766314942,
+      "aliases": [
+        "LT 29"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-79355e63c102",
+      "name": "LT31",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296860936031553,
+      "longitude": 103.7803607432337,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b278a9270237",
+      "name": "LT32",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296192717180084,
+      "longitude": 103.7782473077416,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1f7f53c2e688",
+      "name": "MD1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295387264253715,
+      "longitude": 103.7805099969158,
+      "aliases": [
+        "MD1 (U/C)"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1b598c297738",
+      "name": "MD2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294939859903651,
+      "longitude": 103.7811670389569,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6f90dfc88c55",
+      "name": "MD3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295346360929944,
+      "longitude": 103.7810889516225,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-69224c77d419",
+      "name": "MD4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295774648184194,
+      "longitude": 103.7809764676549,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0ebc08d0add3",
+      "name": "MD4A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295663161540864,
+      "longitude": 103.7808370356407,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-3ebff31b62c0",
+      "name": "MD5",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295752011,
+      "longitude": 103.7814766,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-c29b049dcb99",
+      "name": "MD6",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295323461985387,
+      "longitude": 103.7817082414038,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ab3af464620a",
+      "name": "MD7",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296109881957001,
+      "longitude": 103.7810926973386,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1e6d6eea1552",
+      "name": "MD9",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29672581055487,
+      "longitude": 103.7813061653557,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-e270c09985f4",
+      "name": "MD10",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29653161348254,
+      "longitude": 103.781810928686,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-502140d7c4b6",
+      "name": "MD11",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295989111031638,
+      "longitude": 103.7817842160603,
+      "aliases": [
+        "MD11 CLINICAL RESEARCH CENTRE",
+        "CLINICAL RESEARCH CENTRE"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-663db07b8bd4",
+      "name": "Mochtar Riady Building",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292522229130478,
+      "longitude": 103.7741334182768,
+      "aliases": [
+        "BIZ1",
+        "MOCHTAR RIADY BUILDING BIZ1",
+        "MOCHTAR RIADY BUILDING"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-7cb1f0190235",
+      "name": "Multi Purpose Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.290478089411456,
+      "longitude": 103.7813851819537,
+      "aliases": [
+        "MULTI PURPOSE HALL"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-aebdc120694c",
+      "name": "Multi-Purpose Sports Hall 1-4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300777096888719,
+      "longitude": 103.776020590266,
+      "aliases": [
+        "MULTI-PURPOSE SPORTS HALL 1-4"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9b421b1fcdc8",
+      "name": "National University Hospital (NUH)",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29497624,
+      "longitude": 103.7831274,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-5ae312c96e48",
+      "name": "NUHS Tower Block",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296131254,
+      "longitude": 103.7817534,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-cb7c8c06343d",
+      "name": "NUS Business School",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294293526,
+      "longitude": 103.7745665,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-5b2f7b2cfeb9",
+      "name": "NUS Enterprise Incubator",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293024440751322,
+      "longitude": 103.7777288644685,
+      "aliases": [
+        "NUS ENTERPRISE INCUBATOR"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-292347997536",
+      "name": "NUS Museum",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.301464181,
+      "longitude": 103.7724412,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-edcacbde69be",
+      "name": "NUS Staff Club",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299187321856185,
+      "longitude": 103.7758152929975,
+      "aliases": [
+        "STAFF CLUB"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-28f46a1b8407",
+      "name": "Pioneer House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2906198,
+      "longitude": 103.78042475,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-a79a99d18f4d",
+      "name": "Prince George's Park Residences",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291298998099859,
+      "longitude": 103.7825503619117,
+      "aliases": [
+        "PRINCE GEORGE'S PARK RESIDENCES"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1d46b1edd3c5",
+      "name": "Raffles Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299851223740753,
+      "longitude": 103.7737536128693,
+      "aliases": [
+        "RAFFLES HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b1cd8a4fac27",
+      "name": "Ridge View Residential College",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298209629,
+      "longitude": 103.7760838,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-9df808f03b49",
+      "name": "Ridge View Tower Block",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298029314,
+      "longitude": 103.7767474,
+      "aliases": [
+        "Extension A"
+      ],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-6d265fd29b74",
+      "name": "Runme Shaw CFA Studios",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299185,
+      "longitude": 103.773638,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-e8bc163c82ee",
+      "name": "S1",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295848852999125,
+      "longitude": 103.7778303843443,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-eb15425aadb7",
+      "name": "S1A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29597617870531,
+      "longitude": 103.7782520553208,
+      "aliases": [
+        "Lee Wee Kheng Building, S1A"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ad328846aa18",
+      "name": "S2",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29554616220013,
+      "longitude": 103.7780917301742,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-609c516ead0d",
+      "name": "S2S",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297580139803494,
+      "longitude": 103.7742528917641,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-41242b9fae56",
+      "name": "S3",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295619712275484,
+      "longitude": 103.7785789929418,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-5b840157e7e8",
+      "name": "S4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295668198638167,
+      "longitude": 103.7790747880011,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0566cc0d3574",
+      "name": "S4A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295868961058557,
+      "longitude": 103.7791456974205,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-3b96fc064fa8",
+      "name": "S5",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295505966957741,
+      "longitude": 103.7796595551762,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-71e769095923",
+      "name": "S6",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295109244896717,
+      "longitude": 103.7801675065563,
+      "aliases": [
+        "S6 SCIENCE LIBRARY",
+        "SCIENCE LIBRARY"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-13d28fed9bec",
+      "name": "S7",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296406337003195,
+      "longitude": 103.7788155529713,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1cb7637b6957",
+      "name": "S8",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296148166254429,
+      "longitude": 103.7793298043799,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-e72d310dbb21",
+      "name": "S9",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295918318590411,
+      "longitude": 103.7799497350995,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-340224fe5231",
+      "name": "S9A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2959797647927012,
+      "longitude": 103.77988250211654,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-d34beeb70cdd",
+      "name": "S10",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2964328273571673,
+      "longitude": 103.77971553456855,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-568db4216936",
+      "name": "S11",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296722277785655,
+      "longitude": 103.7786993071741,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ff521c8648fd",
+      "name": "S12",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297054658269571,
+      "longitude": 103.7785766315984,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-1d7aaccdd203",
+      "name": "S13",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296835221830874,
+      "longitude": 103.7792159498334,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-8c3456a7506c",
+      "name": "S14",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296888979205896,
+      "longitude": 103.7796920494382,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-40ba25ddfe4d",
+      "name": "S15",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29715884894821,
+      "longitude": 103.7801975881412,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-85a7efae9475",
+      "name": "S16",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296779235049577,
+      "longitude": 103.7802083478878,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b80f9ab91549",
+      "name": "S17",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297794647729325,
+      "longitude": 103.7806383356017,
+      "aliases": [
+        "S17 LT33 LT34",
+        "LT33",
+        "LT34"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-45edb1c09716",
+      "name": "SDE4",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.296859535728851,
+      "longitude": 103.7703325051828,
+      "aliases": [],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-7673f3987a60",
+      "name": "Shaw Foundation Alumni House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.293677522289005,
+      "longitude": 103.7732796884704,
+      "aliases": [
+        "Shaw Foundation Association House",
+        "SHAW FOUNDATION ALUMNI HOUSE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-396a892c4d1f",
+      "name": "Shaw Foundation Building",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294180956000758,
+      "longitude": 103.7711290910415,
+      "aliases": [
+        "SHAW FOUNDATION BUILDING"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-0692642648ef",
+      "name": "Sheares Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291074195,
+      "longitude": 103.7756714,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-f30330c54e34",
+      "name": "Sheares Hall A",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291592649918273,
+      "longitude": 103.775351597204,
+      "aliases": [
+        "SHEARES HALL A"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-7b89c35c1cdd",
+      "name": "Sheares Hall B",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291311315808819,
+      "longitude": 103.7752107259083,
+      "aliases": [
+        "SHEARES HALL B"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-50b720dc784a",
+      "name": "Sheares Hall C",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291145519646623,
+      "longitude": 103.7754852108785,
+      "aliases": [
+        "SHEARES HALL C"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-a26c13f1c87d",
+      "name": "Sheares Hall D",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.291121394868778,
+      "longitude": 103.7757301212885,
+      "aliases": [
+        "SHEARES HALL D"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-06de0ce3ffdb",
+      "name": "Sheares Hall E",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.290977301653066,
+      "longitude": 103.7760087831853,
+      "aliases": [
+        "SHEARES HALL E"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-38a3e1c65a28",
+      "name": "Sheares Hall F",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.29135883788353,
+      "longitude": 103.7758384869007,
+      "aliases": [
+        "SHEARES HALL F"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-32f323bb9bee",
+      "name": "Singapore Synchrotron Light Source",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295633458798199,
+      "longitude": 103.7751229433535,
+      "aliases": [
+        "Singapore Synchrotron Light Source (SSLS)",
+        "S'PORE SYNCHROTRON LIGHT SOURCE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-2d08f542f194",
+      "name": "Singapore Wind Tunnel Facility",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.30107199490035,
+      "longitude": 103.7753361147341,
+      "aliases": [
+        "NATIONAL WIND TUNNEL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-88e78e9c5407",
+      "name": "Sports and Recreation Centre",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300393193601684,
+      "longitude": 103.7763053836774,
+      "aliases": [
+        "SPORTS & RECREATION CENTRE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6a375cec9abe",
+      "name": "T-Lab Building",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299894205225487,
+      "longitude": 103.7720579461739,
+      "aliases": [
+        "T-LAB"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-358efb631447",
+      "name": "Techno Edge",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298001546892193,
+      "longitude": 103.7714667649685,
+      "aliases": [
+        "TECHNO EDGE"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-9507b9827a88",
+      "name": "Temasek Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.292752158488271,
+      "longitude": 103.7713651804728,
+      "aliases": [
+        "TEMASEK HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-465f77c6448d",
+      "name": "Temasek Life Sciences Laboratory",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294362975593815,
+      "longitude": 103.7769391103964,
+      "aliases": [
+        "TEMASEK LIFE SCIENCES LAB"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-c85b1a9379fc",
+      "name": "The Deck",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.294693557871917,
+      "longitude": 103.7724925494317,
+      "aliases": [
+        "THE DECK"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-61326a480427",
+      "name": "The Pavilion",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.300016076,
+      "longitude": 103.7704674,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-eee1a7d15c44",
+      "name": "The Ridge",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.2947788519685,
+      "longitude": 103.77350651242,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-8f90bc8bbe45",
+      "name": "Tropical Marine Science Inst",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297451230884098,
+      "longitude": 103.7748186350455,
+      "aliases": [
+        "TROPICAL MARINE SCIENCE INST"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-387cd4563120",
+      "name": "University Cultural Centre",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.301776173417046,
+      "longitude": 103.7721119461352,
+      "aliases": [
+        "UNIVERSITY CULTURAL CENTRE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-4611d528c022",
+      "name": "University Hall",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.297141873151891,
+      "longitude": 103.7775443598884,
+      "aliases": [
+        "UNIVERSITY HALL"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6ff153c577b8",
+      "name": "University Health Centre",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299007993739038,
+      "longitude": 103.7764774444306,
+      "aliases": [
+        "UNIVERSITY HEALTH CENTRE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-452745098b1c",
+      "name": "University Sport Center",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.299700789981065,
+      "longitude": 103.7754715885473,
+      "aliases": [
+        "UNIVERSITY SPORT CENTER"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-6f4cb1b8d688",
+      "name": "Valour House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.3005615841736247,
+      "longitude": 103.77503058389875,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-f38d46ca5a94",
+      "name": "Ventus",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.295329404685662,
+      "longitude": 103.7702086630175,
+      "aliases": [
+        "VENTUS"
+      ],
+      "sources": [
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-b4993528ad4c",
+      "name": "Yong Siew Toh Conservatory of Music",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.30256017,
+      "longitude": 103.7726908,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-87b882521791",
+      "name": "Yusof Ishak House",
+      "campus": "KENT_RIDGE",
+      "latitude": 1.298572271588158,
+      "longitude": 103.7747998215097,
+      "aliases": [
+        "YUSOF ISHAK HOUSE"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "OneMap"
+      ]
+    },
+    {
+      "id": "nus-ab4dc67e90e7",
+      "name": "Duke-NUS Medical School",
+      "campus": "OUTRAM",
+      "latitude": 1.281067402,
+      "longitude": 103.8341288,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-39929c773132",
+      "name": "Acacia College",
+      "campus": "UTOWN",
+      "latitude": 1.306769048,
+      "longitude": 103.7735685,
+      "aliases": [
+        "Cinnamon College",
+        "University Scholars Programme"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "NUS Acacia College 2026 contact directory"
+      ]
+    },
+    {
+      "id": "nus-fafbd11b5bb8",
+      "name": "College of Alice and Peter Tan",
+      "campus": "UTOWN",
+      "latitude": 1.30763,
+      "longitude": 103.77315,
+      "aliases": [
+        "Angsana College"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "NUS Residential Life naming history"
+      ]
+    },
+    {
+      "id": "nus-3863b46eb6cc",
+      "name": "Create Tower",
+      "campus": "UTOWN",
+      "latitude": 1.304093428,
+      "longitude": 103.7734645,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-1c5504a1996a",
+      "name": "Education Resource Centre",
+      "campus": "UTOWN",
+      "latitude": 1.306017569,
+      "longitude": 103.7728852,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-ed81b7f7b43a",
+      "name": "NUS College (West campus)",
+      "campus": "UTOWN",
+      "latitude": 1.307267498,
+      "longitude": 103.7722093,
+      "aliases": [
+        "Yale-NUS College",
+        "NUSC West Wing"
+      ],
+      "sources": [
+        "NUS Campus Map",
+        "NUS College 2026 residential guidance"
+      ]
+    },
+    {
+      "id": "nus-00ebef8fc21d",
+      "name": "Residential College 4",
+      "campus": "UTOWN",
+      "latitude": 1.30821,
+      "longitude": 103.77341,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-2d022b716dc0",
+      "name": "Stephen Riady Centre",
+      "campus": "UTOWN",
+      "latitude": 1.304782015,
+      "longitude": 103.7722602,
+      "aliases": [
+        "Edusports Complex"
+      ],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-cbedac6036b2",
+      "name": "Tembusu College",
+      "campus": "UTOWN",
+      "latitude": 1.30625,
+      "longitude": 103.77368,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-547fbffb8b3f",
+      "name": "UTown Residence",
+      "campus": "UTOWN",
+      "latitude": 1.30550204,
+      "longitude": 103.7737984,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    },
+    {
+      "id": "nus-fce405b1794e",
+      "name": "Visitors Centre",
+      "campus": "UTOWN",
+      "latitude": 1.3047820152134,
+      "longitude": 103.7724186303,
+      "aliases": [],
+      "sources": [
+        "NUS Campus Map"
+      ]
+    }
+  ]
+}

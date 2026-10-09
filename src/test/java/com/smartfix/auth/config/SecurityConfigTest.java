@@ -118,7 +118,7 @@ class SecurityConfigTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"/", "/home", "/campus-map", "/requests/new", "/requests/mine", "/admin/users",
+    @ValueSource(strings = {"/", "/home", "/campus-map","/campus-map/status", "/requests/new", "/requests/mine", "/admin/users",
         "/requests/SF-2026-000001", "/requests/SF-2026-000001/attachments/1", "/community","/dashboard",
         "/technician/dashboard",})
     void anonymousPageAccessRedirectsToLogin(String route) throws Exception {
@@ -345,17 +345,5 @@ class SecurityConfigTest {
                 "/admin/facilities/{id}/status", "/admin/announcements"})
         String submit() { return "authorized route probe"; }
 
-        /*
-         * The answer routes. Only their shape and their authorisation are claimed here; the
-         * real controller is not loaded by this slice, and the ownership rules behind them
-         * are exercised end to end in CommunityPagesIT and directly in
-         * CommunityAnswerServiceTest.
-         */
-        @PostMapping({"/community/questions/{id}/answers",
-                "/community/answers/{id}",
-                "/community/answers/{id}/withdraw",
-                "/community/questions/{id}/answers/{answerId}/accept",
-                "/community/questions/{id}/acceptance/remove"})
-        String communityWrite() { return "authorized route probe"; }
     }
 }

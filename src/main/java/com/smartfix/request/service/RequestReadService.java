@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
+import com.smartfix.request.dto.LocationRequestCount;
 
 @Service
 @Transactional(readOnly = true)
@@ -75,5 +77,12 @@ public class RequestReadService {
 
     public long countByStatus(RequestStatus status) {
         return requests.countByStatus(status);
+    }
+
+    /** Read-only public aggregate for the campus map; resolved/terminal records are excluded. */
+    public List<LocationRequestCount> activeMapCounts() {
+        return requests.countByLocationAndStatus(List.of(RequestStatus.SUBMITTED,
+                RequestStatus.UNDER_REVIEW, RequestStatus.ASSIGNED,
+                RequestStatus.IN_PROGRESS, RequestStatus.REOPENED));
     }
 }

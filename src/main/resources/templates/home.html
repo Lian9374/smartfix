@@ -23,6 +23,11 @@
   <img class="dashboard-hero__art" th:src="@{/images/campus-maintenance.png}" width="320" height="296" alt="" fetchpriority="high">
 </section>
 
+      <section class="card campus-map-promo" aria-labelledby="campus-map-title">
+        <span class="campus-map-promo__icon"><svg th:replace="~{fragments/ui-icons :: map}"></svg></span>
+        <div><h2 id="campus-map-title">Explore campus</h2><p>Find buildings and check facility availability.</p></div>
+        <a class="btn btn--secondary" th:href="@{/campus-map}">Open campus map <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
+      </section>
 
       <div class="overview-grid" th:if="${navRole == 'REQUESTER'}">
         <section class="card" aria-labelledby="recent-requests-title">

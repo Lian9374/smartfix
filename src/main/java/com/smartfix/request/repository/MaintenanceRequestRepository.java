@@ -6,6 +6,9 @@ import com.smartfix.request.domain.RequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import com.smartfix.request.dto.LocationRequestCount;
 
 import java.time.Instant;
 import java.util.List;
@@ -13,6 +16,10 @@ import java.util.Optional;
 
 /** Persistence owned by the request module for the maintenance-request aggregate root. */
 public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Long> {
+
+    @Query("select new com.smartfix.request.dto.LocationRequestCount(r.locationId, r.status, count(r)) "
+            + "from MaintenanceRequest r where r.status in :statuses group by r.locationId, r.status")
+    List<LocationRequestCount> countByLocationAndStatus(@Param("statuses") List<RequestStatus> statuses);
 
     Page<MaintenanceRequest> findByRequesterId(Long requesterId, Pageable pageable);
 

@@ -73,7 +73,7 @@ class AssignmentIT {
                 jdbc.execute("CREATE UNIQUE INDEX IF NOT EXISTS uk_assignments_active_request ON assignments(active_request_id)");
             }
         }
-        for (String table : List.of("assignments", "repair_records", "request_feedback", "request_status_history",
+        for (String table : List.of("notifications", "assignments", "repair_records", "request_feedback", "request_status_history",
                 "request_attachments", "work_orders", "maintenance_requests", "technician_skills",
                 "technician_service_areas", "technician_profiles", "users", "locations")) {
             jdbc.update("DELETE FROM " + table);
@@ -222,12 +222,14 @@ class AssignmentIT {
     @Test
     void withdrawsRevokesAccessAndAllowsASeparateNewAssignment() {
         var original = assign(101);
+        assertThat(workOrders.findMine(101L, 0, 20).getTotalElements()).isEqualTo(1);
         var withdrawn = assignments.withdraw(TICKET, new WithdrawAssignmentCommand(original.id(), "Recheck scope"), 103L);
         assertThat(withdrawn.active()).isFalse();
         assertThat(withdrawn.deactivatedByUserId()).isEqualTo(103);
         assertThat(assignments.findActiveAssignment(1L)).isEmpty();
         assertThat(requests.findById(1L).status()).isEqualTo(RequestStatus.UNDER_REVIEW);
         assertThat(workOrders.findByRequestId(1L).orElseThrow().status()).isEqualTo(WorkOrderStatus.ON_HOLD);
+        assertThat(workOrders.findMine(101L, 0, 20).getTotalElements()).isZero();
         assertThat(workload.countOpenWorkOrders(101L)).isZero();
         assertThatThrownBy(() -> access.requireReadableRequest(TICKET, 101L)).isInstanceOf(ResourceNotFoundException.class);
         assertThat(committed.events.getLast()).isInstanceOf(AssignmentWithdrawnEvent.class);
