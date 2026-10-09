@@ -24,11 +24,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-@WebMvcTest(
-    controllers = DashboardController.class,
-    excludeAutoConfiguration =
-        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)
+@WebMvcTest(controllers = DashboardController.class)
 class DashboardControllerTest {
 
     @Autowired
@@ -69,7 +67,8 @@ class DashboardControllerTest {
         when(dashboardService.getAdminDashboard(start, end))
             .thenReturn(dashboard);
 
-        mvc.perform(get("/dashboard"))
+        mvc.perform(get("/dashboard")
+                .with(user("admin").roles("ADMINISTRATOR")))
             .andExpect(status().isOk())
             .andExpect(view().name("reporting/dashboard"))
             .andExpect(model().attribute("dashboard", dashboard))
@@ -100,6 +99,7 @@ class DashboardControllerTest {
 
         mvc.perform(get("/technician/dashboard")
                 .with(user(principal)))
+            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(view().name("reporting/technician-dashboard"))
             .andExpect(model().attribute("dashboard", dashboard));
