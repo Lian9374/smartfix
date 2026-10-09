@@ -3,6 +3,8 @@ package com.smartfix.request.controller;
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.dto.MaintenanceRequestDetailsResponse;
+import com.smartfix.request.dto.RequestFeedbackCommand;
+import com.smartfix.request.dto.RequestLifecycleActionCommand;
 import com.smartfix.request.service.RequestPresentationService;
 import com.smartfix.request.service.RequestQueryService;
 
@@ -10,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -24,6 +27,16 @@ public class RequestQueryController {
             RequestQueryService requestQueryService, RequestPresentationService presentation) {
         this.requestQueryService = requestQueryService;
         this.presentation = presentation;
+    }
+
+    @ModelAttribute("feedback")
+    public RequestFeedbackCommand feedbackForm() {
+        return new RequestFeedbackCommand();
+    }
+
+    @ModelAttribute("reopen")
+    public RequestLifecycleActionCommand reopenForm() {
+        return new RequestLifecycleActionCommand();
     }
 
     @GetMapping("/requests/mine")

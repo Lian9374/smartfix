@@ -1773,18 +1773,23 @@ sequenceDiagram
 > **实际做法：** 成员在**开始写第一个迁移**时向 C 报「我需要一个号」，
 > C 按当时的**实际最大已合并版本号 + 1** 分配并登记在本表。
 
+> **登记核对：** C，2026-10-08；依据主分支 `754b9b4` 及已获取的远端分支。
+> 下表的“已合入 main”仅说明 SQL 文件已提交合并，不代表任何本地数据库已执行或验收通过。
+> V13、V15 按既有 E 任务分工登记预留，最终文件名待 E 提交；新取号须避开已登记预留编号。
+> V13 晚于 V14 提交时，已执行 V14 的数据库须先确定升级策略；仅登记编号不能解决迁移顺序问题。
+
 | 版本 | 内容 | 负责人 | 依赖 | 状态 |
 |---|---|---|---|---|
-| **V6** | `create_request_status_history` | **C** | 无 | **唯一被 V4 文件头正式预留的编号**【待团队确认 D-01】 |
-| V7 | `maintenance_requests` 扩展（status CHECK、version、reviewed_*、final_urgency_level、resolved_at、closed_at） | C | V6 | 待分配 |
-| V8 | `work_orders` + `repair_records` | C | V7 | 待分配 |
-| V9 | `request_feedback` | C | V7 | 待分配 |
-| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | 待分配 |
-| V11 | `assignments` | B | V10、V7 | 待分配 |
-| V12 | `facilities`（含 `locations` 上的 FK） | D | V3 | 待分配 |
-| V13 | `sla_policies` + `request_sla_states` | E | V7 | 待分配 |
-| V14 | `notifications` | E | V2 | 待分配 |
-| V15 | `audit_entries` | E | V2 | 待分配 |
+| **V6** | `create_request_status_history` | **C** | 无 | 已合入 main；`V6__create_request_status_history.sql`（原由 V4 正式预留） |
+| V7 | `maintenance_requests` 扩展（status CHECK、version、reviewed_*、final_urgency_level、resolved_at、closed_at） | C | V6 | 已合入 main；`V7__extend_request_lifecycle.sql` |
+| V8 | `work_orders` + `repair_records` | C | V7 | 已合入 main；`V8__create_work_orders.sql` |
+| V9 | `request_feedback` | C | V7 | 已合入 main；`V9__create_request_feedback.sql` |
+| V10 | `technician_profiles` + `technician_skills` + `technician_service_areas` | B | V2 | 已合入 main；`V10__create_technician_profiles.sql` |
+| V11 | `assignments` | B | V10、V7 | 已合入 main；`V11__create_assignments.sql` |
+| V12 | `facilities`（含 `locations` 上的 FK） | D | V3 | 已合入 main；`V12__create_facilities.sql` |
+| V13 | `sla_policies` + `request_sla_states` | E | V7 | 已登记预留（C，2026-10-08）；远端未见 SQL，待 E 提交 |
+| V14 | `notifications` | E | V2 | 已合入 main；`V14__create_notifications.sql`（PR #21） |
+| V15 | `audit_entries` | E | V2 | 已登记预留（C，2026-10-08）；远端未见 SQL，待 E 提交 |
 | V16 | `announcements` | D | V2、V12 | 待分配 |
 | V17 | `community_questions` + `community_answers` | A | V2 | 待分配 |
 | V18 | `community_reports` | A | V17 | 待分配 |

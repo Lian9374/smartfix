@@ -25,6 +25,7 @@ import org.springframework.security.web.context.SecurityContextHolderFilter;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+    private static final String TECHNICIAN = "TECHNICIAN";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -50,8 +51,14 @@ public class SecurityConfig {
                         // account module leaks. CSRF still applies to the POST - the page
                         // carries the token like every other write does.
                         .requestMatchers(HttpMethod.GET, "/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/register").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status")
+                        .authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/dashboard")
+                        .hasRole("ADMINISTRATOR")
+
+                        .requestMatchers(HttpMethod.GET, "/technician/dashboard")
+                        .hasRole("TECHNICIAN")
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
                         .requestMatchers("/account/password").authenticated()
                         .requestMatchers(HttpMethod.GET, "/technician", "/technician/profile").hasRole("TECHNICIAN")
@@ -65,24 +72,20 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/requests/*/review", "/requests/*/close").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.POST, "/requests/*/confirm", "/requests/*/feedback", "/requests/*/reopen", "/requests/*/cancel")
                             .hasRole("REQUESTER")
-                        .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.POST, "/workorders/*/accept", "/workorders/*/records", "/workorders/*/complete")
-                            .hasRole("TECHNICIAN")
+                            .hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.GET, "/requests/*", "/requests/*/attachments/*")
-                            .hasAnyRole("REQUESTER", "ADMINISTRATOR", "TECHNICIAN")
+                            .hasAnyRole("REQUESTER", "ADMINISTRATOR", TECHNICIAN)
+                        .requestMatchers(HttpMethod.GET, "/admin/requests", "/admin/requests/*/dispatch")
+                            .hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/admin/requests/*/assign", "/admin/requests/*/reassign", "/admin/requests/*/withdraw")
+                            .hasRole("ADMINISTRATOR")
+                        // Do not let the legacy /admin/** rule authorize other dispatch methods.
+                        .requestMatchers("/admin/requests/*/dispatch", "/admin/requests/*/assign",
+                                "/admin/requests/*/reassign", "/admin/requests/*/withdraw").denyAll()
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
-                        // Sprint 3 community: every route is for signed-in users of any role.
-                        // Two exceptions sit outside this pattern and are matched above:
-                        // the moderation routes - GET /admin/community/reports and the five
-                        // POSTs beside it - are administrator-only through /admin/**, and
-                        // the two report routes (POST /community/questions/{id}/reports and
-                        // POST /community/answers/{id}/reports) are ordinary signed-in
-                        // routes, matched here. Deliberately .authenticated() rather than
-                        // permitAll: a signed-out visitor must not reach the board at all, and
-                        // ownership is checked again in the service layer.
-                        .requestMatchers("/community/**").authenticated()
-                        .requestMatchers("/notifications", "/notifications/*/read").authenticated()
                         .anyRequest().denyAll())
                 .formLogin(login -> login.loginPage("/login")
                         // The account-type choice rides along as the request's details. It is

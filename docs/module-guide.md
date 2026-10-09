@@ -126,6 +126,11 @@ service behind `request` uses.
   records.
 - **Likely services:** `WorkOrderService` (accept, update repair state, record evidence).
 - **Likely repository responsibility:** `WorkOrderRepository`, repair-record queries.
+- **Technician access (S3-B-06):** details, repair records and writes require the current
+  active assignment. `findMine` obtains the active request ids through the public request
+  assignment adapter, then filters before pagination and counting. A withdrawn order's
+  historical technician id cannot expose a row or inflate totals. See the
+  [technician access handoff](sprint3/B_Technician_Access_Handoff_CN.md) for the B/C interface review.
 - **May reasonably depend on:** `user` (technician identity), `request` (the request
   being worked), `dispatch` (the assignment that created the work order) — via public
   services.
@@ -137,6 +142,30 @@ API (never write emails from here).
 
 ---
 
+## `technician`
+
+- **Purpose:** technician preferences, the eligible technician directory and workload reads
+  (S3-B-01 / S3-B-02).
+- **Owns:** `TechnicianProfile`, skills, service-area ids, availability and profile status.
+- **Public API:** `TechnicianDirectoryService.getProfile`, `updateProfile` and
+  `findCandidates`. The directory filters eligibility; `dispatch` owns ranking.
+  `TechnicianWorkloadService.countOpenWorkOrders(technicianUserId)` delegates to C's
+  `WorkOrderService`: CREATED / IN_PROGRESS / ON_HOLD / REOPENED with a current active
+  assignment to that account. Its argument is **users.id**, not the profile id.
+  Missing assignment integration raises a business conflict instead of returning zero.
+- **Entry point:** `GET/POST /technician/profile`, restricted to the current active
+  technician. The account id comes from the authenticated principal, never the form.
+- **Persistence:** V10 creates `technician_profiles`, `technician_skills` and
+  `technician_service_areas`; apply after the earlier Sprint 3 migrations are coordinated.
+- **Dependencies:** public `UserService`, `LocationService`, `WorkOrderService` and
+  `RequestAssignmentAccessService`; reuse the existing
+  `MaintenanceCategory` enum. No cross-module repository access or JPA entity relationships.
+- **Does not own:** account creation, assignment decisions, work orders or notifications.
+- **Implementation and verification status:** [S3-B-01 handoff](sprint3/B_Technician_Profile_Handoff_CN.md)
+  and [S3-B-02 handoff](sprint3/B_Technician_Recommendation_Handoff_CN.md).
+
+---
+
 ## `dispatch`
 
 - **Purpose:** technician recommendation and assignment.
@@ -144,11 +173,38 @@ API (never write emails from here).
   reasons. This is where a technician-*matching* concern lives **when analysis justifies
   it**.
 - **Does not own:** the request itself, the work order, the technician's personal data.
-- **Likely future domain objects:** `Assignment`, and — only after design —
-  matching/ranking concepts.
-- **Likely services:** `DispatchService`/`AssignmentService`.
-- **Likely repository responsibility:** `AssignmentRepository` (assignment state).
-- **May reasonably depend on:** `user` (technicians), `request` (the request to
+- **Current public API:** `TechnicianRecommendationService.recommend(category, locationId)`
+  returns immutable candidate DTOs with account/profile ids, display name, skills,
+  service areas, availability and open work-order count. It delegates F1-F5 eligibility
+  to `TechnicianDirectoryService` and reads workload once per eligible account through
+  `TechnicianWorkloadService`. Ranking is AVAILABLE before BUSY, then workload ascending,
+  then **profile id** ascending. Failures propagate; no partial recommendation is returned.
+  This is an internal read API, not an HTTP endpoint or a reservation. Assignment must
+  revalidate eligibility.
+- **Dispatch page (S3-B-04):** `DispatchPageService` assembles the read model through public
+  services. `DispatchController` exposes administrator-only GET `/admin/requests/{ticket}/dispatch`
+  and CSRF-protected POST `assign` / `reassign` / `withdraw` sibling routes. The authenticated
+  principal supplies the actor; stale submissions show 409 and require an explicit reload.
+  See the [S3-B-04 handoff](sprint3/B_Dispatch_UI_Handoff_CN.md) for validation and integration boundaries.
+- **Assignment API (S3-B-03):** `AssignmentService.assign`, `reassign`, `withdraw` and
+  `findActiveAssignment`; writes require an active administrator. Reassign/withdraw
+  commands carry `expectedAssignmentId` to reject stale forms, plus a 1–500 character reason.
+  One transaction updates assignment history and calls C's lifecycle; C's participant
+  synchronizes the work order. Failed steps roll back together.
+- **Persistence:** V11 creates `assignments`; its partial unique index permits only one
+  active assignment per request. Old rows remain as history; optimistic versions reject
+  concurrent edits. `technician_id` references the account, not the profile.
+- **Read integration:** `RequestAssignmentLookupAdapter` implements C's
+  `ActiveAssignmentLookup` through a separate `AssignmentReadService`, keeping the write
+  orchestrator out of the callback dependency chain. Recommendations now use real assignments.
+  `findActiveRequestIdsForTechnician` supplies B's bulk assignment read. The adapter implements
+  C's `findActiveRequestIds(technicianId, candidateRequestIds)` contract and returns only the
+  intersection with candidate work orders. Missing adapters grant no list access; older adapters
+  retain C's per-request checks against current assignments.
+- **Events:** `AssignmentCreatedEvent` (including the previous technician on reassignment)
+  and `AssignmentWithdrawnEvent`; notification/audit consumers must subscribe AFTER_COMMIT.
+- **Implementation and validation:** [S3-B-03 handoff](sprint3/B_Assignment_Handoff_CN.md).
+- **May reasonably depend on:** `technician` (eligible profiles), `user` (accounts), `request` (the request to
   dispatch), `facility` (location/service area), `sla` (deadlines) — **via their public
   services**, so it can read what it needs without coupling to their repositories.
 - **Must not contain:** reading `UserRepository`, `RequestRepository`,
@@ -158,8 +214,8 @@ API (never write emails from here).
   only if dispatch analysis demonstrates interchangeable/changing matching strategies
   (README §31).
 
-**Example scenario:** "admin dispatches the best available technician" → `DispatchService`
-asks `user`'s public API for technicians, `request`'s public API for the request, applies
+**Example scenario:** "admin dispatches the best available technician" → `AssignmentService`
+asks `technician`'s public API for candidates, `request`'s public API for the request, applies
 (designed) matching logic, and persists the assignment in `dispatch`.
 
 ---
