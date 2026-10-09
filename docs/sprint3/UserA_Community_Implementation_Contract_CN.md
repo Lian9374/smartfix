@@ -6,6 +6,17 @@
 
 ---
 
+## 当前状态索引（2026-10-09）
+
+当前交付与验收以 [UserA 收口记录](UserA_Quality_Completion_CN.md)、
+[注册限流交接](Registration_Hardening_Handoff_CN.md) 和 ADR-003 为准。
+§11–17 是按阶段追加的历史记录，其中“举报未做”“无事件消费者”“没有限流”等旧句子
+不能用于描述当前代码。当前举报、处理历史、恢复、社区通知和正式审计均已实现。
+回答数、批量昵称、社区页面/输入反馈、空分页回退及作者并发发布保护见收口记录。
+本轮不修改已发布的迁移；V17 为问题/回答，V18 为采纳复合外键，V19 为举报。
+最新 GitHub main 的通知 V14/V20 冲突另列为集成边界，不能把本分支 PostgreSQL 验收
+当作该冲突已经解决的证据。
+
 ## 0. 本文档的性质（先读这一段）
 
 **当前实施基线已于 2026-10-08 按使用者授权确定，见 [ADR-003](../decisions/ADR-003-community-completion.md)。这是本次项目决策，不是团队会议批准记录。**
@@ -86,7 +97,7 @@
 | 问题 | 同一用户短时间内重复发相同内容怎么办 |
 | 选项 | ① 时间窗内相同标题+正文拒绝 ② 不限制 |
 | 规划者建议（§29） | **①**，时间窗可配，**默认 2 分钟** |
-| **当前项目结论** | **重复问题窗口默认 2 分钟；问题/回答分别默认每滚动 24 小时 20 条；不加 30 秒间隔（ADR-003，2026-10-08）** |
+| **当前项目结论** | **重复问题窗口默认 2 分钟；问题/回答分别默认每滚动 24 小时 20 条；按作者事务锁串行检查，不加 30 秒间隔（ADR-003，更新于 2026-10-09）** |
 | 原计划差异的结论 | ADR-003 已统一：重复问题窗口默认 2 分钟，问题/回答分别默认每滚动 24 小时 20 条，不叠加 30 秒最小间隔。§10 保留原始差异记录。 |
 | 若按①执行 | `CommunityProperties` 提供时间窗与每日上限；超限 → `InputValidationException`（§12.1）；**不**引入幂等 token（§11.5 已说明理由） |
 | DB 兜底 | 举报的防重复**不靠**这个窗口，靠 §10.3 的两个部分唯一索引——它是硬约束，无论 D-15 怎么定都要做 |
@@ -500,9 +511,9 @@ E 的监听器必须知道这条注解带来的**六个后果**：
 
 ## 8. 迁移契约（给 C）
 
-### 8.1 现状（核对于 main）
+### 8.1 初稿历史基线（当时核对于 main；不是当前迁移目录）
 
-`src/main/resources/db/migration/` 当前为 **V1 – V9**：
+初稿时 `src/main/resources/db/migration/` 为 **V1 – V9**；当前新增迁移见本节实际登记与收口记录：
 
 ```
 V1__baseline.sql                    V6__create_request_status_history.sql
@@ -515,7 +526,7 @@ V5__create_request_attachments.sql
 `V6`–`V9` **已在 main 上**，对应 §15.2 表里的 V6–V9（C 的内容）。
 **V10–V16 已被 §15.2 预留给 B/D/E**，登记表是唯一登记处，由 C 维护。
 
-### 8.2 社区的编号：V17 / V18（§15.2）
+### 8.2 社区实际编号：V17 / V18 / V19（原计划 §15.2）
 
 **原计划：**
 
@@ -530,6 +541,8 @@ V5__create_request_attachments.sql
 |---|---|---|
 | **V17** | `V17__create_community_questions_and_answers.sql` | **只有两张表**：`community_questions` + `community_answers`（含各自的 CHECK、索引、`UNIQUE (id, question_id)`） |
 | **V18** | `V18__add_community_accepted_answer_constraint.sql` | **复合外键**：`ALTER TABLE community_questions ADD CONSTRAINT fk_community_questions_accepted_answer FOREIGN KEY (accepted_answer_id, id) REFERENCES community_answers (id, question_id)`，外加 `idx_community_questions_accepted_answer`（部分索引，PostgreSQL 不会为引用侧自动建） |
+
+| **V19** | `V19__create_community_reports.sql` | 举报、处理记录与防重复唯一索引；依赖 V17/V18 |
 
 > **编号更正（原表最后一行是错的，此处以实际为准）：**
 > `V18` **不是** `community_reports`，而是 D-13 建议基线里的「补复合外键」这一步。

@@ -85,10 +85,10 @@
               <article class="discussion" th:each="question : ${questions}">
                 <span class="discussion__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: chat}"></svg></span>
                 <div class="discussion__body">
-                  <div class="discussion__meta"><span th:text="|Account #${question.authorId}|"></span><span aria-hidden="true">·</span><time th:datetime="${question.createdAt}" th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}"></time></div>
+                  <div class="discussion__meta"><span th:text="${question.authorDisplayName}"></span><span aria-hidden="true">·</span><time th:datetime="${question.createdAt}" th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}"></time></div>
                   <h3><a class="discussion__title-link" th:href="@{/community/questions/{id}(id=${question.id})}"><span th:text="${question.title}"></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></h3>
                   <p class="discussion__excerpt" th:text="${question.excerpt}"></p>
-                  <div class="discussion__tags"><span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}"></span><span class="badge" th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'" th:text="${question.solved} ? 'Solved' : 'Open'">Open</span></div>
+                  <div class="discussion__tags"><span class="discussion__answer-count" th:text="${question.answerCount + (question.answerCount == 1 ? ' answer' : ' answers')}">0 answers</span><span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}"></span><span class="badge" th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'" th:text="${question.solved} ? 'Solved' : 'Open'">Open</span></div>
                 </div>
               </article>
             </div>

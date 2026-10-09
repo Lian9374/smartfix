@@ -27,11 +27,11 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('my-questions')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content community-detail-page">
+      <div class="page-head-row card page-context">
         <div th:replace="~{fragments/components :: pageHeading(
              'Edit answer',
-             'Change what you wrote. The answer keeps its author, its question and its place in the thread.')}">
+             'Update your reply.')}">
           <h1 class="page-head__title">Edit answer</h1>
         </div>
 
@@ -41,7 +41,7 @@
         </div>
       </div>
 
-      <form th:action="@{/community/answers/{id}(id=${answer.answerId})}"
+      <form class="card community-editor" data-community-form th:action="@{/community/answers/{id}(id=${answer.answerId})}"
             th:object="${command}" method="post">
 
         <!--
@@ -57,17 +57,17 @@
         </div>
 
         <fieldset class="form-section">
-          <legend>Your answer</legend>
+          <legend>Your answer</legend><p class="form-required-hint">* Required field</p>
 
           <div class="form-field"
                th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
-            <label class="form-field__label" for="body">Answer</label>
-            <textarea id="body" th:field="*{body}" rows="10" maxlength="4000"
+            <label class="form-field__label" for="body">Answer <span class="required-mark">*</span></label>
+            <textarea id="body" th:field="*{body}" rows="7" maxlength="4000" minlength="10" required data-character-count
                       placeholder="What the person asking should try, and why."
                       aria-describedby="body-hint body-error"
-                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null, aria-describedby=${#fields.hasErrors('body')} ? 'body-hint body-error' : 'body-hint'"></textarea>
             <span class="form-field__hint" id="body-hint">
-              Between 10 and 4000 characters. Line breaks are kept exactly as you type them.
+              10–4,000 characters.
             </span>
             <span class="form-field__error" id="body-error" th:errors="*{body}">
               Answer is required.

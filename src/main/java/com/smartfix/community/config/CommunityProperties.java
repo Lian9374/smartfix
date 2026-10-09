@@ -10,8 +10,8 @@ import java.time.Duration;
  *
  * <p>ADR-003 (2026-10-08) fixes the defaults: a two-minute duplicate-question
  * window and separate 20-post caps for questions and answers per rolling 24 hours.
- * There is no additional minimum posting interval. These application-level checks
- * are configurable and do not promise a strict concurrent quota.</p>
+ * There is no additional minimum posting interval. These checks
+ * are configurable and serialized per author in a database transaction.</p>
  *
  * <p>The page sizes are not in that category: default 10 and maximum 50 come from the
  * sprint 3 brief and are treated as fixed.</p>

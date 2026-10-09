@@ -115,7 +115,7 @@ class CommunityPagesIT {
                 .andExpect(content().string(containsString("PERIPHERAL")))
                 // No answer can be accepted yet, so every row reads Open.
                 .andExpect(content().string(containsString(">Open<")))
-                .andExpect(content().string(containsString("Account #" + aliceId)))
+                .andExpect(content().string(containsString("alice (test)")))
                 // The two actions a reader can take from here.
                 .andExpect(content().string(containsString("href=\"/community/questions/new\"")))
                 .andExpect(content().string(containsString("href=\"/community/mine\"")));
@@ -211,7 +211,7 @@ class CommunityPagesIT {
         mvc.perform(get("/community/questions/new").session(login("alice")))
                 .andExpect(status().isOk())
                 // The form, not the detail page for a question with the id "new".
-                .andExpect(content().string(containsString("Describe the problem for everyone on campus.")))
+                .andExpect(content().string(containsString("Share a question with your campus.")))
                 .andExpect(content().string(containsString("action=\"/community/questions\"")))
                 .andExpect(content().string(containsString("name=\"title\"")))
                 .andExpect(content().string(containsString("name=\"body\"")))
@@ -356,7 +356,7 @@ class CommunityPagesIT {
                 .andExpect(content().string(containsString(
                         "action=\"/community/questions/" + question.getId() + "/answers\"")))
                 .andExpect(content().string(containsString("<textarea")))
-                .andExpect(content().string(containsString("Account #" + aliceId)));
+                .andExpect(content().string(containsString("alice (test)")));
     }
 
     /**
@@ -598,7 +598,7 @@ class CommunityPagesIT {
 
         mvc.perform(get("/community/mine").session(login("alice")))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Everything you have asked")))
+                .andExpect(content().string(containsString("Your questions and their status.")))
                 .andExpect(content().string(containsString("Mine by alice sample")))
                 .andExpect(content().string(not(containsString("Mine by bob sample"))));
     }
@@ -1110,7 +1110,7 @@ class CommunityPagesIT {
 
         mvc.perform(get("/community/mine").param("tab", "ANSWERS").session(login("bob")))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Everything you have answered")))
+                .andExpect(content().string(containsString("Your replies and their status.")))
                 .andExpect(content().string(containsString("An answer written by bob and only bob.")))
                 .andExpect(content().string(not(containsString(
                         "An answer written by alice and only alice."))))
