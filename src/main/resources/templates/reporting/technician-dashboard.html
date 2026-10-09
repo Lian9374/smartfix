@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Technician Dashboard')}">
+  <title>Technician Dashboard | SmartFix</title>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <th:block th:replace="~{fragments/layout :: sidebar('technician-dashboard')}"></th:block>
+
+  <div class="app-main">
+
+    <th:block th:replace="~{fragments/layout :: appbar('technician-dashboard')}"></th:block>
+
+    <main id="main-content" class="content">
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Technician Dashboard</h1>
+
+          <p class="page-head__subtitle">
+            Your current maintenance workload.
+          </p>
+        </div>
+
+        <div class="page-head-row__actions">
+          <a class="btn btn--secondary"
+             th:href="@{/workorders/mine}">
+            My work orders
+          </a>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="workload-heading">
+        <div class="card__body">
+
+          <h2 id="workload-heading">My workload</h2>
+
+          <p>
+            <strong>Open work orders:</strong>
+
+            <span th:text="${dashboard.openWorkOrders}">
+              0
+            </span>
+          </p>
+
+          <p>
+            This includes currently assigned work orders that
+            have not been completed or closed.
+          </p>
+
+        </div>
+      </section>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Dashboard')}">
+  <title>Dashboard | SmartFix</title>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <th:block th:replace="~{fragments/layout :: sidebar('dashboard')}"></th:block>
+
+  <div class="app-main">
+
+    <th:block th:replace="~{fragments/layout :: appbar('dashboard')}"></th:block>
+
+    <main id="main-content" class="content">
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Dashboard</h1>
+
+          <p class="page-head__subtitle">
+            Operational overview based on real maintenance request data.
+          </p>
+
+          <p>
+            Reporting period:
+            <strong th:text="${startDate}">2026-10-01</strong>
+            to
+            <strong th:text="${endDate}">2026-10-31</strong>
+            (Asia/Singapore)
+          </p>
+        </div>
+
+        <div class="page-head-row__actions">
+          <a class="btn btn--secondary"
+             th:href="@{/admin/reports}">
+            View reports
+          </a>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="dashboard-summary-heading">
+        <div class="card__body">
+
+          <h2 id="dashboard-summary-heading">Request overview</h2>
+
+          <p>
+            <strong>Total requests:</strong>
+            <span th:text="${dashboard.totalRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Open requests:</strong>
+            <span th:text="${dashboard.openRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Resolved requests:</strong>
+            <span th:text="${dashboard.resolvedRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Closed requests:</strong>
+            <span th:text="${dashboard.closedRequests}">0</span>
+          </p>
+
+          <p>
+            <strong>Resolution rate:</strong>
+            <span th:text="${#numbers.formatDecimal(
+                    dashboard.resolutionRatePercent, 1, 1)}">0.0</span>%
+          </p>
+
+          <p>
+            <strong>Average resolution time:</strong>
+            <span th:text="${#numbers.formatDecimal(
+                    dashboard.averageResolutionHours, 1, 1)}">0.0</span>
+            hours
+          </p>
+
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="data-heading">
+        <div class="card__body">
+
+          <h2 id="data-heading">Data availability</h2>
+
+          <p>
+            All request metrics are calculated from SmartFix maintenance request data.
+          </p>
+
+          <p>
+            SLA metrics are not shown because the SLA reporting interface
+            is not yet available.
+          </p>
+
+        </div>
+      </section>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

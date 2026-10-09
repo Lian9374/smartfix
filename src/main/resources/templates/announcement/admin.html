@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments/layout :: head('Manage Announcements')}">
+  <title>Manage Announcements | SmartFix</title>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <th:block th:replace="~{fragments/layout :: sidebar('announcements')}"></th:block>
+
+  <div class="app-main">
+
+    <th:block th:replace="~{fragments/layout :: appbar('announcements')}"></th:block>
+
+    <main id="main-content" class="content">
+
+      <div class="page-head-row">
+        <div class="page-head">
+          <h1 class="page-head__title">Manage Announcements</h1>
+          <p class="page-head__subtitle">
+            Create, publish and withdraw campus announcements.
+          </p>
+        </div>
+      </div>
+
+      <section class="card" aria-labelledby="create-heading">
+        <div class="card__body">
+
+          <h2 id="create-heading">Create announcement</h2>
+
+          <form th:action="@{/admin/announcements}"
+                th:object="${command}"
+                method="post">
+
+            <div>
+              <label for="announcement-title">Title</label>
+              <input id="announcement-title"
+                     type="text"
+                     th:field="*{title}"
+                     maxlength="150"
+                     required>
+              <p th:if="${#fields.hasErrors('title')}"
+                 th:errors="*{title}"></p>
+            </div>
+
+            <div>
+              <label for="announcement-content">Content</label>
+              <textarea id="announcement-content"
+                        th:field="*{content}"
+                        maxlength="4000"
+                        required></textarea>
+              <p th:if="${#fields.hasErrors('content')}"
+                 th:errors="*{content}"></p>
+            </div>
+
+            <div>
+              <label for="announcement-valid-from">Valid from</label>
+              <input id="announcement-valid-from"
+                     type="datetime-local"
+                     th:field="*{validFrom}"
+                     required>
+              <p th:if="${#fields.hasErrors('validFrom')}"
+                 th:errors="*{validFrom}"></p>
+            </div>
+
+            <div>
+              <label for="announcement-valid-to">Valid until (optional)</label>
+              <input id="announcement-valid-to"
+                     type="datetime-local"
+                     th:field="*{validTo}">
+              <p th:if="${#fields.hasErrors('validTo')}"
+                 th:errors="*{validTo}"></p>
+              <p th:if="${#fields.hasErrors('validPeriod')}"
+                 th:errors="*{validPeriod}"></p>
+            </div>
+
+            <button class="btn btn--primary" type="submit">
+              Create draft
+            </button>
+
+          </form>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="announcement-list-heading">
+        <div class="card__body">
+
+          <h2 id="announcement-list-heading">All announcements</h2>
+
+          <p th:if="${#lists.isEmpty(announcements)}">
+            No announcements have been created.
+          </p>
+
+          <div class="table-scroll" th:unless="${#lists.isEmpty(announcements)}">
+            <table class="data-table data-table--stack">
+              <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Status</th>
+                <th scope="col">Valid from</th>
+                <th scope="col">Valid until</th>
+                <th scope="col">Actions</th>
+              </tr>
+              </thead>
+
+              <tbody>
+              <tr th:each="announcement : ${announcements}">
+                <th scope="row" data-label="Title"
+                    th:text="${announcement.title}">Title</th>
+
+                <td data-label="Status"
+                    th:text="${announcement.status}">DRAFT</td>
+
+                <td data-label="Valid from"
+                    th:text="${announcement.validFrom}">Start</td>
+
+                <td data-label="Valid until"
+                    th:text="${announcement.validTo != null ? announcement.validTo : 'No expiry'}">
+                  No expiry
+                </td>
+
+                <td data-label="Actions">
+
+                  <form th:if="${announcement.status.name() == 'DRAFT'}"
+                        th:action="@{/admin/announcements/{id}/publish(id=${announcement.id})}"
+                        method="post">
+                    <button class="btn btn--secondary" type="submit">
+                      Publish
+                    </button>
+                  </form>
+
+                  <form th:if="${announcement.status.name() == 'PUBLISHED'}"
+                        th:action="@{/admin/announcements/{id}/withdraw(id=${announcement.id})}"
+                        method="post">
+                    <button class="btn btn--secondary" type="submit">
+                      Withdraw
+                    </button>
+                  </form>
+
+                </td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <footer th:replace="~{fragments/layout :: footer}"></footer>
+  </div>
+</div>
+
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>
