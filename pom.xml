@@ -119,6 +119,11 @@
                         <exclude>**/CommunityModerationPostgresIT.java</exclude>
                         <exclude>**/RegistrationConcurrencyPostgresIT.java</exclude>
                         <exclude>**/CampusCatalogueMigrationPostgresIT.java</exclude>
+                        <exclude>**/AssignmentMigrationIT.java</exclude>
+                        <exclude>**/AssignmentPostgresIT.java</exclude>
+                        <exclude>**/DispatchPagePostgresIT.java</exclude>
+                        <exclude>**/TechnicianAccessPostgresIT.java</exclude>
+                        <exclude>**/AccountInitializationPostgresIT.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>

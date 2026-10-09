@@ -1,0 +1,133 @@
+{
+  "checkedAt": "2026-10-09T11:35:06.744Z",
+  "checks": [
+    {
+      "label": "Flyway and Hibernate validate startup",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "Administrator lands on real overview",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/requests",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/technicians",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/facilities",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1440",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1000",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 768",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 390",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/users",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1440",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1000",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 768",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 390",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 320",
+      "passed": true
+    }
+  ]
+}

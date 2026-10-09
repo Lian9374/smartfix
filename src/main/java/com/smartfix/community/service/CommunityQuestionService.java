@@ -58,7 +58,9 @@ public class CommunityQuestionService {
      * @throws InputValidationException when the same text was posted moments ago, or the
      *         author has posted as often as the configured limit allows
      */
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public Long ask(QuestionFormCommand command, Long actorUserId) {
+        access.serializePosting(actorUserId);
         access.requireActiveUser(actorUserId);
         Instant now = clock.instant();
         rejectRepetition(actorUserId, command, now);
@@ -115,31 +117,9 @@ public class CommunityQuestionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Community content not found."));
     }
 
-    /**
-     * Applies the two posting guards: no identical repost inside a short window, and no
-     * more than a configured number of questions per window.
-     *
-     * <h3>Status of these guards</h3>
-     *
-     * <p>Both are driven by {@link CommunityProperties}, and neither value is a team
-     * decision - plan section 29 leaves D-15 open and the plan states two different
-     * numbers. See the class comment on {@code CommunityProperties}. Guarding can be
-     * turned off entirely by configuration, which is the plan's option two.</p>
-     *
-     * <h3>What the guards do and do not guarantee</h3>
-     *
-     * <p>Each guard is a count followed by an insert, and the two are not atomic with
-     * respect to each other. Two submissions from the same author that overlap in time
-     * can therefore both read a count below the limit and both insert - the window is a
-     * rate limit in the ordinary sense, not an exactly-once or at-most-N guarantee. What
-     * it does bound is the ordinary case: a double-clicked button, a refreshed POST, or a
-     * script posting in a loop one request at a time.</p>
-     *
-     * <p>Making it exact would mean serialising per author - taking a row lock on the
-     * account inside the same transaction, or a unique constraint over a time bucket -
-     * and both are more machinery than D-15 justifies while it is undecided. Stating the
-     * limit honestly matters more than appearing to have one that is stronger than it is.</p>
-     */
+    /** Count and insert run under the author's account lock in one READ_COMMITTED transaction.
+     * All posting paths take this lock first, so concurrent requests and app instances
+     * see the preceding commit before checking the rolling quota. */
     private void rejectRepetition(Long authorId, QuestionFormCommand command, Instant now) {
         CommunityProperties.Posting posting = properties.getPosting();
         if (!posting.isDuplicateDetectionEnabled()) {

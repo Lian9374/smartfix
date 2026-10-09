@@ -30,5 +30,10 @@ public record UserSummaryResponse(
         AccountStatus accountStatus,
         long securityVersion,
         Instant createdAt,
-        Instant updatedAt) {
+        Instant updatedAt,
+        boolean passwordChangeRequired) {
+    public UserSummaryResponse(Long id, String username, String displayName, Role role,
+            AccountStatus accountStatus, long securityVersion, Instant createdAt, Instant updatedAt) {
+        this(id, username, displayName, role, accountStatus, securityVersion, createdAt, updatedAt, false);
+    }
 }

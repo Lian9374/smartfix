@@ -20,6 +20,7 @@
             : (${navRole == 'TECHNICIAN'} ? 'work-orders' : 'my-requests'))}"></th:block>
 
     <main id="main-content" class="content">
+      <div class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:if="${navRole == 'ADMINISTRATOR'}"
            th:href="@{/admin/requests/lookup}">Request lookup</a><!--
@@ -144,9 +145,8 @@
 
               <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
                  th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
-              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch') or
-                    (navRole == 'ADMINISTRATOR' and (request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS'))}"
-                 th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a>
+              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
+                  th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a>
 
               <form th:if="${presentation.availableActions.contains('cancel')}"
                     th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">

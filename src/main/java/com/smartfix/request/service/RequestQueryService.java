@@ -122,6 +122,49 @@ public class RequestQueryService {
                 Sort.by(Sort.Direction.DESC, "createdAt", "id"));
     }
 
+    public java.util.Map<RequestStatus, Long> adminStatusCounts(Long actorId) {
+        requestAccessService.requireRole(actorId, Role.ADMINISTRATOR);
+        var counts = new java.util.EnumMap<RequestStatus, Long>(RequestStatus.class);
+        for (var status : RequestStatus.values()) counts.put(status, 0L);
+        maintenanceRequestRepository.countStatuses().forEach(row -> counts.put(row.getStatus(), row.getTotal()));
+        return java.util.Map.copyOf(counts);
+    }
+
+    public Page<com.smartfix.request.dto.AdminRequestRow> searchForAdministration(
+            Long actorId, String search, RequestStatus status,
+            com.smartfix.request.domain.MaintenanceCategory category,
+            com.smartfix.request.domain.UrgencyLevel priority, String order, int page, int size) {
+        requestAccessService.requireRole(actorId, Role.ADMINISTRATOR);
+        String term = search == null ? "" : search.trim().toLowerCase(java.util.Locale.ROOT);
+        if (term.length() > 120) throw new com.smartfix.common.exception.InputValidationException("Search is limited to 120 characters.");
+        String sortField = switch (order == null ? "" : order) {
+            case "updated" -> "updatedAt";
+            case "oldest" -> "createdAt";
+            default -> "createdAt";
+        };
+        var direction = "oldest".equals(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        var pageable = PageRequest.of(Math.max(0, page), size <= 0 ? 20 : Math.min(size, 100),
+                Sort.by(direction, sortField, "id"));
+        org.springframework.data.jpa.domain.Specification<MaintenanceRequest> filters = (root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            if (!term.isEmpty()) {
+                String escaped = term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+                String pattern = "%" + escaped + "%";
+                predicates.add(cb.or(cb.like(cb.lower(root.get("ticketNumber")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("title")), pattern, '\\'),
+                        cb.like(cb.lower(root.get("description")), pattern, '\\')));
+            }
+            if (status != null) predicates.add(cb.equal(root.get("status"), status));
+            if (category != null) predicates.add(cb.equal(root.get("category"), category));
+            if (priority != null) predicates.add(cb.equal(cb.coalesce(root.get("finalUrgencyLevel"), root.get("urgencyLevel")), priority));
+            return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        };
+        return maintenanceRequestRepository.findAll(filters, pageable).map(r ->
+                new com.smartfix.request.dto.AdminRequestRow(r.getId(), r.getTicketNumber(), r.getTitle(),
+                        r.getCategory(), r.getEffectiveUrgencyLevel(), r.getStatus(),
+                        locationService.getLocation(r.getLocationId()).displayName(), r.getCreatedAt()));
+    }
+
     private MaintenanceRequestSummaryResponse toSummaryResponse(MaintenanceRequest request) {
         LocationResponse location = locationService.getLocation(request.getLocationId());
 

@@ -21,6 +21,19 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    interface PublicName {
+        Long getId();
+        String getDisplayName();
+    }
+
+    @Query("select u.id as id, u.displayName as displayName from User u where u.id in :ids")
+    List<PublicName> findPublicNames(@Param("ids") java.util.Collection<Long> ids);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Long id);
+
+
     /**
      * @param username an <em>already normalized</em> username - see
      *                 {@link User#normalizeUsername(String)}
@@ -29,6 +42,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** @param username an <em>already normalized</em> username */
     boolean existsByUsername(String username);
+
+    boolean existsByRole(Role role);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "UPDATE account_initialization SET completed = TRUE, completed_at = CURRENT_TIMESTAMP WHERE id = 1 AND completed = FALSE", nativeQuery = true)
+    int claimBootstrapInitialization();
 
     /** The user-management listing: stable, oldest first. */
     List<User> findAllByOrderByIdAsc();

@@ -71,6 +71,9 @@ class UserManagementControllerTest {
     @MockitoBean
     private UserService userService;
 
+    @MockitoBean
+    private com.smartfix.user.service.AccountAdministrationService administration;
+
     // ------------------------------------------------------------ listing
 
     @Test
@@ -130,7 +133,7 @@ class UserManagementControllerTest {
                 .andExpect(redirectedUrl("/admin/users"))
                 .andExpect(flash().attributeExists("successMessage"));
 
-        verify(userService).createUser(any(CreateUserCommand.class), isNull());
+        verify(administration).createUser(any(CreateUserCommand.class), isNull());
     }
 
     @Test
@@ -143,7 +146,7 @@ class UserManagementControllerTest {
         mockMvc.perform(validCreation().principal(() -> "root.admin"))
                 .andExpect(status().is3xxRedirection());
 
-        verify(userService).createUser(any(CreateUserCommand.class), eq(ACTOR_ID));
+        verify(administration).createUser(any(CreateUserCommand.class), eq(ACTOR_ID));
     }
 
     @Test
@@ -161,7 +164,7 @@ class UserManagementControllerTest {
                 .andExpect(model().attributeHasFieldErrors(
                         "createUserCommand", "username", "displayName", "password", "role"));
 
-        verify(userService, never()).createUser(any(), any());
+        verify(administration, never()).createUser(any(), any());
     }
 
     @Test
@@ -173,13 +176,13 @@ class UserManagementControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(model().attributeHasFieldErrors("createUserCommand", "password"));
 
-        verify(userService, never()).createUser(any(), any());
+        verify(administration, never()).createUser(any(), any());
     }
 
     @Test
     @DisplayName("a taken username is reported on the username field as a 409")
     void reportsADuplicateUsername() throws Exception {
-        when(userService.createUser(any(CreateUserCommand.class), any()))
+        when(administration.createUser(any(CreateUserCommand.class), any()))
                 .thenThrow(new BusinessConflictException("An account with this username already exists."));
         when(userService.listUsers()).thenReturn(List.of());
 
@@ -192,7 +195,7 @@ class UserManagementControllerTest {
     @Test
     @DisplayName("a rule only the service can check comes back as a 400 with the reason")
     void reportsAServiceSideValidationFailure() throws Exception {
-        when(userService.createUser(any(CreateUserCommand.class), any()))
+        when(administration.createUser(any(CreateUserCommand.class), any()))
                 .thenThrow(new InputValidationException("Username must be 3-50 characters."));
         when(userService.listUsers()).thenReturn(List.of());
 
@@ -204,7 +207,7 @@ class UserManagementControllerTest {
     @Test
     @DisplayName("a failed creation never echoes the submitted password back into the page")
     void neverEchoesThePassword() throws Exception {
-        when(userService.createUser(any(CreateUserCommand.class), any()))
+        when(administration.createUser(any(CreateUserCommand.class), any()))
                 .thenThrow(new InputValidationException("Refused."));
         when(userService.listUsers()).thenReturn(List.of());
 
@@ -223,7 +226,7 @@ class UserManagementControllerTest {
                 .andExpect(redirectedUrl("/admin/users"))
                 .andExpect(flash().attributeExists("successMessage"));
 
-        verify(userService).changeRole(eq(USER_ID), any(ChangeUserRoleCommand.class), isNull());
+        verify(administration).changeRole(eq(USER_ID), any(ChangeUserRoleCommand.class), isNull());
     }
 
     @Test
@@ -235,14 +238,14 @@ class UserManagementControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists("formError"));
 
-        verify(userService, never()).changeRole(any(), any(), any());
+        verify(administration, never()).changeRole(any(), any(), any());
     }
 
     @Test
     @DisplayName("demoting the last administrator comes back as a 409 with the reason on the page")
     void reportsARefusedRoleChange() throws Exception {
         doThrow(new BusinessConflictException("The last active administrator cannot be demoted."))
-                .when(userService).changeRole(eq(USER_ID), any(ChangeUserRoleCommand.class), any());
+                .when(administration).changeRole(eq(USER_ID), any(ChangeUserRoleCommand.class), any());
         when(userService.listUsers()).thenReturn(List.of(summary(USER_ID, "root.admin", Role.ADMINISTRATOR)));
 
         mockMvc.perform(post("/admin/users/{userId}/role", USER_ID).param("role", "REQUESTER"))
@@ -261,7 +264,7 @@ class UserManagementControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users"));
 
-        verify(userService).changeAccountStatus(eq(USER_ID), any(ChangeAccountStatusCommand.class), isNull());
+        verify(administration).changeAccountStatus(eq(USER_ID), any(ChangeAccountStatusCommand.class), isNull());
     }
 
     @Test
@@ -273,14 +276,14 @@ class UserManagementControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(model().attributeExists("formError"));
 
-        verify(userService, never()).changeAccountStatus(any(), any(), any());
+        verify(administration, never()).changeAccountStatus(any(), any(), any());
     }
 
     @Test
     @DisplayName("disabling the last administrator comes back as a 409")
     void reportsARefusedStatusChange() throws Exception {
         doThrow(new BusinessConflictException("The last active administrator cannot be disabled."))
-                .when(userService).changeAccountStatus(eq(USER_ID), any(ChangeAccountStatusCommand.class), any());
+                .when(administration).changeAccountStatus(eq(USER_ID), any(ChangeAccountStatusCommand.class), any());
         when(userService.listUsers()).thenReturn(List.of(summary(USER_ID, "root.admin", Role.ADMINISTRATOR)));
 
         mockMvc.perform(post("/admin/users/{userId}/status", USER_ID).param("accountStatus", "DISABLED"))
@@ -295,7 +298,7 @@ class UserManagementControllerTest {
     @DisplayName("an unknown account id renders category B's safe 404 page")
     void unknownAccountRendersNotFound() throws Exception {
         doThrow(new ResourceNotFoundException("Account 404 does not exist."))
-                .when(userService).changeAccountStatus(eq(404L), any(ChangeAccountStatusCommand.class), any());
+                .when(administration).changeAccountStatus(eq(404L), any(ChangeAccountStatusCommand.class), any());
 
         mockMvc.perform(post("/admin/users/{userId}/status", 404L).param("accountStatus", "DISABLED"))
                 .andExpect(status().isNotFound())

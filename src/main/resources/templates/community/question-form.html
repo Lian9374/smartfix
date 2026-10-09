@@ -27,13 +27,13 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content community-detail-page">
+      <div class="page-head-row card page-context">
         <div th:replace="~{fragments/components :: pageHeading(
              ${editing} ? 'Edit question' : 'Ask a question',
              ${editing}
-                 ? 'Change the title, the details or the topic. The question keeps its author and its answers.'
-                 : 'Describe the problem for everyone on campus. Anyone can read it once you post.')}">
+                 ? 'Update your question.'
+                 : 'Share a question with your campus.')}">
           <h1 class="page-head__title">Ask a question</h1>
         </div>
 
@@ -42,7 +42,7 @@
         </div>
       </div>
 
-      <form th:action="${editing}
+      <form class="card community-editor" data-community-form th:action="${editing}
                 ? @{/community/questions/{id}(id=${question.id})}
                 : @{/community/questions}"
             th:object="${command}" method="post">
@@ -68,17 +68,17 @@
         </div>
 
         <fieldset class="form-section">
-          <legend>Your question</legend>
+          <legend>Your question</legend><p class="form-required-hint">* Required fields</p>
 
           <div class="form-field"
                th:classappend="${#fields.hasErrors('title')} ? 'form-field--invalid'">
-            <label class="form-field__label" for="title">Title</label>
-            <input type="text" id="title" th:field="*{title}" maxlength="150"
+            <label class="form-field__label" for="title">Title <span class="required-mark">*</span></label>
+            <input type="text" id="title" th:field="*{title}" maxlength="150" minlength="3" required data-character-count
                    placeholder="Short summary, for example: Projector will not power on"
                    aria-describedby="title-hint title-error"
-                   th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : null">
+                   th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : null, aria-describedby=${#fields.hasErrors('title')} ? 'title-hint title-error' : 'title-hint'">
             <span class="form-field__hint" id="title-hint">
-              Between 3 and 150 characters. This is the line other people see in the list.
+              3–150 characters.
             </span>
             <span class="form-field__error" id="title-error" th:errors="*{title}">
               Title is required.
@@ -87,13 +87,13 @@
 
           <div class="form-field"
                th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
-            <label class="form-field__label" for="body">Details</label>
-            <textarea id="body" th:field="*{body}" rows="10" maxlength="4000"
+            <label class="form-field__label" for="body">Details <span class="required-mark">*</span></label>
+            <textarea id="body" th:field="*{body}" rows="7" maxlength="4000" minlength="10" required data-character-count
                       placeholder="What happened, what you already tried, and anything else that would help."
                       aria-describedby="body-hint body-error"
-                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+                      th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null, aria-describedby=${#fields.hasErrors('body')} ? 'body-hint body-error' : 'body-hint'"></textarea>
             <span class="form-field__hint" id="body-hint">
-              Between 10 and 4000 characters. Line breaks are kept exactly as you type them.
+              10–4,000 characters.
             </span>
             <span class="form-field__error" id="body-error" th:errors="*{body}">
               Details are required.
@@ -102,16 +102,16 @@
 
           <div class="form-field"
                th:classappend="${#fields.hasErrors('category')} ? 'form-field--invalid'">
-            <label class="form-field__label" for="category">Topic</label>
+            <label class="form-field__label" for="category">Topic <span class="required-mark">*</span></label>
             <select id="category" th:field="*{category}" required
                     aria-describedby="category-hint category-error"
-                    th:attr="aria-invalid=${#fields.hasErrors('category')} ? 'true' : null">
+                    th:attr="aria-invalid=${#fields.hasErrors('category')} ? 'true' : null, aria-describedby=${#fields.hasErrors('category')} ? 'category-hint category-error' : 'category-hint'">
               <option value="">-- choose a topic --</option>
               <option th:each="topic : ${categories}" th:value="${topic}"
                       th:text="${topic}">HARDWARE</option>
             </select>
             <span class="form-field__hint" id="category-hint">
-              Used by the list filter, so pick the closest one.
+              Choose the closest topic.
             </span>
             <span class="form-field__error" id="category-error" th:errors="*{category}">
               Topic is required.

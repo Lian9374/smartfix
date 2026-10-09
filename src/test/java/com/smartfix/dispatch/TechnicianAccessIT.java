@@ -196,8 +196,8 @@ class TechnicianAccessIT {
         var secondPage = listPage(101, 1, 1);
         assertThat(firstPage.getTotalElements()).isEqualTo(2);
         assertThat(firstPage.getTotalPages()).isEqualTo(2);
-        assertThat(firstPage.getContent()).extracting(WorkOrderResponse::requestId).containsExactly(2L);
-        assertThat(secondPage.getContent()).extracting(WorkOrderResponse::requestId).containsExactly(1L);
+        assertThat(firstPage.getContent()).extracting(WorkOrderQueueRow::requestId).containsExactly(2L);
+        assertThat(secondPage.getContent()).extracting(WorkOrderQueueRow::requestId).containsExactly(1L);
         assertThat(listPage(101, 2, 1)).isEmpty();
         assertThat(listPage(102, 0, 1).getTotalElements()).isEqualTo(1);
     }
@@ -280,8 +280,8 @@ class TechnicianAccessIT {
     }
 
     @SuppressWarnings("unchecked")
-    private Page<WorkOrderResponse> listPage(long actor, int page, int size) throws Exception {
-        return (Page<WorkOrderResponse>) mvc.perform(get("/workorders/mine").session(session(actor))
+    private Page<WorkOrderQueueRow> listPage(long actor, int page, int size) throws Exception {
+        return (Page<WorkOrderQueueRow>) mvc.perform(get("/workorders/mine").session(session(actor))
                         .param("page", Integer.toString(page)).param("size", Integer.toString(size)))
                 .andExpect(status().isOk()).andReturn().getModelAndView().getModel().get("orders");
     }

@@ -60,18 +60,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/technician/dashboard")
                         .hasRole("TECHNICIAN")
                         .requestMatchers(HttpMethod.POST, "/logout").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/technician/profile").hasRole(TECHNICIAN)
-                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole(TECHNICIAN)
-                        // Frozen Sprint 3 A/D/E contracts; services still enforce authorship/recipients.
-                        .requestMatchers(HttpMethod.GET, "/community", "/community/mine", "/community/questions/new",
-                                "/community/questions/*", "/community/questions/*/edit", "/community/answers/*/edit",
-                                "/notifications", "/announcements").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/community/questions", "/community/questions/*",
-                                "/community/questions/*/withdraw", "/community/questions/*/answers",
-                                "/community/answers/*", "/community/answers/*/withdraw",
-                                "/community/questions/*/answers/*/accept", "/community/questions/*/acceptance/remove",
-                                "/community/questions/*/reports", "/community/answers/*/reports",
-                                "/notifications/*/read").authenticated()
+                        .requestMatchers("/account/password").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/technician", "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole("TECHNICIAN")
+                        .requestMatchers("/admin").hasRole("ADMINISTRATOR")
                         // Specific routes precede /requests/*: ADMIN cannot open the submission form.
                         .requestMatchers(HttpMethod.GET, "/requests/new", "/requests/mine")
                             .hasRole("REQUESTER")

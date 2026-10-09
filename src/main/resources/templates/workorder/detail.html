@@ -1,66 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Work Order')}"><title>Work Order · SmartFix</title></head>
-<body>
-<div class="app-shell">
-  <th:block th:replace="~{fragments/layout :: sidebar('work-orders')}"></th:block>
-  <div class="app-main">
-    <th:block th:replace="~{fragments/layout :: appbar('work-orders')}"></th:block>
-    <main id="main-content" class="content request-workflow workflow-stack">
-      <div th:replace="~{fragments/components :: pageHeading('Work Order', 'Review the fault, record your repair and submit the solution.')}"></div>
-      <div class="workflow-actions"><a class="btn btn--secondary" th:href="@{/workorders/mine}">My work orders</a><a th:href="@{/requests/{ticket}(ticket=${order.ticketNumber})}" th:text="${order.ticketNumber}"></a><span th:replace="~{fragments/components :: badge(${order.status}, 'neutral')}"></span></div>
-      <section class="card" aria-labelledby="request-summary-title">
-        <div class="card__header"><h2 class="card__title" id="request-summary-title">Request summary</h2></div>
-        <div class="card__body workflow-stack">
-          <h3 th:text="${request.title}"></h3><p class="prose" th:text="${request.description}"></p>
-          <dl class="detail-list"><dt>Location</dt><dd th:text="${request.locationDisplayName}"></dd><dt>Category</dt><dd th:text="${request.category}"></dd><dt>Reported urgency</dt><dd><span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}"></span></dd><dt>Request status</dt><dd><span th:replace="~{fragments/components :: statusBadge(${request.status})}"></span></dd></dl>
-        </div>
-      </section>
-      <p class="prose" th:if="${order.resolutionNote != null}" th:text="${order.resolutionNote}"></p>
-      <form th:if="${order.status.name() == 'CREATED' or order.status.name() == 'REOPENED'}" th:action="@{/workorders/{id}/accept(id=${order.id})}" method="post"><button class="btn btn--primary" type="submit">Accept and start work</button></form>
-      <section class="card" aria-labelledby="repair-records-title">
-        <div class="card__header"><h2 class="card__title" id="repair-records-title">Repair records</h2></div>
-        <div class="card__body workflow-stack">
-          <th:block th:if="${#lists.isEmpty(records)}">
-            <div th:replace="~{fragments/components :: emptyState('No repair records yet.', 'Start work, then record what you found and repaired.')}"></div>
-          </th:block>
-          <article class="workflow-stack workflow-stack--tight" th:each="record : ${records}">
-            <h3 th:text="${#temporals.format(record.createdAt, 'yyyy-MM-dd HH:mm')}"></h3><p class="meta">Technician: <span th:text="${record.technicianId}"></span></p>
-            <p class="prose" th:text="${record.diagnosis}"></p><p class="prose" th:text="${record.actionTaken}"></p><p class="prose" th:if="${record.materialsUsed != null}" th:text="${record.materialsUsed}"></p><p><span th:text="${record.minutesSpent}"></span> minutes</p>
-            <a th:if="${record.evidenceAttachmentId != null}" th:href="@{/requests/{ticket}/attachments/{id}(ticket=${order.ticketNumber},id=${record.evidenceAttachmentId})}">View evidence</a>
-          </article>
-        </div>
-      </section>
-      <section class="card" th:if="${order.status.name() == 'IN_PROGRESS' or order.status.name() == 'ON_HOLD'}" aria-labelledby="record-repair-title">
-        <div class="card__header"><h2 class="card__title" id="record-repair-title">Record a repair</h2></div>
-        <div class="card__body">
-          <form class="workflow-stack" th:action="@{/workorders/{id}/records(id=${order.id})}" th:object="${repair}" method="post">
-            <ul class="alert alert--error" role="alert" th:if="${#fields.hasAnyErrors()}"><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
-            <div class="form-field"><label class="form-field__label" for="diagnosis">Diagnosis</label><textarea id="diagnosis" th:field="*{diagnosis}" maxlength="2000" rows="4" required></textarea><span class="form-field__error" th:errors="*{diagnosis}"></span></div>
-            <div class="form-field"><label class="form-field__label" for="actionTaken">Action taken</label><textarea id="actionTaken" th:field="*{actionTaken}" maxlength="2000" rows="4" required></textarea><span class="form-field__error" th:errors="*{actionTaken}"></span></div>
-            <div class="form-field"><label class="form-field__label" for="materialsUsed">Materials used</label><textarea id="materialsUsed" th:field="*{materialsUsed}" maxlength="1000" rows="3"></textarea><span class="form-field__error" th:errors="*{materialsUsed}"></span></div>
-            <div class="form-grid">
-              <div class="form-field"><label class="form-field__label" for="minutesSpent">Time spent (minutes)</label><input id="minutesSpent" th:field="*{minutesSpent}" type="number" min="1" required><span class="form-field__error" th:errors="*{minutesSpent}"></span></div>
-              <div class="form-field"><label class="form-field__label" for="evidenceAttachmentId">Related photo (optional)</label><select id="evidenceAttachmentId" th:field="*{evidenceAttachmentId}"><option value="">No photo</option><option th:each="photo : ${evidence}" th:value="${photo.id}" th:text="${photo.originalFilename}"></option></select><span class="form-field__error" th:errors="*{evidenceAttachmentId}"></span></div>
-            </div>
-            <button class="btn btn--secondary" type="submit">Add repair record</button>
-          </form>
-        </div>
-      </section>
-      <section class="card" th:if="${order.status.name() == 'IN_PROGRESS' or order.status.name() == 'ON_HOLD'}" aria-labelledby="submit-solution-title">
-        <div class="card__header"><h2 class="card__title" id="submit-solution-title">Submit solution</h2></div>
-        <div class="card__body">
-          <form class="workflow-stack" th:action="@{/workorders/{id}/complete(id=${order.id})}" th:object="${completion}" method="post">
-            <ul class="alert alert--error" role="alert" th:if="${#fields.hasAnyErrors()}"><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
-            <div class="form-field"><label class="form-field__label" for="resolutionNote">Solution</label><textarea id="resolutionNote" th:field="*{resolutionNote}" maxlength="500" rows="4" required></textarea><span class="form-field__error" th:errors="*{resolutionNote}"></span></div>
-            <button class="btn btn--primary" type="submit">Submit solution</button>
-          </form>
-        </div>
-      </section>
-    </main>
-    <footer th:replace="~{fragments/layout :: footer}"></footer>
-  </div>
-</div>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
-</body>
-</html>
+<head th:replace="~{fragments/layout :: head('Work order')}"><title>Work order · SmartFix</title></head>
+<body><div class="app-shell"><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('work-orders')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<nav class="crumbs" aria-label="Breadcrumb"><a th:href="@{/technician}">My work orders</a><span aria-hidden="true"> / </span><span th:text="${order.ticketNumber}"></span></nav>
+<section class="card page-context workspace-heading"><div><span class="section-kicker" th:text="${order.ticketNumber}"></span><h1 th:text="${request.title}">Work order</h1><p th:text="${request.locationDisplayName}"></p></div><span th:replace="~{fragments/components :: statusBadge(${order.status})}"></span></section>
+<div class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
+<div class="workspace-columns workspace-columns--detail"><div class="workspace-detail-main">
+<section class="card"><div class="card__header"><h2 class="card__title">Reported issue</h2><a th:href="@{/requests/{ticket}(ticket=${order.ticketNumber})}">Request details →</a></div><div class="card__body"><p class="prose" th:text="${request.description}"></p>
+<div class="workspace-photos" th:unless="${#lists.isEmpty(evidence)}"><a th:each="photo : ${evidence}" th:href="@{/requests/{ticket}/attachments/{id}(ticket=${order.ticketNumber},id=${photo.id})}"><img th:src="@{/requests/{ticket}/attachments/{id}(ticket=${order.ticketNumber},id=${photo.id})}" th:alt="${photo.originalFilename}" loading="lazy"></a></div>
+</div></section>
+<section class="card"><div class="card__header"><h2 class="card__title">Repair records</h2><span class="card__hint" th:text="|${#lists.size(records)} records|"></span></div><div class="card__body">
+<p th:if="${#lists.isEmpty(records)}" class="meta">No repair records yet.</p>
+<article class="repair-entry" th:each="record : ${records}"><header><strong th:text="|${record.minutesSpent} minutes|"></strong><time class="meta" th:datetime="${record.createdAt}" th:text="${#temporals.format(record.createdAt,'dd MMM, HH:mm','Asia/Singapore')}"></time></header>
+<h3>Diagnosis</h3><p class="prose" th:text="${record.diagnosis}"></p><h3>Work performed</h3><p class="prose" th:text="${record.actionTaken}"></p><p th:if="${record.materialsUsed != null and !#strings.isEmpty(record.materialsUsed)}" class="prose" th:text="|Materials: ${record.materialsUsed}|"></p><a th:if="${record.evidenceAttachmentId != null}" th:href="@{/requests/{ticket}/attachments/{id}(ticket=${order.ticketNumber},id=${record.evidenceAttachmentId})}">View evidence</a></article>
+</div></section>
+<section class="card" th:if="${request.status.name() == 'IN_PROGRESS' and (order.status.name() == 'IN_PROGRESS' or order.status.name() == 'ON_HOLD')}"><div class="card__header"><h2 class="card__title">Add repair record</h2></div><div class="card__body">
+<form th:action="@{/workorders/{id}/records(id=${order.id})}" th:object="${repair}" method="post"><div class="alert alert--error" role="alert" tabindex="-1" th:if="${#fields.hasAnyErrors()}"><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div>
+<div class="form-field"><label for="diagnosis">Diagnosis</label><textarea id="diagnosis" th:field="*{diagnosis}" rows="3" maxlength="2000" required th:attr="aria-invalid=${#fields.hasErrors('diagnosis')} ? 'true' : null"></textarea><span class="form-field__error" th:if="${#fields.hasErrors('diagnosis')}" th:errors="*{diagnosis}"></span></div><div class="form-field"><label for="actionTaken">Work performed</label><textarea id="actionTaken" th:field="*{actionTaken}" rows="3" maxlength="2000" required th:attr="aria-invalid=${#fields.hasErrors('actionTaken')} ? 'true' : null"></textarea><span class="form-field__error" th:if="${#fields.hasErrors('actionTaken')}" th:errors="*{actionTaken}"></span></div><div class="form-field"><label for="materialsUsed">Materials used (optional)</label><textarea id="materialsUsed" th:field="*{materialsUsed}" rows="3" maxlength="1000"  th:attr="aria-invalid=${#fields.hasErrors('materialsUsed')} ? 'true' : null"></textarea><span class="form-field__error" th:if="${#fields.hasErrors('materialsUsed')}" th:errors="*{materialsUsed}"></span></div>
+<div class="form-grid"><div class="form-field"><label for="minutesSpent">Time spent (minutes)</label><input id="minutesSpent" th:field="*{minutesSpent}" type="number" min="1" max="2147483647" required th:attr="aria-invalid=${#fields.hasErrors('minutesSpent')} ? 'true' : null"><span class="form-field__error" th:if="${#fields.hasErrors('minutesSpent')}" th:errors="*{minutesSpent}"></span></div>
+<div class="form-field"><label for="evidenceAttachmentId">Related photo (optional)</label><select id="evidenceAttachmentId" th:field="*{evidenceAttachmentId}"><option value="">No photo</option><option th:each="photo : ${evidence}" th:value="${photo.id}" th:text="${photo.originalFilename}"></option></select></div></div>
+<div class="form-actions"><button class="btn btn--primary" type="submit">Add repair record</button></div></form></div></section>
+</div><aside class="workspace-detail-aside">
+<section class="card"><div class="card__header"><h2 class="card__title">Next action</h2></div><div class="card__body">
+<form th:if="${order.status.name() == 'CREATED' or order.status.name() == 'REOPENED'}" th:action="@{/workorders/{id}/accept(id=${order.id})}" method="post"><p>Start the assigned repair, then record your investigation.</p><button class="btn btn--primary" type="submit">Accept and start work</button></form>
+<div th:if="${request.status.name() == 'IN_PROGRESS' and (order.status.name() == 'IN_PROGRESS' or order.status.name() == 'ON_HOLD')}"><p>Record the work before submitting a solution. The requester confirms the result; an administrator closes the request.</p>
+<form th:action="@{/workorders/{id}/complete(id=${order.id})}" th:object="${completion}" method="post" data-confirm="Submit this solution for requester confirmation?"><div class="alert alert--error" role="alert" tabindex="-1" th:if="${#fields.hasAnyErrors()}"><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div><div class="form-field"><label for="resolutionNote">Solution</label><textarea id="resolutionNote" th:field="*{resolutionNote}" rows="3" maxlength="500" required th:attr="aria-invalid=${#fields.hasErrors('resolutionNote')} ? 'true' : null"></textarea><span class="form-field__error" th:if="${#fields.hasErrors('resolutionNote')}" th:errors="*{resolutionNote}"></span></div>
+<p class="form-field__hint" th:if="${#lists.isEmpty(records)}">Add at least one repair record first.</p><button class="btn btn--primary" type="submit" th:disabled="${#lists.isEmpty(records)}">Submit solution</button></form></div>
+<div th:if="${order.status.name() == 'COMPLETED' or order.status.name() == 'CLOSED'}"><h3>Solution submitted</h3><p class="prose" th:text="${order.resolutionNote}"></p><p class="meta">Follow the request for confirmation and closure.</p></div>
+</div></section><section class="card"><div class="card__body"><span class="section-kicker">Assignment</span><p>Only the current assigned engineer can access this work order. Reassignment revokes access to its records and photos.</p><a th:href="@{/technician}">Back to workspace →</a></div></section>
+</aside></div></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

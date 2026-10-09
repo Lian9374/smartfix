@@ -68,6 +68,7 @@
 
   <div class="auth__panel">
     <main class="auth__form" id="main-content">
+      <div class="alert alert--success" role="status" th:if="${param.passwordChanged}">Password changed. Sign in with your new password.</div>
       <h1 class="auth__form-title">Welcome back</h1>
       <p class="auth__form-subtitle">Sign in to your SmartFix account.</p>
 

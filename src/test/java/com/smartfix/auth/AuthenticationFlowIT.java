@@ -84,6 +84,10 @@ class AuthenticationFlowIT {
         // The interface names a role as a word; the enum keeps its own spelling.
         String roleWord = roleWord(role);
         MockHttpSession session = login(username);
+        if (role != Role.REQUESTER) {
+            mvc.perform(get("/").session(session)).andExpect(redirectedUrl(role == Role.ADMINISTRATOR ? "/admin" : "/technician"));
+            return;
+        }
         var result = mvc.perform(get("/").session(session))
                 .andExpect(status().isOk())
                 // Named as the signed-in account's own role, in the badge the
@@ -153,7 +157,8 @@ class AuthenticationFlowIT {
                         .param("password", PASSWORD).param("role", "REQUESTER"))
                 .andExpect(redirectedUrl("/admin/users"));
         assertThat(users.findAuthenticationByUsername("new.user").passwordHash()).startsWith("$2");
-        mvc.perform(get("/home").session(login("new.user"))).andExpect(status().isOk());
+        mvc.perform(get("/home").session(login("new.user"))).andExpect(redirectedUrl("/account/password"));
+        assertThat(users.getUserAccess(users.findAuthenticationByUsername("new.user").userId()).passwordChangeRequired()).isTrue();
     }
 
     @Test
@@ -182,8 +187,7 @@ class AuthenticationFlowIT {
         // The role changed, so the overview now offers the technician's own
         // destination instead of the requester's.
         mvc.perform(get("/home").session(current))
-                .andExpect(content().string(containsString("href=\"/workorders/mine\"")))
-                .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
+                .andExpect(redirectedUrl("/technician"));
         // The new role does not widen access to the old one's routes.
         mvc.perform(get("/requests/new").session(current)).andExpect(status().isForbidden());
     }
@@ -286,6 +290,10 @@ class AuthenticationFlowIT {
     @EnumSource(Role.class)
     void eachAccountSignsInThroughItsOwnEntryPoint(Role role) throws Exception {
         MockHttpSession session = login(accountOf(role), role.name());
+        if (role != Role.REQUESTER) {
+            mvc.perform(get("/").session(session)).andExpect(redirectedUrl(role == Role.ADMINISTRATOR ? "/admin" : "/technician"));
+            return;
+        }
         mvc.perform(get("/").session(session))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("badge--brand\">" + roleWord(role) + "<")));

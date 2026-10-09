@@ -6,10 +6,10 @@ import java.sql.*;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
-/** V11 is tested on PostgreSQL: H2 cannot validate the production partial unique index. */
+/** V23 is tested on PostgreSQL, including preserving already provisioned technician profiles. */
 class AssignmentMigrationIT {
     @Test
-    void upgradesNonemptyV10AndEnforcesOneActiveAssignmentWhileRetainingHistory() throws Exception {
+    void upgradesNonemptyV22AndEnforcesOneActiveAssignmentWhileRetainingHistory() throws Exception {
         String url = required("TEST_DB_URL"), user = required("TEST_DB_USERNAME"), password = required("TEST_DB_PASSWORD");
         assertThat(url).startsWith("jdbc:postgresql:");
         String schema = "smartfix_b_upgrade_" + UUID.randomUUID().toString().replace("-", "");
@@ -19,8 +19,10 @@ class AssignmentMigrationIT {
             sql.execute("CREATE SCHEMA " + schema);
             try {
                 Flyway.configure().dataSource(url, user, password).schemas(schema).defaultSchema(schema)
-                        .locations("classpath:db/migration").target("10").load().migrate();
+                        .locations("classpath:db/migration").target("22").load().migrate();
                 sql.execute("SET search_path TO " + schema);
+                String existingProfiles = new String(getClass().getResourceAsStream("/db/technician-test-schema.sql").readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                sql.execute(existingProfiles);
                 sql.executeUpdate("INSERT INTO users(id,username,display_name,password_hash,role) VALUES "
                         + "(1,'migration.requester','Requester','synthetic-test-hash','REQUESTER'),"
                         + "(2,'migration.tech','Technician','synthetic-test-hash','TECHNICIAN'),"
@@ -33,6 +35,10 @@ class AssignmentMigrationIT {
                         .locations("classpath:db/migration").load();
                 assertThat(latest.migrate().migrationsExecuted).isGreaterThanOrEqualTo(1);
                 latest.validate();
+                try (var result = sql.executeQuery("SELECT completed FROM account_initialization WHERE id=1")) {
+                    assertThat(result.next()).isTrue();
+                    assertThat(result.getBoolean(1)).as("An existing administrator closes bootstrap during upgrade").isTrue();
+                }
                 assertThat(latest.migrate().migrationsExecuted).isZero();
                 try (var result = sql.executeQuery("SELECT user_id FROM technician_profiles")) {
                     assertThat(result.next()).isTrue();

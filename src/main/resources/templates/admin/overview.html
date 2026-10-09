@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Administration')}"><title>Administration · SmartFix</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('overview')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('overview')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<section class="workspace-hero"><div><span class="section-kicker">Campus operations</span><h1>Administration</h1><p>Review requests, coordinate repairs and manage campus access.</p>
+<div class="form-actions"><a class="btn btn--primary" th:href="@{/admin/requests(status=SUBMITTED,sort=oldest)}">Review requests</a><a class="btn btn--secondary" th:href="@{/admin/users/new(role=TECHNICIAN)}">Create engineer account</a></div></div><img th:src="@{/images/campus-maintenance.png}" alt="" class="workspace-hero__art"></section>
+<div class="workspace-metrics" aria-label="Current request overview">
+<a class="workspace-metric" th:href="@{/admin/requests}"><span>All requests</span><strong th:text="${totalRequests}">0</strong><small>Across the campus</small></a>
+<a class="workspace-metric" th:href="@{/admin/requests(status=UNDER_REVIEW)}"><span>Awaiting review or dispatch</span><strong th:text="${reviewCount}">0</strong><small>Submitted + under review</small></a>
+<a class="workspace-metric" th:href="@{/admin/requests(status=IN_PROGRESS)}"><span>Repair pipeline</span><strong th:text="${repairCount}">0</strong><small>Assigned + in progress + reopened</small></a>
+<a class="workspace-metric" th:href="@{/admin/requests(status=CONFIRMED)}"><span>Ready for closure</span><strong th:text="${confirmationCount}">0</strong><small>Requester has confirmed</small></a></div>
+<div class="workspace-columns"><section class="card"><div class="card__header"><h2 class="card__title">Oldest submitted requests</h2><a th:href="@{/admin/requests(status=SUBMITTED,sort=oldest)}">View queue →</a></div><div class="card__body">
+<div th:if="${requests.empty}" class="workspace-empty"><h3>Queue is clear</h3><p>New submissions will appear here.</p></div>
+<div class="workspace-list" th:unless="${requests.empty}"><a class="workspace-list__item" th:each="request : ${requests.content}" th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}"><div><span class="meta" th:text="${request.ticketNumber}"></span><h3 th:text="${request.title}"></h3><p th:text="${request.locationDisplayName}"></p></div><span th:replace="~{fragments/components :: urgencyBadge(${request.priority})}"></span></a></div></div></section>
+<section class="card workspace-tools"><div class="card__header"><h2 class="card__title">Management</h2></div><div class="card__body">
+<a th:href="@{/admin/technicians}"><strong>Engineers</strong><span th:text="|${technicianCount} active accounts · skills and coverage|"></span></a>
+<a th:href="@{/admin/users}"><strong>Accounts &amp; access</strong><span>Create, change roles and reset passwords</span></a>
+<a th:href="@{/admin/facilities}"><strong>Facilities</strong><span>View facilities and update operational status</span></a>
+<a th:href="@{/admin/community/reports}"><strong>Community moderation</strong><span>Review reports and handled records</span></a>
+<a th:href="@{/admin/community/audit}"><strong>Audit trail</strong><span>Account and community operations</span></a></div></section></div></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

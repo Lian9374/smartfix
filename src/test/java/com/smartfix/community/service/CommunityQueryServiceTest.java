@@ -54,6 +54,7 @@ class CommunityQueryServiceTest {
     private CommunityQuestionRepository questions;
     private CommunityAnswerRepository answers;
     private CommunityAccessGuard access;
+    private com.smartfix.user.service.UserService users;
     private CommunityQueryService service;
 
     @BeforeEach
@@ -61,7 +62,8 @@ class CommunityQueryServiceTest {
         questions = mock(CommunityQuestionRepository.class);
         answers = mock(CommunityAnswerRepository.class);
         access = mock(CommunityAccessGuard.class);
-        service = new CommunityQueryService(questions, answers, access, new CommunityProperties());
+        users = mock(com.smartfix.user.service.UserService.class);
+        service = new CommunityQueryService(questions, answers, access, new CommunityProperties(), users);
 
         when(access.requireActiveUser(anyLong()))
                 .thenReturn(new UserAccessResponse(ACTOR, Role.REQUESTER, AccountStatus.ACTIVE, 0L));
@@ -75,6 +77,37 @@ class CommunityQueryServiceTest {
         // because nothing has saved it. The id is not what these tests are about.
         when(answers.findByQuestionIdOrderByCreatedAtAscIdAsc(any())).thenReturn(List.of());
         when(answers.findByAuthorId(anyLong(), any(Pageable.class))).thenReturn(Page.empty());
+    }
+
+    @Test
+    void namesAndVisibleCountsAreLoadedOnceForTheCurrentPageOnly() {
+        CommunityQuestion first = question(AUTHOR, CommunityContentStatus.VISIBLE);
+        CommunityQuestion second = question(STRANGER, CommunityContentStatus.VISIBLE);
+        ReflectionTestUtils.setField(first, "id", 101L);
+        ReflectionTestUtils.setField(second, "id", 102L);
+        when(questions.searchVisible(any(), anyString(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(first, second)));
+        var count = mock(CommunityAnswerRepository.VisibleCount.class);
+        when(count.getQuestionId()).thenReturn(101L);
+        when(count.getAnswerCount()).thenReturn(3L);
+        when(answers.countVisibleByQuestionIds(List.of(101L, 102L))).thenReturn(List.of(count));
+        when(users.findDisplayNames(List.of(AUTHOR, STRANGER)))
+                .thenReturn(java.util.Map.of(AUTHOR, "Alice", STRANGER, "Bob"));
+        var page = service.browse(ACTOR, null, null, null, 0, 10).getContent();
+        assertThat(page.get(0).answerCount()).isEqualTo(3L);
+        assertThat(page.get(0).authorDisplayName()).isEqualTo("Alice");
+        assertThat(page.get(1).answerCount()).isZero();
+        assertThat(page.get(1).authorDisplayName()).isEqualTo("Bob");
+        verify(answers).countVisibleByQuestionIds(List.of(101L, 102L));
+        verify(users).findDisplayNames(List.of(AUTHOR, STRANGER));
+        verify(answers, never()).countByQuestionId(any());
+    }
+
+    @Test
+    void emptyPagesDoNotPerformAnyBatchLookup() {
+        service.browse(ACTOR, null, null, null, 0, 10);
+        verify(answers, never()).countVisibleByQuestionIds(any());
+        verifyNoInteractions(users);
     }
 
     @Test

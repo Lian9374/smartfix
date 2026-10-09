@@ -46,6 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SecurityConfigTest {
     @Autowired private MockMvc mvc;
     @MockitoBean private UserService users;
+    @MockitoBean private com.smartfix.user.service.AccountAdministrationService administration;
     @MockitoBean private com.smartfix.auth.service.RegistrationRateLimiter registrationLimiter;
     // HomeController reads a requester's recent requests to render the overview.
     // This slice deliberately loads controllers without the service layer, so the

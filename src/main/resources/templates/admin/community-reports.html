@@ -35,7 +35,7 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('community-reports')}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content community-detail-page moderation-page">
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:href="@{/community}">Community</a><!--
      --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
@@ -45,7 +45,7 @@
       <div class="page-head-row card page-context">
         <div th:replace="~{fragments/components :: pageHeading(
              'Reported content',
-             'Reports filed by readers, oldest first. Deciding a report records who decided what and when; hiding is a separate choice.')}">
+             'Review reports and manage content visibility.')}">
           <h1 class="page-head__title">Reported content</h1>
         </div>
       </div>
@@ -146,9 +146,9 @@
                 The reporter added: it is the same question as yesterday's.
               </p>
             </div>
-            <div class="alert alert--info" th:unless="${report.isOpen()}">
+            <div class="alert alert--info report-decision" th:unless="${report.isOpen()}">
               <strong th:text="${report.status}">ACTIONED</strong>
-              <span th:text="| · Account #${report.handledByUserId} · ${#temporals.format(report.handledAt, 'yyyy-MM-dd HH:mm')}|"></span>
+              <span class="report-decision__meta" th:text="|Account #${report.handledByUserId} · ${#temporals.format(report.handledAt, 'yyyy-MM-dd HH:mm')}|"></span>
               <p th:if="${report.resolutionNote != null}" th:text="${report.resolutionNote}"></p>
             </div>
 
@@ -280,7 +280,7 @@
         </div>
       </section>
 
-      <nav th:if="${pagination != null}" aria-label="Reported content pagination">
+      <nav class="list-pagination card" th:if="${pagination != null}" aria-label="Reported content pagination">
         <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
            th:href="@{/admin/community/reports(view=${selectedView}, page=${pagination.number - 1}, size=${pagination.size})}">
           Previous

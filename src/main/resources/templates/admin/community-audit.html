@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Community audit')}"><title>Community audit</title></head>
+<head th:replace="~{fragments/layout :: head('Audit trail')}"><title>Audit trail</title></head>
 <body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('community-reports')}"></th:block>
 <div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('community-reports')}"></th:block>
 <main id="main-content" class="content">
 <section class="card page-context"><div class="page-head-row"><div class="page-head">
-<h1 class="page-head__title">Community audit</h1><p class="page-head__subtitle">A permanent record of moderation decisions.</p></div>
+<h1 class="page-head__title">Audit trail</h1><p class="page-head__subtitle">Account and community operations, recorded with their business transaction.</p></div>
 <a class="btn btn--secondary" th:href="@{/admin/community/reports(view='ALL')}">Back to reports</a></div></section>
 <section class="card discussion-feed">
-<header class="module-header"><h2>Moderation history</h2><span class="result-count" th:text="|${pagination.totalElements} records|"></span></header>
-<div th:if="${#lists.isEmpty(entries)}"><div th:replace="~{fragments/components :: emptyState('No moderation actions yet.', 'Actions appear here when a moderator changes content or decides a report.')}"></div></div>
+<header class="module-header"><h2>Operation history</h2><span class="result-count" th:text="|${pagination.totalElements} records|"></span></header>
+<div th:if="${#lists.isEmpty(entries)}"><div th:replace="~{fragments/components :: emptyState('No audited actions yet.', 'Account changes and moderation decisions appear here.')}"></div></div>
 <article class="audit-entry" th:each="entry : ${entries}">
-<div><h3 th:text="${entry.action == 'CONTENT_HIDDEN' ? 'Content hidden' : (entry.action == 'CONTENT_RESTORED' ? 'Content restored' : 'Report resolved')}"></h3>
+<div><h3 th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(entry.action,'_',' ')))}"></h3>
 <p class="meta" th:text="|${#strings.capitalize(#strings.toLowerCase(entry.targetType))} #${entry.targetId} · ${entry.outcome}|"></p></div>
 <div class="audit-meta"><span th:text="|By Account #${entry.actorUserId}|"></span><time th:datetime="${entry.occurredAt}" th:text="${#temporals.format(entry.occurredAt, 'yyyy-MM-dd HH:mm')}"></time></div>
 </article>

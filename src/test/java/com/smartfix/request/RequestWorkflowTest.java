@@ -100,6 +100,7 @@ class RequestWorkflowTest {
         for (String table :
                 List.of(
                         "notifications",
+                        "audit_entries",
                         "repair_records",
                         "request_feedback",
                         "request_status_history",
@@ -120,8 +121,8 @@ class RequestWorkflowTest {
                     "Test User " + id,
                     "synthetic-test-hash",
                     role,
-                    JDBC_NOW,
-                    JDBC_NOW);
+                    java.sql.Timestamp.from(NOW),
+                    java.sql.Timestamp.from(NOW));
         }
         jdbc.update(
                 "INSERT INTO locations(id,location_code,display_name,active)"
@@ -663,8 +664,8 @@ class RequestWorkflowTest {
                         + " status=?,final_urgency_level='HIGH',resolved_at=?,confirmed_at=? WHERE"
                         + " id=?",
                 from,
-                JDBC_NOW,
-                JDBC_NOW,
+                java.sql.Timestamp.from(NOW),
+                java.sql.Timestamp.from(NOW),
                 id);
         if (!from.equals("SUBMITTED") && !from.equals("UNDER_REVIEW")) {
             String workStatus =
@@ -677,10 +678,10 @@ class RequestWorkflowTest {
                         + " VALUES(?,4,?,0,?,?,?,?)",
                     id,
                     workStatus,
-                    JDBC_NOW,
-                    JDBC_NOW,
+                    java.sql.Timestamp.from(NOW),
+                    java.sql.Timestamp.from(NOW),
                     "Resolved",
-                    JDBC_NOW);
+                    java.sql.Timestamp.from(NOW));
         }
         if (!to.equals("UNDER_REVIEW")) assignments.assign(id, 4L);
         lifecycle.transition(ticket, RequestStatus.valueOf(to), actor, "Transition reason");
@@ -792,7 +793,7 @@ class RequestWorkflowTest {
     @TestConfiguration
     static class Collaboration {
         @Bean
-        @Primary
+        @org.springframework.context.annotation.Primary
         AssignmentFixture assignmentFixture() {
             return new AssignmentFixture();
         }

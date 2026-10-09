@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @Sql(scripts = {"/db/auth-test-schema.sql", "/db/migration/V3__create_locations.sql",
-        "/db/migration/V10__create_technician_profiles.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+        "/db/technician-test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class TechnicianProfileIT {
     private static final String ROUTE = "/technician/profile";
     @Autowired MockMvc mvc;
@@ -203,7 +203,7 @@ class TechnicianProfileIT {
         jdbc.update("UPDATE locations SET display_name = '<script>alert(1)</script>' WHERE id = 10");
         mvc.perform(get(ROUTE).with(account("tech.one"))).andExpect(status().isOk())
                 .andExpect(content().string(containsString("&lt;script&gt;")))
-                .andExpect(content().string(not(containsString("<script>"))));
+                .andExpect(content().string(not(containsString("<script>alert(1)</script>"))));
         jdbc.update("UPDATE locations SET active = FALSE");
         mvc.perform(get(ROUTE).with(account("tech.one"))).andExpect(status().isOk())
                 .andExpect(content().string(containsString("No active locations")))

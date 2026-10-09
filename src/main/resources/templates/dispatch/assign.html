@@ -8,7 +8,7 @@
   <th:block th:replace="~{fragments/layout :: sidebar('request-lookup')}"></th:block>
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('request-lookup')}"></th:block>
-    <main id="main-content" class="content">
+    <main id="main-content" class="content workspace-page">
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:href="@{/admin/requests}">Request queue</a>
         <span class="crumbs__sep" aria-hidden="true"> / </span>
@@ -17,7 +17,7 @@
         <span class="crumbs__sep" aria-hidden="true"> / </span>
         <span class="crumbs__here" aria-current="page">Dispatch</span>
       </nav>
-      <div class="page-head-row">
+      <div class="page-head-row card page-context workspace-heading">
         <div class="page-head">
           <h1 class="page-head__title">Manage assignment</h1>
           <p class="page-head__subtitle" th:text="${page.request.title}">Broken light</p>
@@ -67,7 +67,7 @@
               </p>
             </div>
             <form th:unless="${#lists.isEmpty(page.candidates)}" method="post" th:object="${reassignCommand}"
-                  th:action="${page.canReassign} ? @{/admin/requests/{ticket}/reassign(ticket=${page.request.ticketNumber})} : @{/admin/requests/{ticket}/assign(ticket=${page.request.ticketNumber})}">
+                  th:attr="data-confirm=${page.canReassign} ? 'Reassign this repair? The previous engineer will lose access immediately.' : null" th:action="${page.canReassign} ? @{/admin/requests/{ticket}/reassign(ticket=${page.request.ticketNumber})} : @{/admin/requests/{ticket}/assign(ticket=${page.request.ticketNumber})}">
               <div class="card__body" th:if="${page.canReassign}">
                 <input type="hidden" th:field="*{expectedAssignmentId}">
                 <div class="form-field">
@@ -105,7 +105,7 @@
           </section>
           <section class="card" th:if="${page.canWithdraw}" aria-labelledby="withdraw-title">
             <div class="card__header"><h2 class="card__title" id="withdraw-title">Withdraw assignment</h2></div>
-            <form class="card__body" method="post" th:object="${withdrawCommand}"
+            <form class="card__body" method="post" th:object="${withdrawCommand}" data-confirm="Withdraw this assignment? The engineer will lose access immediately."
                   th:action="@{/admin/requests/{ticket}/withdraw(ticket=${page.request.ticketNumber})}">
               <p class="meta">Withdraw before work starts. The request returns to review and the technician loses access to this work order.</p>
               <input type="hidden" th:field="*{expectedAssignmentId}" id="withdraw-assignment-id">

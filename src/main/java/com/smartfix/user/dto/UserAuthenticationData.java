@@ -32,7 +32,12 @@ public record UserAuthenticationData(
         String passwordHash,
         Role role,
         AccountStatus accountStatus,
-        long securityVersion) {
+        long securityVersion,
+        boolean passwordChangeRequired) {
+    public UserAuthenticationData(Long userId, String username, String passwordHash, Role role,
+            AccountStatus accountStatus, long securityVersion) {
+        this(userId, username, passwordHash, role, accountStatus, securityVersion, false);
+    }
 
     /**
      * Redacted on purpose. The compiler-generated version would print the hash, and a

@@ -53,6 +53,29 @@ class CommunityQuestionRepositoryTest {
     @Autowired private JdbcTemplate jdbc;
 
     @Test
+    void batchCountsExcludeHiddenWithdrawnAndOffPageAnswers() {
+        var now = Instant.parse("2026-10-09T08:00:00Z");
+        var one = questions.saveAndFlush(CommunityQuestion.ask(AUTHOR_ONE,
+                "First count question", "A synthetic question body long enough to pass validation.", CommunityCategory.OTHER, now));
+        var two = questions.saveAndFlush(CommunityQuestion.ask(AUTHOR_ONE,
+                "Second count question", "A synthetic question body long enough to pass validation.", CommunityCategory.OTHER, now));
+        var offPage = questions.saveAndFlush(CommunityQuestion.ask(AUTHOR_ONE,
+                "An off page question", "A synthetic question body long enough to pass validation.", CommunityCategory.OTHER, now));
+        answers.save(CommunityAnswer.post(one.getId(), AUTHOR_TWO, "This is a visible synthetic answer.", now));
+        var hidden = CommunityAnswer.post(one.getId(), AUTHOR_TWO, "This hidden answer must not contribute to the count.", now);
+        hidden.hide(now);
+        answers.save(hidden);
+        var withdrawn = CommunityAnswer.post(one.getId(), AUTHOR_TWO, "This withdrawn answer must not contribute to the count.", now);
+        withdrawn.withdraw(now);
+        answers.save(withdrawn);
+        answers.saveAndFlush(CommunityAnswer.post(offPage.getId(), AUTHOR_TWO, "This answer is outside the requested page.", now));
+        var counts = answers.countVisibleByQuestionIds(java.util.List.of(one.getId(), two.getId()));
+        assertThat(counts).hasSize(1);
+        assertThat(counts.getFirst().getQuestionId()).isEqualTo(one.getId());
+        assertThat(counts.getFirst().getAnswerCount()).isEqualTo(1);
+    }
+
+    @Test
     void publiclyVisibleSearchLeavesOutHiddenAndWithdrawnQuestions() {
         question(AUTHOR_ONE, "Printer jams on the third floor",
                 "The printer jams every time it feeds from tray two.", CommunityCategory.PERIPHERAL,
