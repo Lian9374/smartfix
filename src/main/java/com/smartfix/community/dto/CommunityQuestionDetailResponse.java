@@ -33,6 +33,7 @@ public record CommunityQuestionDetailResponse(
         String body,
         CommunityCategory category,
         Long authorId,
+        String authorDisplayName,
         CommunityContentStatus status,
         boolean solved,
         Long acceptedAnswerId,
@@ -41,4 +42,7 @@ public record CommunityQuestionDetailResponse(
         boolean edited,
         List<CommunityAnswerResponse> answers
 ) {
+    public long getVisibleAnswerCount() {
+        return answers.stream().filter(a -> a.status() == CommunityContentStatus.VISIBLE).count();
+    }
 }

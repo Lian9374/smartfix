@@ -21,6 +21,19 @@ import java.util.Optional;
  */
 public interface UserRepository extends JpaRepository<User, Long> {
 
+    interface PublicName {
+        Long getId();
+        String getDisplayName();
+    }
+
+    @Query("select u.id as id, u.displayName as displayName from User u where u.id in :ids")
+    List<PublicName> findPublicNames(@Param("ids") java.util.Collection<Long> ids);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from User u where u.id = :id")
+    Optional<User> findByIdForUpdate(@Param("id") Long id);
+
+
     /**
      * @param username an <em>already normalized</em> username - see
      *                 {@link User#normalizeUsername(String)}

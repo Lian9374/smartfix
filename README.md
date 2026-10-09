@@ -5,9 +5,10 @@
 > **SWE5006 — Designing Modern Software Systems Practice (NUS-ISS)** · five-member
 > Agile team · Jira + GitHub.
 
-> **Repository status:** this repository currently contains the **initial SmartFix
-> architecture and development scaffold**. Business functionality will be implemented
-> incrementally through Agile sprints following detailed analysis and design.
+> **Repository status:** Sprint 2/3 business features are implemented, including session
+> authentication, accounts, maintenance requests/work orders, community Q&A/moderation,
+> in-app notifications/audit and the NUS map. Verified UserA scope and remaining integration
+> boundaries are recorded in [the completion handoff](docs/sprint3/UserA_Quality_Completion_CN.md).
 
 This README is the team's engineering handbook. If you are new to the repository,
 start here: it tells you what SmartFix is, what currently works, where code belongs,
@@ -84,29 +85,24 @@ operational reporting — a structured workflow from initial report to closure.
 
 ## 3. Current project status
 
-**Current status: INITIAL ARCHITECTURE / DEVELOPMENT SCAFFOLD.**
+**Current status: implemented Sprint 2/3 features, with recorded integration limits.**
 
-### What currently works
+- Session login, BCrypt, CSRF, explicit role/method authorization, active-account checks,
+  account administration and fixed-role requester registration with attempt limiting.
+- Maintenance requests, private photos, workflow/history, work orders, confirmation,
+  feedback and reopen behavior. Latest main includes B's technician/dispatch work.
+- Community questions/answers, accepted answers, ownership/visibility controls, reports,
+  handled history and restoration, in-app notifications and transactional audit.
+- Community list batch answer counts/display names, consistent responsive editors,
+  live counters/error focus and preserved moderation pagination.
+- Real NUS OneMap tiles/building catalogue and periodic aggregate maintenance status.
+- H2 regression tests, opt-in native PostgreSQL tests and repeatable keyboard/restart
+  acceptance. See the handoff for exact revisions and measured results.
 
-- A single Spring Boot 3.5.4 (Java 21) application that **compiles and starts**.
-- A minimal **home page** (`GET /`) rendered through Spring MVC + Thymeleaf.
-- An **Actuator health endpoint**: `GET /actuator/health`.
-- **PostgreSQL for local development** via Docker Compose.
-- An **isolated H2 test profile** so `mvn test` needs no external database.
-- **Flyway** migration infrastructure (baseline `V1` is intentionally empty).
-- A **temporary permit-all security baseline** (see §30).
-- Infrastructure tests: application-context load + home-page render.
-- A minimal Jenkinsfile (Checkout → Build → Unit Test → Package).
-
-### What does NOT exist yet (do not assume it works)
-
-Authentication/SSO, final RBAC, maintenance-request CRUD, file/image upload, comments,
-feedback, reopen workflow, request status-transition engine, work-order workflow,
-technician matching/ranking (and the Strategy Pattern), SLA calculation/scheduling/
-escalation, notifications/email, campus-map provider integration, real-time streaming,
-public/private facility authorization, dashboards, reports, announcements, full audit
-trail, and the final database schema. These are **planned**, not implemented — do not
-write code, docs, or tests as if they exist.
+NUS SSO, email verification/captcha, multi-node ingress limits, physical-device/screen-reader
+acceptance and cloud deployment are not certified by this work. Latest main's pre-existing
+V14/V20 notification migration collision needs explicit history reconciliation before a
+fresh PostgreSQL deployment; feature-branch database evidence does not certify that merge.
 
 ## 4. Official system roles
 
@@ -152,7 +148,7 @@ Administrator final verification / closure
   sequence-diagram analysis. The architecture is deliberately flexible enough to add the
   final rule later without a rewrite.
 - Whether external **NUS SSO** is truly required (not yet confirmed; authentication is
-  currently scaffold-only).
+  implemented using session/password authentication).
 - Whether and when a technician **matching strategy** (Strategy Pattern) is justified.
 - Whether a **Facility Officer** role is ever introduced (see §4).
 - Module → functional-area mapping details for reporting/map features.
@@ -661,8 +657,7 @@ environment assumptions → database migrations (Flyway) → (later) Docker buil
 
 See [`docs/testing-guide.md`](docs/testing-guide.md) for the full guide.
 
-- **Current scaffold tests:** an application-context test and a home-page (controller)
-  smoke test — infrastructure only.
+- **Current tests:** service/domain/repository, real security and rendered-page integration, native PostgreSQL concurrency/migrations and browser acceptance. See the UserA completion record for this delivery.
 - **Unit tests** (JUnit 5 + Mockito) for complex logic — future targets: technician
   assignment, SLA rules, request state transitions, invalid transitions,
   authorization-sensitive behaviour.
@@ -674,23 +669,20 @@ See [`docs/testing-guide.md`](docs/testing-guide.md) for the full guide.
 
 ## 29. H2 vs PostgreSQL warning
 
-- The `test` profile uses **H2 in PostgreSQL mode** for fast, isolated scaffold tests —
+- The `test` profile uses **H2 in PostgreSQL mode** for fast, isolated tests —
   it needs no database and no per-developer setup.
 - **H2 is not identical to PostgreSQL.** PostgreSQL-specific behaviour (functions,
-  indexes, locking, constraints) may differ. As the schema and queries become real,
-  rely on PostgreSQL integration testing (e.g. **Testcontainers**) rather than assuming
+  indexes, locking, constraints) may differ. Use the opt-in `postgres-it` native PostgreSQL tests for the real schema and concurrency rather than assuming
   every H2-green test proves PostgreSQL correctness.
-- Testcontainers is **not** added yet — introduce it deliberately when the team starts
-  writing real persistence code.
+- Native PostgreSQL tests use `TEST_DB_URL`, `TEST_DB_USERNAME`, `TEST_DB_PASSWORD` and isolated schemas in a database ending `_test`. They do not require Testcontainers.
 
 ## 30. Security development rules
 
-- The current `SecurityConfig` is a **temporary, permit-all scaffold** so the team can
-  verify the foundation. It is clearly marked with `TODO(Sprint 2)`.
-- When Sprint 2 implements authentication, design **password hashing, session/CSRF
-  rules, authorization, protected routes and role tests** carefully — and update the
-  scaffold TODOs.
-- **Never leave temporary permit-all accidentally enabled for a final release.**
+- SecurityConfig now enforces authenticated role/method routes; unknown routes are denied.
+- All state-changing forms retain CSRF. Services recheck active accounts and object ownership.
+- Registration binds no role/status and never automatically logs the new account in.
+- Never weaken these rules to make a failing endpoint or test pass. Authentication changes
+  require B review; current review status is documented separately from author verification.
 
 ## 31. Design Pattern rule
 

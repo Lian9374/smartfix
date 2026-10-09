@@ -4,10 +4,11 @@ This guide explains every planned `com.smartfix.*` module: its purpose, what it 
 what it must **not** own, likely future content, and the dependencies it may reasonably
 have. Use it to answer the question **"where should this code go?"** before writing it.
 
-> Only modules that contain real code exist in the repository today (`common`, `auth`,
-> `user`). Everything else below is the **target structure**. Create a module/package
-> when a story needs it — not before. See also `docs/architecture.md` (cross-module
-> rules and the `common` rule).
+> Current implemented modules include common, auth, user, facility, request, workorder,
+> community, notification, audit and reporting. Later entries still marked “likely”
+> describe target responsibilities, not completed scope. Latest main also contains B's
+> technician/dispatch implementation. See `sprint3/UserA_Quality_Completion_CN.md` for
+> the verified UserA branch boundary and integration dependencies.
 
 ---
 
@@ -50,8 +51,7 @@ business logic owned by one module (→ keep it in that module, let others call 
 - **Owns:** who may access the system and what they may do — login flow, session,
   security configuration, (future) RBAC rules, password encoding decisions.
 - **Does not own:** maintenance requests, technician matching, SLA, facility data.
-- **Current content:** `auth/config/SecurityConfig` — a **temporary** permit-all
-  baseline (see README §30).
+- **Current content:** session authentication, explicit role/method route rules, active-account/security-version checks, login and CSRF-protected registration, registration attempt limiter.
 - **Likely future domain objects:** login/session/authority concepts (an actual `User`
   account lives in `user`; `auth` defines access rules and how identities are verified).
 - **Likely services:** `AuthService` / authentication provider, password encoder wiring.
@@ -69,10 +69,11 @@ business logic owned by one module (→ keep it in that module, let others call 
 - **Purpose:** users, roles and accounts.
 - **Owns:** who the people in the system are, their roles and account state
   (active/inactive).
-- **Does not own:** requests, work orders, technician profiles (`technician`) or
-  technician matching decisions (`dispatch`).
-- **Current content:** `user/domain/Role` (REQUESTER / TECHNICIAN / ADMINISTRATOR only).
-- **Likely future domain objects:** `User`, `Role`,
+- **Does not own:** requests, work orders, technician *matching decisions* (a
+  technician's *profile* relevant to matching may live here or in a
+  `TechnicianProfile` concept that `dispatch` consumes — decide during modelling).
+- **Current content:** User/Role/AccountStatus, account management, requester registration and public access/name queries through UserService.
+- **Likely future domain objects:** `User`, `Role`, possibly `TechnicianProfile`,
   account-status values.
 - **Likely services:** `UserService` (account admin, role assignment — Sprint 2).
 - **Likely repository responsibility:** `UserRepository`, role/account queries.
@@ -323,6 +324,23 @@ controllers.
 
 **Scenario:** "who changed the SLA target?" → the change path writes an `AuditEntry`
 through `audit`'s public API.
+
+---
+
+## `community` (implemented)
+
+- Owns questions, answers, acceptance, reports and their visibility/ownership rules.
+- CommunityQueryService batch-loads VISIBLE answer counts and names for the current page.
+- Reads public display names through `UserService.findDisplayNames`; credentials and
+  private account fields are not part of that API. No foreign repository injection.
+- Posting starts with `UserService.lockActivePostingAccount` in the existing write
+  transaction. Account lock precedes content reads/locks. Conditional question updates
+  and V18 still enforce answer acceptance separately.
+- Notifications consume committed community events; audit records moderation in the
+  business transaction. Rollbacks produce neither success audit nor notification.
+- Community images are outside this Sprint; request attachments remain request-owned.
+- V17 questions/answers, V18 acceptance constraint, V19 reports; no new schema is needed
+  for counts, names, pagination, counters or author serialization.
 
 ---
 

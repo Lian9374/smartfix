@@ -45,7 +45,7 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content community-detail-page">
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:href="@{/community}">Community</a><!--
      --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
@@ -53,13 +53,13 @@
               th:text="|Question #${question.id}|">Question #1</span>
       </nav>
 
-      <div class="page-head-row">
+      <div class="page-head-row card page-context">
         <div class="page-head">
           <h1 class="page-head__title" th:text="${question.title}">
             Projector will not power on
           </h1>
           <p class="page-head__subtitle">
-            <span th:text="|Asked by Account #${question.authorId}|">Asked by Account #10</span>
+            <span th:text="${question.authorDisplayName}">Asked by Account #10</span>
             <span aria-hidden="true"> &middot; </span>
             <span th:text="|posted ${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}|">
               posted 2026-09-19 08:00
@@ -166,7 +166,7 @@
                   </span>
                 </dd>
 
-                <dt>Answers</dt>
+                <dt>Status</dt>
                 <dd>
                   <span class="badge"
                         th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
@@ -174,7 +174,7 @@
                 </dd>
 
                 <dt>Asked by</dt>
-                <dd th:text="|Account #${question.authorId}|">Account #10</dd>
+                <dd th:text="${question.authorDisplayName}">Campus member</dd>
 
                 <dt>Posted</dt>
                 <dd th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}">
@@ -238,7 +238,7 @@
                         What is wrong with it
                       </label>
                       <textarea id="report-question-detail" name="detail" rows="3"
-                                maxlength="500" aria-describedby="report-question-detail-hint"
+                                maxlength="500" data-character-count aria-describedby="report-question-detail-hint"
                                 placeholder="Optional. Up to 500 characters."></textarea>
                       <span class="form-field__hint" id="report-question-detail-hint">
                         Optional, up to 500 characters. A moderator reads this alongside
@@ -260,7 +260,7 @@
               <h2 class="card__title" id="question-answers-title"
                   th:text="${#lists.isEmpty(question.answers)
                               ? 'Answers'
-                              : 'Answers (' + #lists.size(question.answers) + ')'}">Answers</h2>
+                              : 'Answers (' + question.visibleAnswerCount + ')'}">Answers</h2>
             </div>
             <!--
               Flush body, with each answer re-applying the body padding itself:
@@ -276,7 +276,7 @@
 
               <article th:each="answer : ${question.answers}" class="card__body">
                 <p class="page-head__eyebrow">
-                  <span th:text="|Account #${answer.authorId}|">Account #20</span>
+                  <span th:text="${answer.authorDisplayName}">Account #20</span>
                   <span aria-hidden="true"> &middot; </span>
                   <span th:text="${#temporals.format(answer.createdAt, 'yyyy-MM-dd HH:mm')}">
                     2026-09-19 09:30
@@ -382,7 +382,7 @@
                           What is wrong with it
                         </label>
                         <textarea id="report-answer-detail" th:id="|report-answer-detail-${answer.id}|"
-                                  name="detail" rows="3" maxlength="500"
+                                  name="detail" rows="3" maxlength="500" data-character-count
                                   aria-describedby="report-answer-detail-hint"
                                   th:attr="aria-describedby=|report-answer-detail-hint-${answer.id}|"
                                   placeholder="Optional. Up to 500 characters."></textarea>
@@ -430,13 +430,12 @@
                 <div class="form-field"
                      th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
                   <label class="form-field__label" for="answer-body">Answer</label>
-                  <textarea id="answer-body" th:field="*{body}" rows="6" maxlength="4000"
+                  <textarea id="answer-body" th:field="*{body}" rows="6" maxlength="4000" minlength="10" required data-character-count
                             placeholder="What the person asking should try, and why."
                             aria-describedby="answer-body-hint answer-body-error"
-                            th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null"></textarea>
+                            th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null, aria-describedby=${#fields.hasErrors('body')} ? 'answer-body-hint answer-body-error' : 'answer-body-hint'"></textarea>
                   <span class="form-field__hint" id="answer-body-hint">
-                    Between 10 and 4000 characters. Line breaks are kept exactly as you
-                    type them, and nothing you type is read as markup.
+                    Required. 10–4,000 characters.
                   </span>
                   <span class="form-field__error" id="answer-body-error" th:errors="*{body}">
                     Answer is required.

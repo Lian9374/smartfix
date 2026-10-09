@@ -38,6 +38,16 @@ public interface CommunityAnswerRepository extends JpaRepository<CommunityAnswer
 
     long countByQuestionId(Long questionId);
 
+    interface VisibleCount {
+        Long getQuestionId();
+        long getAnswerCount();
+    }
+
+    @Query("select a.questionId as questionId, count(a) as answerCount from CommunityAnswer a "
+            + "where a.questionId in :ids and a.status = com.smartfix.community.domain.CommunityContentStatus.VISIBLE "
+            + "group by a.questionId")
+    List<VisibleCount> countVisibleByQuestionIds(@Param("ids") java.util.Collection<Long> ids);
+
     /**
      * The question an answer belongs to, but only if this author wrote the answer.
      *

@@ -78,10 +78,20 @@ public class AdminCommunityController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "0") int size,
             @AuthenticationPrincipal SmartFixUserDetails principal,
-            Model model) {
+            Model model,
+            RedirectAttributes redirect) {
         Long actorUserId = principal.getUserId();
         Page<CommunityReportResponse> found =
                 moderationService.listReports(actorUserId, view, page, size);
+        if (found.isEmpty() && found.getNumber() > 0) {
+            int lastPage = Math.max(0, found.getTotalPages() - 1);
+            for (String message : java.util.List.of(SUCCESS_MESSAGE, FORM_ERROR)) {
+                if (model.containsAttribute(message)) {
+                    redirect.addFlashAttribute(message, model.getAttribute(message));
+                }
+            }
+            return queueRedirect(view, lastPage, found.getSize());
+        }
 
         model.addAttribute("reports", found.getContent());
         model.addAttribute("pagination", found);

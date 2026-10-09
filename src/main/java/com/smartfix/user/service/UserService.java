@@ -302,6 +302,27 @@ public class UserService {
         }
     }
 
+    /** Public community identity only; never credentials, login names or account state. */
+    @Transactional(readOnly = true)
+    public java.util.Map<Long, String> findDisplayNames(java.util.Collection<Long> ids) {
+        if (ids.isEmpty()) { return java.util.Map.of(); }
+        var names = new java.util.HashMap<Long, String>();
+        for (var name : userRepository.findPublicNames(ids)) {
+            names.put(name.getId(), name.getDisplayName());
+        }
+        return java.util.Map.copyOf(names);
+    }
+
+    /** Must join the posting transaction: account lock precedes any content lock. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public UserAccessResponse lockActivePostingAccount(Long userId) {
+        User user = userRepository.findByIdForUpdate(userId)
+                .filter(u -> u.getAccountStatus() == AccountStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Community content not found."));
+        return new UserAccessResponse(user.getId(), user.getRole(), user.getAccountStatus(),
+                user.getSecurityVersion());
+    }
+
     private User requireUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account " + userId + " does not exist."));

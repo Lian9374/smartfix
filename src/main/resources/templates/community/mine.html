@@ -32,8 +32,8 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('my-questions')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content community-detail-page">
+      <div class="page-head-row card page-context">
         <!--
           The heading follows the tab. Each is a th:if on a wrapper with the
           th:replace inside it, never both on one element: th:replace is processed
@@ -43,7 +43,7 @@
         <th:block th:if="${tab.name() == 'ANSWERS'}">
           <div th:replace="~{fragments/components :: pageHeading(
                'My answers',
-               'Everything you have answered, including anything you have withdrawn.')}">
+               'Your replies and their status.')}">
             <h1 class="page-head__title">My answers</h1>
           </div>
         </th:block>
@@ -51,7 +51,7 @@
         <th:block th:if="${tab.name() == 'QUESTIONS'}">
           <div th:replace="~{fragments/components :: pageHeading(
                'My questions',
-               'Everything you have asked, including anything you have withdrawn.')}">
+               'Your questions and their status.')}">
             <h1 class="page-head__title">My questions</h1>
           </div>
         </th:block>
@@ -61,10 +61,7 @@
           <a class="btn btn--secondary" th:href="@{/community}">Community</a>
         </div>
 
-        <p class="page-head-row__meta" th:if="${tab.name() == 'QUESTIONS'}"
-           th:unless="${#lists.isEmpty(questions)}"
-           th:text="|${#lists.size(questions)} shown|">10 shown</p>
-        <p class="page-head-row__meta" th:if="${tab.name() == 'ANSWERS'}"
+<p class="page-head-row__meta" th:if="${tab.name() == 'ANSWERS'}"
            th:unless="${#lists.isEmpty(answers)}"
            th:text="|${#lists.size(answers)} shown|">10 shown</p>
       </div>
@@ -75,7 +72,7 @@
         the difference is not carried by colour alone. Both are links to the same
         page, so switching tabs is a navigation and not a form submission.
       -->
-      <nav class="form-actions" aria-label="My community content">
+      <nav class="form-actions card community-tabs" aria-label="My community content">
         <a class="btn" th:classappend="${tab.name() == 'QUESTIONS'}
                                           ? 'btn--primary' : 'btn--secondary'"
            th:href="@{/community/mine(tab='QUESTIONS')}"
@@ -157,6 +154,7 @@
                 </td>
 
                 <td data-label="Answers">
+                  <span class="discussion__answer-count" th:text="${question.answerCount + (question.answerCount == 1 ? ' answer' : ' answers')}">0 answers</span>
                   <span class="badge"
                         th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
                         th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
@@ -281,7 +279,7 @@
         </div>
       </section>
 
-      <nav th:if="${pagination != null}" aria-label="My content pagination">
+      <nav class="list-pagination card" th:if="${pagination != null}" aria-label="My content pagination">
         <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}"
            th:href="@{/community/mine(tab=${tab}, page=${pagination.number - 1}, size=${pagination.size})}">
           Previous

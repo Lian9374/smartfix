@@ -135,7 +135,9 @@ public class CommunityAnswerService {
      * @throws InputValidationException when the author has answered as often in the
      *         configured window as the posting guard allows
      */
+    @Transactional(isolation = org.springframework.transaction.annotation.Isolation.READ_COMMITTED)
     public Long post(Long questionId, AnswerFormCommand command, Long actorUserId) {
+        access.serializePosting(actorUserId);
         access.requireActiveUser(actorUserId);
         Instant now = clock.instant();
         rejectFlood(actorUserId, now);
@@ -350,23 +352,9 @@ public class CommunityAnswerService {
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_FOUND));
     }
 
-    /**
-     * The answer half of the posting guard: no more than a configured number of answers
-     * per author per window.
-     *
-     * <p>It reuses the question guard's window and cap rather than introducing numbers of
-     * its own. Plan section 12.2 lists a rate-limit conflict for posting an answer but
-     * gives no figure, and section 29 leaves D-15 open with two different values in the
-     * plan itself - so inventing an answer-specific pair would be adding a decision to a
-     * question the team has not answered. The switch that turns the question guards off
-     * turns this one off too, which is what makes "turn the posting guards off" mean the
-     * same thing for both kinds of content.</p>
-     *
-     * <p>As with the question guard, this is a count followed by an insert and the two are
-     * not atomic with respect to each other, so it bounds the ordinary case - a
-     * double-clicked button, a script posting one request at a time - and not a pair of
-     * simultaneous submissions.</p>
-     */
+    /** Count and insert run under the author's account lock in one READ_COMMITTED transaction.
+     * All posting paths take this lock first, so concurrent requests and app instances
+     * see the preceding commit before checking the rolling quota. */
     private void rejectFlood(Long authorId, Instant now) {
         CommunityProperties.Posting posting = properties.getPosting();
         if (!posting.isDuplicateDetectionEnabled()) {

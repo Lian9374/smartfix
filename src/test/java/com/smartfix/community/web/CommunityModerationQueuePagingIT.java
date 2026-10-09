@@ -180,6 +180,34 @@ class CommunityModerationQueuePagingIT {
                 .andExpect(content().string(containsString("page=1")));
     }
 
+    @Test
+    @Order(4)
+    void resolvingTheLastReportsOnTheLastPageReturnsToAValidPage() throws Exception {
+        var session = login("root.admin");
+        var last = reports.findByStatusOrderByCreatedAtAscIdAsc(
+                com.smartfix.community.domain.CommunityReportStatus.OPEN,
+                org.springframework.data.domain.PageRequest.of(1, 10)).getContent();
+        assertThat(last).hasSize(2);
+        for (var report : last) {
+            mvc.perform(post(QUEUE + "/" + report.getId() + "/resolve").session(session).with(csrf())
+                    .param("decision", "DISMISSED").param("view", "OPEN")
+                    .param("page", "1").param("size", "10"))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl(QUEUE + "?view=OPEN&page=1&size=10"));
+        }
+        mvc.perform(get(QUEUE).session(session).param("view", "OPEN").param("page", "1").param("size", "10"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl(QUEUE + "?view=OPEN&page=0&size=10"));
+        String html = mvc.perform(get(QUEUE).session(session).param("size", "10"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        var matcher = java.util.regex.Pattern.compile("id=\"([^\"]+)\"").matcher(html);
+        var ids = new java.util.HashSet<String>();
+        while (matcher.find()) { assertThat(ids.add(matcher.group(1))).as("unique HTML ID").isTrue(); }
+        mvc.perform(get(QUEUE).session(session).param("view", "HANDLED").param("page", "9999").param("size", "10"))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl(QUEUE + "?view=HANDLED&page=0&size=10"));
+    }
+
     // -------------------------------------------------------------- helpers
 
     /** Seeds one report with a timestamp after every report before it. */

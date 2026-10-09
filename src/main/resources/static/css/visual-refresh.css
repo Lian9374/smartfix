@@ -446,6 +446,41 @@
 }
 @media(max-width:650px) { .campus-map-promo { flex-wrap:wrap;padding:18px;gap:12px; } .campus-map-promo > div { flex:1; } .campus-map-promo .btn { margin:0 0 0 60px;font-size:13px; } .campus-map-hero { padding:24px; } .campus-map-hero h1 { font-size:29px; } .campus-map-hero p { font-size:14px; } .campus-map-art { display:none; } .campus-status-summary { gap:8px; } .campus-status-tile { flex-wrap:wrap;gap:5px;padding:12px 10px; } .campus-status-tile > span:nth-child(2) { flex-basis:calc(100% - 14px); } .campus-status-tile strong { margin:0;font-size:22px; } .campus-map-filters { padding:18px;gap:16px 12px; } .campus-map-filters > .form-field:first-of-type { grid-column:1/-1; } .campus-map-filter-actions { grid-column:1/-1; } .campus-facility-grid { grid-template-columns:minmax(0,1fr);padding:16px; } .campus-building { padding:10px;gap:8px; } .campus-building strong { font-size:14px; } }
 .notification-entry:hover { background:#e7f1ed; }
+
+/* Community secondary screens share the same contained hierarchy as the feed. */
+.community-detail-page { max-width:1180px; }
+.community-detail-page .page-context { margin-bottom:24px; padding:26px 30px; gap:18px; }
+.community-detail-page .page-context .page-head { margin:0; }
+.community-detail-page .page-head__title { font-size:30px; line-height:1.25; overflow-wrap:anywhere; }
+.community-detail-page .page-head__subtitle { font-size:15px; max-width:65ch; }
+.community-detail-page .crumbs { margin:0 0 20px; font-size:14px; }
+.community-editor { padding:30px; max-width:900px; margin:0 auto; }
+.community-editor .form-section { border:0; margin:0; padding:0; }
+.community-editor .form-section legend { font-size:21px; font-weight:700; margin-bottom:8px; text-transform:none; letter-spacing:0; color:#254f46; }
+.community-editor .form-field { margin:22px 0; }
+.community-editor textarea { min-height:160px; }
+.community-editor .form-actions { border-top:1px solid #e2eae5; padding-top:22px; margin-top:24px; }
+.form-required-hint { margin:0; font-size:13px; color:#526961; }
+.required-mark { color:#8c3b31; font-size:14px; }
+.form-character-count { display:block; text-align:right; margin:6px 0; font-size:13px; color:#526961; font-variant-numeric:tabular-nums; }
+.form-field__meta { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:8px; }
+.form-field__meta .form-field__hint { margin:0; flex:1; }
+.form-field__meta .form-character-count { margin:0; flex:none; white-space:nowrap; }
+.report-decision { display:block; }
+.report-decision__meta { display:block; font-size:13px; color:#46585a; margin-top:5px; }
+.report-decision p { margin-top:10px; }
+.discussion__answer-count { color:#355e53; font-size:13px; font-weight:600; margin-right:6px; }
+.community-tabs { padding:14px 20px; margin-bottom:20px; }
+.community-detail-page .list-pagination { padding:16px 22px; margin-top:20px; font-size:14px; }
+.moderation-page .form-section { background:#f4f8f5; border-radius:12px; padding:20px; }
+.moderation-page .card__body > article { padding-block:22px; }
+@media(max-width:650px) {
+  .community-detail-page .page-context { padding:20px; }
+  .community-detail-page .page-head__title { font-size:25px; }
+  .community-editor { padding:20px; }
+  .community-editor .form-actions .btn { flex:1; }
+  .community-tabs { padding:12px; }
+}
 .moderation-tabs { display:flex;flex-wrap:wrap;gap:10px;padding:16px;margin:20px 0; }
 .moderation-tabs [aria-current="page"] { background:#e7f1ed;border-color:#749c91;color:#24564e; }
 .notification-item,.audit-entry { padding:22px 24px;border-bottom:1px solid #e5ebe8; }

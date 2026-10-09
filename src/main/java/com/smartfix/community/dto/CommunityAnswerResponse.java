@@ -27,6 +27,7 @@ public record CommunityAnswerResponse(
         Long id,
         Long questionId,
         Long authorId,
+        String authorDisplayName,
         String body,
         CommunityContentStatus status,
         boolean accepted,
