@@ -472,7 +472,7 @@ class RequestWorkflowTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Back to my work orders")));
         mvc.perform(get("/workorders/" + order.id()).with(user(principal(4, Role.TECHNICIAN))))
                 .andExpect(status().isOk())
-                .andExpect(content().string(org.hamcrest.Matchers.containsString("Request summary")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Reported issue")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Broken light")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("Test location")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;fault&lt;/script&gt;")))

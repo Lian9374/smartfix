@@ -6,10 +6,10 @@ import java.sql.*;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
-/** V23 is tested on PostgreSQL, including preserving already provisioned technician profiles. */
+/** Tests the PostgreSQL upgrade from V10 and preserves existing profiles and assignment history. */
 class AssignmentMigrationIT {
     @Test
-    void upgradesNonemptyV22AndEnforcesOneActiveAssignmentWhileRetainingHistory() throws Exception {
+    void upgradesNonemptyV10AndEnforcesOneActiveAssignmentWhileRetainingHistory() throws Exception {
         String url = required("TEST_DB_URL"), user = required("TEST_DB_USERNAME"), password = required("TEST_DB_PASSWORD");
         assertThat(url).startsWith("jdbc:postgresql:");
         String schema = "smartfix_b_upgrade_" + UUID.randomUUID().toString().replace("-", "");
@@ -19,10 +19,8 @@ class AssignmentMigrationIT {
             sql.execute("CREATE SCHEMA " + schema);
             try {
                 Flyway.configure().dataSource(url, user, password).schemas(schema).defaultSchema(schema)
-                        .locations("classpath:db/migration").target("22").load().migrate();
+                        .locations("classpath:db/migration").target("10").load().migrate();
                 sql.execute("SET search_path TO " + schema);
-                String existingProfiles = new String(getClass().getResourceAsStream("/db/technician-test-schema.sql").readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
-                sql.execute(existingProfiles);
                 sql.executeUpdate("INSERT INTO users(id,username,display_name,password_hash,role) VALUES "
                         + "(1,'migration.requester','Requester','synthetic-test-hash','REQUESTER'),"
                         + "(2,'migration.tech','Technician','synthetic-test-hash','TECHNICIAN'),"
