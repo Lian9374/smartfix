@@ -26,7 +26,7 @@ class MigrationIT {
                 statement.execute("CREATE SCHEMA " + schema);
             }
             try {
-                Flyway flyway = Flyway.configure().dataSource(url, username, password)
+                Flyway flyway = Flyway.configure().callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility()).dataSource(url, username, password)
                         .schemas(schema).defaultSchema(schema).locations("classpath:db/migration").load();
                 assertThat(flyway.migrate().migrationsExecuted).isGreaterThanOrEqualTo(2);
                 flyway.validate();

@@ -29,7 +29,7 @@ class AssignmentMigrationIT {
                 sql.executeUpdate("INSERT INTO technician_profiles(user_id,availability_status) VALUES(2,'AVAILABLE')");
                 sql.executeUpdate("INSERT INTO maintenance_requests(id,ticket_number,requester_id,location_id,title,description,category,urgency_level) "
                         + "VALUES(1,'SF-2026-000001',1,1,'Test repair','Synthetic request','ELECTRICAL','MEDIUM')");
-                Flyway latest = Flyway.configure().dataSource(url, user, password).schemas(schema).defaultSchema(schema)
+                Flyway latest = Flyway.configure().callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility()).dataSource(url, user, password).schemas(schema).defaultSchema(schema)
                         .locations("classpath:db/migration").load();
                 assertThat(latest.migrate().migrationsExecuted).isGreaterThanOrEqualTo(1);
                 latest.validate();

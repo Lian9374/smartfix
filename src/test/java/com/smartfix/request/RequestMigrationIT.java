@@ -62,6 +62,7 @@ class RequestMigrationIT {
                             + " light','Fault','ELECTRICAL','MEDIUM')");
                 Flyway latest =
                         Flyway.configure()
+                                .callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility())
                                 .dataSource(url, user, password)
                                 .schemas(schema)
                                 .defaultSchema(schema)
@@ -133,6 +134,10 @@ class RequestMigrationIT {
         // A mock servlet context starts no HTTP server and uses only this isolated test schema.
         try (var context = new GenericWebApplicationContext()) {
             context.setServletContext(new MockServletContext());
+            // This manually created context must use Boot's Duration/property conversion too.
+            var conversion = new org.springframework.boot.convert.ApplicationConversionService();
+            context.getBeanFactory().setConversionService(conversion);
+            context.getEnvironment().setConversionService(conversion);
             context.getEnvironment().setActiveProfiles("test");
             TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context,
                     "spring.datasource.url=" + url + (url.contains("?") ? "&" : "?")

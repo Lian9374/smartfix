@@ -5,9 +5,13 @@ importantly — how to evolve the schema **safely** with Flyway.
 
 > The current branch includes business migrations V1–V19. Community completion adds
 > V20 (notifications), V21 (audit entries), V22 (campus catalogue), V23 (technician/dispatch)
-> and V24 (managed-password setup and one-time account initialization); previously applied migrations remain
+> V24 (managed-password setup and one-time account initialization), and V25 (notification schema reconciliation); previously applied migrations remain
 > immutable. H2 tests create their own disposable schema from entities; PostgreSQL
 > integration tests validate the actual Flyway schema.
+
+For an existing database that reached V24 before receiving V10/V11/V14/V16, see
+[the one-time, data-preserving recovery instructions](sprint3/Legacy_Flyway_Recovery_20261009_CN.md).
+Normal startup continues to validate migrations strictly; historical SQL files are unchanged.
 
 ---
 
