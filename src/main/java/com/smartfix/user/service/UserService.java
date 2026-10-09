@@ -138,6 +138,9 @@ public class UserService {
         if (username != null && userRepository.existsByUsername(username)) {
             return false;
         }
+        if (userRepository.claimBootstrapInitialization() != 1 || userRepository.existsByRole(Role.ADMINISTRATOR)) {
+            return false;
+        }
         createAccount(command);
         return true;
     }
@@ -219,7 +222,7 @@ public class UserService {
                 user.getPasswordHash(),
                 user.getRole(),
                 user.getAccountStatus(),
-                user.getSecurityVersion());
+                user.getSecurityVersion(), user.isPasswordChangeRequired());
     }
 
     /**
@@ -234,7 +237,7 @@ public class UserService {
                 user.getId(),
                 user.getRole(),
                 user.getAccountStatus(),
-                user.getSecurityVersion());
+                user.getSecurityVersion(), user.isPasswordChangeRequired());
     }
 
     /**
@@ -302,6 +305,27 @@ public class UserService {
         }
     }
 
+    /** Public community identity only; never credentials, login names or account state. */
+    @Transactional(readOnly = true)
+    public java.util.Map<Long, String> findDisplayNames(java.util.Collection<Long> ids) {
+        if (ids.isEmpty()) { return java.util.Map.of(); }
+        var names = new java.util.HashMap<Long, String>();
+        for (var name : userRepository.findPublicNames(ids)) {
+            names.put(name.getId(), name.getDisplayName());
+        }
+        return java.util.Map.copyOf(names);
+    }
+
+    /** Must join the posting transaction: account lock precedes any content lock. */
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.MANDATORY)
+    public UserAccessResponse lockActivePostingAccount(Long userId) {
+        User user = userRepository.findByIdForUpdate(userId)
+                .filter(u -> u.getAccountStatus() == AccountStatus.ACTIVE)
+                .orElseThrow(() -> new ResourceNotFoundException("Community content not found."));
+        return new UserAccessResponse(user.getId(), user.getRole(), user.getAccountStatus(),
+                user.getSecurityVersion(), user.isPasswordChangeRequired());
+    }
+
     private User requireUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Account " + userId + " does not exist."));
@@ -316,6 +340,46 @@ public class UserService {
                 user.getAccountStatus(),
                 user.getSecurityVersion(),
                 user.getCreatedAt(),
-                user.getUpdatedAt());
+                user.getUpdatedAt(), user.isPasswordChangeRequired());
+    }
+
+    @Transactional
+    public void requireManagedPasswordChange(Long userId) {
+        requireUser(userId).requirePasswordChange(Instant.now());
+    }
+
+    @Transactional
+    public void changeOwnPassword(Long actorId, String currentPassword, String newPassword, String confirmation) {
+        User user = userRepository.findByIdForUpdate(actorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found."));
+        if (user.getAccountStatus() != AccountStatus.ACTIVE) throw new org.springframework.security.access.AccessDeniedException("Active account required.");
+        if (currentPassword == null || currentPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72 || !passwordEncoder.matches(currentPassword, user.getPasswordHash()))
+            throw new InputValidationException("The current password is incorrect.");
+        validateNewPassword(newPassword, confirmation);
+        if (passwordEncoder.matches(newPassword, user.getPasswordHash()))
+            throw new InputValidationException("Choose a different new password.");
+        user.changePassword(passwordEncoder.encode(newPassword), false, Instant.now());
+    }
+
+    @Transactional
+    public void resetManagedPassword(Long targetId, Long actorId, String adminPassword, String newPassword, String confirmation) {
+        User actor = requireUser(actorId);
+        if (!actor.isActiveAdministrator() || actor.isPasswordChangeRequired())
+            throw new org.springframework.security.access.AccessDeniedException("Administrator access required.");
+        if (Objects.equals(targetId, actorId)) throw new InputValidationException("Use Change password for your own account.");
+        if (adminPassword == null || adminPassword.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72 || !passwordEncoder.matches(adminPassword, actor.getPasswordHash()))
+            throw new InputValidationException("The administrator password is incorrect.");
+        validateNewPassword(newPassword, confirmation);
+        User target = userRepository.findByIdForUpdate(targetId)
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found."));
+        if (passwordEncoder.matches(newPassword, target.getPasswordHash()))
+            throw new InputValidationException("Choose a different temporary password.");
+        target.changePassword(passwordEncoder.encode(newPassword), true, Instant.now());
+    }
+
+    private void validateNewPassword(String password, String confirmation) {
+        if (!Objects.equals(password, confirmation)) throw new InputValidationException("Passwords do not match.");
+        String failure = PasswordPolicy.describeFailure(password);
+        if (failure != null) throw new InputValidationException(failure);
     }
 }

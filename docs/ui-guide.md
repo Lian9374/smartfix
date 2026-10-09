@@ -1,10 +1,15 @@
 # SmartFix UI Guide
 
+Administrator and engineer pages now share the application shell: `/admin`, `/technician`,
+dispatch, profile and password setup. See [the role workspace handoff](sprint3/Admin_Engineer_Workspaces_CN.md)
+for real routes, supported actions, UI states and validation evidence.
+
 How the web pages are built, and how to add one without inventing a second style.
 Everything here is Thymeleaf, CSS and a small amount of plain JavaScript — no frontend
-build step, no framework, no external font or icon service. Nothing on any page
-requires JavaScript to work: the script only adds the mobile navigation drawer and the
-password reveal button.
+build step, no framework, no external font or icon service. Community forms, lists and moderation actions work without JavaScript. Progressive
+enhancements include mobile navigation, password reveal, form counters/error focus and
+photo previews. The online Campus Map uses Leaflet JavaScript; its directory and data
+explanation remain available as the fallback.
 
 Read this before adding a page. The reference implementation for almost everything
 below is `src/main/resources/templates/request/mine.html`.
@@ -19,7 +24,9 @@ below is `src/main/resources/templates/request/mine.html`.
 | `templates/fragments/components.html` | `pageHeading`, `badge`, `statusBadge`, `urgencyBadge`, `roleBadge`, `accountStatusBadge`, `alert`, `emptyState`, `requestEmptyState`, `pageNote`, `timeline` |
 | `templates/fragments/illustrations.html` | `campusAside`, `requestEmpty` — the two drawings, reused by the sign-in page, the overview and the requester empty state |
 | `static/css/site.css` | Design tokens and every component class. Six commented sections: tokens, base, app shell, components, sign-in page, responsive |
-| `static/images/favicon.svg` | The only image asset |
+| `static/images/favicon.svg`, `campus-maintenance.png` | Brand icon and decorative campus artwork |
+| `static/css/visual-refresh.css` | Current card layouts, restrained teal/mint/cream palette, community feed and online map |
+| `static/js/community-form.js` | Community character counters and first-invalid-field focus |
 | `common/web/NavigationAdvice.java` | Adds `${navRole}` and `${navUsername}` to every model |
 | `error.html` | The one page for every error status |
 
@@ -114,8 +121,8 @@ points at a route that exists:
 
 | Fragment | Rendered for | Links |
 | --- | --- | --- |
-| `sidebar('…')` (rail) | `ADMINISTRATOR` only | Overview (`/`), Request Queue (`/admin/requests`), User Management (`/admin/users`), Request Lookup (`/admin/requests/lookup`) |
-| `appbar('…')` (bar) | every role | `REQUESTER`: Home (`/`), My Requests (`/requests/mine`) · `TECHNICIAN`: Home (`/`), My Work Orders (`/workorders/mine`) · `ADMINISTRATOR`: brand and a Menu button only |
+| `sidebar('…')` (rail) | `ADMINISTRATOR` only | Overview (`/`), Community (`/community`), Reported content (`/admin/community/reports`), Request Queue (`/admin/requests`), User Management (`/admin/users`), Request Lookup (`/admin/requests/lookup`), Campus Map (`/campus-map`) |
+| `appbar('…')` (bar) | every role | `REQUESTER`: Home (`/`), Community (`/community`), My Requests (`/requests/mine`), Campus Map (`/campus-map`) · `TECHNICIAN`: Home (`/`), Community (`/community`), My Work Orders (`/workorders/mine`), Campus Map (`/campus-map`) · `ADMINISTRATOR`: brand and a Menu button only |
 
 The administrator's bar carries no links and no account block on purpose: their
 destinations are already in the rail, and a second copy would be the same links
@@ -143,7 +150,7 @@ checks, and those are the only things that protect a route.
 
 A rail entry is the same idea with the rail's own classes and an inline SVG icon
 (`.nav__link` instead of `.appbar__link`, inside `<nav class="nav">`); the rail is
-the only place that carries icons, and the bar's links are text.
+the place for management icons; the bar keeps compact primary destinations. Notifications have a separate labelled icon.
 
 Three rules, all of which existing pages depend on:
 
@@ -648,3 +655,23 @@ The signed-in visual refresh is layered in static/css/visual-refresh.css after s
 The accepted visual direction keeps the existing hero, illustration, palette and content arrangement. Peripheral polish uses subtle mint/amber radial backgrounds at desktop widths and a fluid content maximum of 1200–1440px above 1500px, shared by navigation, main content and footer. Keep future decorative changes restrained and preserve the mobile composition.
 
 Content framing keeps section headings, result totals and pagination within their related surfaces. Home community shortcuts share one card; request pages use a framed page heading. The community desktop layout pairs a readable discussion feed with activity links, topic navigation and a requester-only maintenance action. At smaller widths, topic selection returns to the GET toolbar and the remaining sidebar cards stack below the feed. Topic links preserve the current search, filter and page size. Show one result total and render pagination only when another page exists. Use the decorative SVG fragments in fragments/ui-icons.html for consistent interface icons; functional controls keep explicit accessible labels.
+
+## Community completion (2026-10-09)
+
+Keep headings and statistics inside a `card page-context`, and keep one list total in
+the pager/feed header. `New request` remains a contextual action on Home/My Requests,
+not a separate global-navigation destination. Community personal activity lives at
+`/community/mine?tab=QUESTIONS|ANSWERS`; handled report history remains reachable after hiding.
+
+Question/answer editors use `.community-editor`; required hints are concise and native
+`required`/`minlength`/`maxlength` mirror the service DTO. The server still validates.
+`community-form.js` adds counters for prefilled and newly typed text, appends their unique
+IDs to `aria-describedby`, and focuses the first server-invalid control. Global refusals
+receive focus when no field is invalid. Do not add live announcements on every keystroke.
+Report row hint IDs include the report ID. Preserve view/page/size in every moderation POST.
+
+Display names are escaped text from UserService's batch public-name API; never render
+stored HTML, credentials or private account fields. Counts include VISIBLE answers only,
+loaded once for a page. Moderation retains account IDs for administrative traceability.
+See `sprint3/UserA_Quality_Completion_CN.md` for browser/keyboard evidence and remaining
+physical-device/screen-reader checks.

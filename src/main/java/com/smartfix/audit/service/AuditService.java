@@ -27,7 +27,7 @@ public class AuditService {
     @Transactional(propagation = Propagation.MANDATORY)
     public void record(Long actorId, String action, String targetType, Long targetId,
                        String outcome, java.time.Instant when) {
-        if (!java.util.Set.of("QUESTION", "ANSWER", "REPORT").contains(targetType)) {
+        if (!java.util.Set.of("QUESTION", "ANSWER", "REPORT", "USER").contains(targetType)) {
             throw new InputValidationException("Unknown audit target.");
         }
         repository.save(new AuditEntry(actorId, action, targetType, targetId, outcome, when));

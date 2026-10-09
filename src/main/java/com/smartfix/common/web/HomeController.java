@@ -52,6 +52,8 @@ public class HomeController {
 
     @GetMapping({"/", "/home"})
     public String home(@AuthenticationPrincipal SmartFixUserDetails principal, Model model) {
+        if (principal.getRole() == Role.ADMINISTRATOR) return "redirect:/admin";
+        if (principal.getRole() == Role.TECHNICIAN) return "redirect:/technician";
         model.addAttribute("systemName", "SmartFix");
         model.addAttribute("tagline", "Campus Facility Maintenance and Technician Dispatch System");
         model.addAttribute("username", principal.getUsername());

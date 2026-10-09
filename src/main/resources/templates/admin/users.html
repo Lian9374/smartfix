@@ -1,24 +1,5 @@
 <!DOCTYPE html>
-<!--
-  Administrator account list, and - on the same template - the account creation
-  form. One template for both is the arrangement the controller already has
-  (showCreateForm decides which parts render), and it is what lets a refused
-  submission come back with its field errors still attached.
 
-  Three rules this page must not break, whatever the styling does:
-
-    * the creation form keeps th:object/th:field and a BindingResult, so field
-      errors render and the object is never null;
-    * the password is never written back into the page - the input is not bound
-      with th:field, so a failed attempt cannot echo the secret;
-    * role and status changes stay POST forms carrying CSRF, each row's controls
-      labelled with that account's own name.
-
-  Note the pattern used wherever a fragment is rendered conditionally: the
-  condition sits on a wrapper element and the fragment on a child, never both on
-  the same tag. th:replace is applied before th:if, so a condition placed
-  alongside it would be dropped along with the tag it was written on.
--->
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('User management')}">
   <title>User management · SmartFix</title>
@@ -30,8 +11,8 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('user-management')}"></th:block>
 
-    <main id="main-content" class="content">
-      <div class="page-head-row">
+    <main id="main-content" class="content workspace-page">
+      <div class="page-head-row card page-context workspace-heading">
         <div th:replace="~{fragments/components :: pageHeading(
              'User management',
              'Create accounts, set what each one may do, and disable an account that should no longer be able to sign in.')}">
@@ -42,35 +23,30 @@
         </div>
       </div>
 
-      <!--
-        Confirmation after a successful POST-Redirect-GET. Rendered from a flash
-        attribute, so it appears once and is gone on refresh.
-      -->
+
       <div th:if="${successMessage}">
         <div th:replace="~{fragments/components :: alert('success', null, ${successMessage})}"></div>
       </div>
 
-      <!--
-        Errors that belong to the page rather than to one field: a refused role
-        change or status change. Field-level errors are rendered next to their
-        input instead.
-      -->
+
       <div th:if="${formError}">
         <div th:replace="~{fragments/components :: alert('error', 'This change was refused', ${formError})}"></div>
       </div>
 
-      <!-- ================================================ create account -->
+
+      <section class="card workspace-filters" th:unless="${showCreateForm}" aria-label="Filter accounts"><form method="get" th:action="@{/admin/users}">
+        <div class="form-field workspace-search"><label for="account-search">Search accounts</label><input id="account-search" name="search" maxlength="120" placeholder="Username or display name" th:value="${search}"></div>
+        <div class="form-field"><label for="account-role-filter">Role</label><select id="account-role-filter" name="role"><option value="">All roles</option><option th:each="item : ${roles}" th:value="${item}" th:text="${item}" th:selected="${item == selectedRole}"></option></select></div>
+        <div class="form-field"><label for="account-status-filter">Status</label><select id="account-status-filter" name="status"><option value="">All statuses</option><option th:each="item : ${accountStatuses}" th:value="${item}" th:text="${item}" th:selected="${item == selectedAccountStatus}"></option></select></div>
+        <button type="submit" class="btn btn--primary">Apply</button><a th:href="@{/admin/users}">Clear</a>
+      </form></section>
       <section class="card" th:if="${showCreateForm}" aria-labelledby="create-account-title">
         <div class="card__header">
           <h2 class="card__title" id="create-account-title">Create an account</h2>
           <span class="card__hint">All fields are required.</span>
         </div>
         <div class="card__body">
-          <!--
-            th:action is required rather than a plain action: it is what lets
-            Thymeleaf inject the CSRF hidden field. No token has to be written by
-            hand.
-          -->
+
           <form th:action="@{/admin/users}" th:object="${createUserCommand}" method="post">
 
             <fieldset class="form-section">
@@ -81,7 +57,7 @@
                    th:classappend="${#fields.hasErrors('username')} ? 'form-field--invalid'">
                   <label class="form-field__label" for="username">Username</label>
                   <input type="text" id="username" th:field="*{username}"
-                         autocomplete="off" autocapitalize="none" spellcheck="false"
+                         autocomplete="off" autocapitalize="none" spellcheck="false" required minlength="3" maxlength="50"
                          aria-describedby="username-hint username-error"
                          th:attr="aria-invalid=${#fields.hasErrors('username')} ? 'true' : null">
                   <span class="form-field__hint" id="username-hint">
@@ -94,7 +70,7 @@
                 <p class="form-field"
                    th:classappend="${#fields.hasErrors('displayName')} ? 'form-field--invalid'">
                   <label class="form-field__label" for="displayName">Display name</label>
-                  <input type="text" id="displayName" th:field="*{displayName}" autocomplete="off"
+                  <input type="text" id="displayName" th:field="*{displayName}" autocomplete="off" required maxlength="100"
                          aria-describedby="displayName-hint displayName-error"
                          th:attr="aria-invalid=${#fields.hasErrors('displayName')} ? 'true' : null">
                   <span class="form-field__hint" id="displayName-hint">
@@ -106,24 +82,14 @@
 
                 <p class="form-field"
                    th:classappend="${#fields.hasErrors('password')} ? 'form-field--invalid'">
-                  <label class="form-field__label" for="password">Password</label>
-                  <!--
-                    Deliberately NOT th:field. Binding the password back into the
-                    page would echo the submitted secret into the HTML of a failed
-                    attempt, where it would sit in the browser cache, in a
-                    screenshot and in any page dump. The error message still
-                    renders, because th:errors reads the BindingResult directly.
+                  <label class="form-field__label" for="password">Temporary password</label>
 
-                    The hint states the rule enforced by PasswordPolicy (12
-                    characters minimum, at least one letter and one digit). Keep
-                    the two in step: change PasswordPolicy and this text together.
-                  -->
                   <input type="password" id="password" name="password"
-                         autocomplete="new-password"
+                         autocomplete="new-password" required minlength="12" maxlength="72"
                          aria-describedby="password-hint password-error"
                          th:attr="aria-invalid=${#fields.hasErrors('password')} ? 'true' : null">
                   <span class="form-field__hint" id="password-hint">
-                    At least 12 characters, including at least one letter and one digit.
+                    At least 12 characters with a letter and a digit, at most 72 UTF-8 bytes. Share it through an approved secure channel; the account must replace it at first login.
                   </span>
                   <span class="form-field__error" id="password-error"
                         th:errors="*{password}">Password is required.</span>
@@ -138,7 +104,7 @@
                 <p class="form-field"
                    th:classappend="${#fields.hasErrors('role')} ? 'form-field--invalid'">
                   <label class="form-field__label" for="role">Role</label>
-                  <select id="role" th:field="*{role}" aria-describedby="role-hint role-error"
+                  <select id="role" th:field="*{role}" required aria-describedby="role-hint role-error"
                           th:attr="aria-invalid=${#fields.hasErrors('role')} ? 'true' : null">
                     <option value="">-- select a role --</option>
                     <option th:each="candidate : ${roles}"
@@ -163,7 +129,7 @@
         </div>
       </section>
 
-      <!-- ======================================================= accounts -->
+
       <section class="card" aria-labelledby="accounts-title">
         <div class="card__header">
           <h2 class="card__title" id="accounts-title">Accounts</h2>
@@ -178,19 +144,7 @@
                      'Create the first account to get started.')}"></div>
           </div>
 
-          <!-- Scrolling is confined to this wrapper; the page itself never
-               scrolls sideways. Below the phone breakpoint that wrapper lifts
-               altogether: each account becomes a stack of labelled lines
-               instead, because eight columns on a 390px screen is a table no
-               one can read, and the two controls in each row have to stay
-               reachable to be useful.
 
-               A plain overflow container, not a landmark of its own: the card
-               section above is named by its heading and the table carries its
-               own caption, so a region here would only say "Accounts" a third
-               time. No tabindex either - the two controls in every row already
-               put this table on the keyboard's path, and the wrapper itself has
-               nothing to announce. -->
           <div class="table-scroll" th:unless="${#lists.isEmpty(users)}">
             <table class="data-table data-table--stack">
               <caption class="visually-hidden">
@@ -205,7 +159,7 @@
                 <th scope="col">Account status</th>
                 <th scope="col">Created (SGT)</th>
                 <th scope="col">Change role</th>
-                <th scope="col">Change status</th>
+                <th scope="col">Change status / password</th>
               </tr>
               </thead>
               <tbody>
@@ -236,30 +190,8 @@
                 </td>
 
                 <td data-label="Change role">
-                  <form class="inline-form" th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post">
-                    <!--
-                      One label per row, tied to its own control by a matching for/id
-                      pair. The id is suffixed with the account id because this whole
-                      block repeats: a fixed id would be duplicated once per row, and a
-                      label pointing at a duplicated id is worse than no label at all.
+                  <form class="inline-form" th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" data-confirm="Change this account’s role? Its existing sessions will be revoked.">
 
-                      The plain for/id attributes are the static half of that pair, and
-                      the th:for/th:id attributes are the dynamic half. Thymeleaf
-                      overwrites the former with the latter at render time, so the id
-                      that reaches the browser is role-<account id> and stays unique
-                      per row. The static values therefore never ship; they exist so
-                      that a static analyzer reading the template - which does not
-                      evaluate th:for/th:id and so sees neither the association nor the
-                      uniqueness - can recognise the label and its control as a pair.
-                      Keep both attributes on both elements: dropping either one either
-                      loses the accessibility association or reintroduces the duplicate
-                      id this suffix exists to avoid.
-
-                      The label is visually hidden because the column header above
-                      already names the control; it stays in the markup so the control
-                      keeps its own accessible name when the table is read out of
-                      context, such as by a screen reader listing form controls.
-                    -->
                     <label class="visually-hidden"
                            for="role-control"
                            th:for="|role-${user.id}|"
@@ -268,13 +200,7 @@
                             th:id="|role-${user.id}|"
                             name="role"
                             th:attr="aria-label=|New role for ${user.username}|">
-                      <!--
-                        The option reads as a word ("Requester") so that it matches
-                        the badge beside it in the same row, while its value stays the
-                        bare enum the controller binds. Same casing rule as the
-                        roleBadge fragment in components.html - one vocabulary for the
-                        product, one for the backend.
-                      -->
+
                       <option th:each="candidate : ${roles}"
                               th:value="${candidate}"
                               th:text="${#strings.capitalize(#strings.toLowerCase(candidate.toString()))}"
@@ -286,7 +212,7 @@
                 </td>
 
                 <td data-label="Change status">
-                  <form class="inline-form" th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post">
+                  <form class="inline-form" th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post" data-confirm="Change account access? Disabling an account signs it out and blocks login.">
                     <label class="visually-hidden"
                            for="account-status-control"
                            th:for="|account-status-${user.id}|"
@@ -296,16 +222,7 @@
                             name="accountStatus"
                             aria-describedby="account-status-note"
                             th:attr="aria-label=|New status for ${user.username}|">
-                      <!--
-                        The options carry the plain enum names the controller
-                        binds. A select sizes itself to its widest option, and
-                        'DISABLED - blocks sign-in' made this one column 242px
-                        wide on its own - enough to push the table past the
-                        content width on a desktop. What the choice does is
-                        stated in the card footer, which aria-describedby ties
-                        back to this control, and shown by the tone and the text
-                        of the Account status badge.
-                      -->
+
                       <option th:each="candidate : ${accountStatuses}"
                               th:value="${candidate}"
                               th:text="${candidate}"
@@ -314,6 +231,15 @@
                     <button type="submit" class="btn btn--secondary btn--small"
                             th:attr="aria-label=|Save new status for ${user.username}|">Save</button>
                   </form>
+                  <p class="meta" th:if="${user.passwordChangeRequired}">Password setup required</p>
+                  <details class="account-password-reset"><summary>Reset temporary password</summary>
+                    <form method="post" th:action="@{/admin/users/{id}/password(id=${user.id})}" data-confirm="Reset this account’s password? Existing sessions will be revoked.">
+                      <div class="form-field"><label th:for="|reset-admin-${user.id}|">Your administrator password</label><input th:id="|reset-admin-${user.id}|" type="password" name="adminPassword" autocomplete="current-password" required maxlength="72"></div>
+                      <div class="form-field"><label th:for="|reset-new-${user.id}|">Temporary password</label><input th:id="|reset-new-${user.id}|" type="password" name="newPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
+                      <div class="form-field"><label th:for="|reset-confirm-${user.id}|">Confirm temporary password</label><input th:id="|reset-confirm-${user.id}|" type="password" name="confirmPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
+                      <button class="btn btn--secondary btn--small" type="submit">Reset password</button>
+                    </form>
+                  </details>
                 </td>
               </tr>
               </tbody>

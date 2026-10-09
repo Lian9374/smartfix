@@ -1,17 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Review Maintenance Request - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
-<body><header><h1>Review Maintenance Request</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
-<p><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.ticketNumber}"></a></p>
-<h2 th:text="${request.title}"></h2><p class="prose" th:text="${request.description}"></p>
-<form th:action="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}" th:object="${command}" method="post">
-  <ul th:if="${#fields.hasAnyErrors()}"><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul>
-  <label for="finalUrgencyLevel">Final priority</label><select id="finalUrgencyLevel" th:field="*{finalUrgencyLevel}" required>
-    <option th:each="priority : ${urgencyLevels}" th:value="${priority}" th:text="${priority}"></option>
-  </select>
-  <label><input type="checkbox" th:field="*{reject}">Reject this request</label>
-  <label for="comment">Reason (required when rejecting)</label><textarea id="comment" th:field="*{comment}" maxlength="500"></textarea>
-  <button type="submit">Save review</button>
-</form>
-</main></body></html>
+<head th:replace="~{fragments/layout :: head('Review request')}"><title>Review request · SmartFix</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('request-queue')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('request-queue')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<nav class="crumbs" aria-label="Breadcrumb"><a th:href="@{/admin/requests}">Request queue</a><span aria-hidden="true"> / </span><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.ticketNumber}"></a></nav>
+<section class="card page-context"><span class="section-kicker">Request review</span><h1 th:text="${request.title}">Review request</h1><p th:text="${request.locationDisplayName}"></p></section>
+<div class="workspace-editor"><section class="card"><div class="card__header"><h2 class="card__title">Reported issue</h2></div><div class="card__body"><p class="prose" th:text="${request.description}"></p></div></section>
+<section class="card"><div class="card__header"><h2 class="card__title">Review Maintenance Request</h2></div><div class="card__body"><form th:action="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}" th:object="${command}" method="post" data-confirm="Save this review decision? Rejection ends this request."><div class="alert alert--error" role="alert" tabindex="-1" th:if="${#fields.hasAnyErrors()}"><ul><li th:each="error : ${#fields.allErrors()}" th:text="${error}"></li></ul></div>
+<div class="form-field"><label for="finalUrgencyLevel">Final priority</label><select id="finalUrgencyLevel" th:field="*{finalUrgencyLevel}" required><option th:each="priority : ${urgencyLevels}" th:value="${priority}" th:text="${priority}"></option></select></div>
+<div class="workspace-choice"><input id="reject" type="checkbox" th:field="*{reject}"><label for="reject">Reject this request</label></div>
+<div class="form-field"><label for="comment">Reason (required when rejecting)</label><textarea id="comment" th:field="*{comment}" rows="3" maxlength="500"  th:attr="aria-invalid=${#fields.hasErrors('comment')} ? 'true' : null"></textarea><span class="form-field__error" th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}"></span></div>
+<div class="form-actions"><button class="btn btn--primary" type="submit">Save review</button><a class="btn btn--secondary" th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}">Cancel</a></div></form></div></section></div></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

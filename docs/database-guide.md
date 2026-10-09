@@ -4,7 +4,8 @@ This guide covers local PostgreSQL, Docker, environment variables, and — most
 importantly — how to evolve the schema **safely** with Flyway.
 
 > The current branch includes business migrations V1–V19. Community completion adds
-> V20 (notifications) and V21 (audit entries); previously applied migrations remain
+> V20 (notifications), V21 (audit entries), V22 (campus catalogue), V23 (technician/dispatch)
+> and V24 (managed-password setup and one-time account initialization); previously applied migrations remain
 > immutable. H2 tests create their own disposable schema from entities; PostgreSQL
 > integration tests validate the actual Flyway schema.
 

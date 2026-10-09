@@ -44,6 +44,11 @@ public class CommunityAccessGuard {
      * @return that account's access context, for callers that also need its role
      * @throws ResourceNotFoundException when the account is absent or no longer usable
      */
+    public void serializePosting(Long actorUserId) {
+        if (actorUserId == null) { throw new ResourceNotFoundException(NOT_AVAILABLE); }
+        users.lockActivePostingAccount(actorUserId);
+    }
+
     public UserAccessResponse requireActiveUser(Long actorUserId) {
         if (actorUserId == null) {
             throw new ResourceNotFoundException(NOT_AVAILABLE);

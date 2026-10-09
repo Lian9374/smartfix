@@ -78,16 +78,19 @@ public class CommunityQueryService {
     private final CommunityAnswerRepository answers;
     private final CommunityAccessGuard access;
     private final CommunityProperties properties;
+    private final com.smartfix.user.service.UserService users;
 
     public CommunityQueryService(
             CommunityQuestionRepository questions,
             CommunityAnswerRepository answers,
             CommunityAccessGuard access,
-            CommunityProperties properties) {
+            CommunityProperties properties,
+            com.smartfix.user.service.UserService users) {
         this.questions = questions;
         this.answers = answers;
         this.access = access;
         this.properties = properties;
+        this.users = users;
     }
 
     /**
@@ -124,7 +127,7 @@ public class CommunityQueryService {
             case SOLVED -> questions.searchVisibleSolved(categories, pattern, pageable);
             case LATEST -> questions.searchVisible(categories, pattern, pageable);
         };
-        return found.map(this::toSummary);
+        return summaries(found);
     }
 
     /**
@@ -136,7 +139,7 @@ public class CommunityQueryService {
      */
     public Page<CommunityQuestionSummaryResponse> listMyQuestions(Long actorUserId, int page, int size) {
         access.requireActiveUser(actorUserId);
-        return questions.findByAuthorId(actorUserId, pageRequest(page, size)).map(this::toSummary);
+        return summaries(questions.findByAuthorId(actorUserId, pageRequest(page, size)));
     }
 
     /**
@@ -297,15 +300,18 @@ public class CommunityQueryService {
         List<CommunityAnswer> thread = answers
                 .findByQuestionIdOrderByCreatedAtAscIdAsc(question.getId());
         Long acceptedAnswerId = question.getAcceptedAnswerId();
+        Set<Long> authorIds = thread.stream().map(CommunityAnswer::getAuthorId).collect(Collectors.toSet());
+        authorIds.add(question.getAuthorId());
+        Map<Long, String> names = users.findDisplayNames(authorIds);
 
         List<CommunityAnswerResponse> ordered = new ArrayList<>(thread.size());
         thread.stream()
                 .filter(answer -> answer.getId().equals(acceptedAnswerId))
                 .findFirst()
-                .ifPresent(answer -> ordered.add(toAnswer(answer, acceptedAnswerId)));
+                .ifPresent(answer -> ordered.add(toAnswer(answer, acceptedAnswerId, names)));
         thread.stream()
                 .filter(answer -> !answer.getId().equals(acceptedAnswerId))
-                .forEach(answer -> ordered.add(toAnswer(answer, acceptedAnswerId)));
+                .forEach(answer -> ordered.add(toAnswer(answer, acceptedAnswerId, names)));
 
         return new CommunityQuestionDetailResponse(
                 question.getId(),
@@ -313,6 +319,7 @@ public class CommunityQueryService {
                 question.getBody(),
                 question.getCategory(),
                 question.getAuthorId(),
+                displayName(names, question.getAuthorId()),
                 question.getStatus(),
                 question.isSolved(),
                 question.getAcceptedAnswerId(),
@@ -322,11 +329,12 @@ public class CommunityQueryService {
                 ordered);
     }
 
-    private CommunityAnswerResponse toAnswer(CommunityAnswer answer, Long acceptedAnswerId) {
+    private CommunityAnswerResponse toAnswer(CommunityAnswer answer, Long acceptedAnswerId, Map<Long, String> names) {
         return new CommunityAnswerResponse(
                 answer.getId(),
                 answer.getQuestionId(),
                 answer.getAuthorId(),
+                displayName(names, answer.getAuthorId()),
                 // Withheld rather than omitted: the thread keeps its shape, and a body
                 // that is not in the response cannot be rendered by a template that
                 // forgot to check the status.
@@ -338,18 +346,39 @@ public class CommunityQueryService {
                 answer.getUpdatedAt() != null && answer.getUpdatedAt().isAfter(answer.getCreatedAt()));
     }
 
-    private CommunityQuestionSummaryResponse toSummary(CommunityQuestion question) {
+    private Page<CommunityQuestionSummaryResponse> summaries(Page<CommunityQuestion> page) {
+        if (page.isEmpty()) {
+            return new org.springframework.data.domain.PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
+        }
+        var ids = page.stream().map(CommunityQuestion::getId).filter(java.util.Objects::nonNull).toList();
+        Map<Long, Long> counts = new HashMap<>();
+        if (!ids.isEmpty()) {
+            for (var count : answers.countVisibleByQuestionIds(ids)) {
+                counts.put(count.getQuestionId(), count.getAnswerCount());
+            }
+        }
+        var names = users.findDisplayNames(page.stream().map(CommunityQuestion::getAuthorId).distinct().toList());
+        return page.map(q -> toSummary(q, counts.getOrDefault(q.getId(), 0L), names));
+    }
+
+    private static String displayName(Map<Long, String> names, Long id) {
+        return names.getOrDefault(id, "Campus member");
+    }
+
+    private CommunityQuestionSummaryResponse toSummary(CommunityQuestion question, long answerCount, Map<Long, String> names) {
         return new CommunityQuestionSummaryResponse(
                 question.getId(),
                 question.getTitle(),
                 excerptOf(question.getBody()),
                 question.getCategory(),
                 question.getAuthorId(),
+                displayName(names, question.getAuthorId()),
                 question.getStatus(),
                 question.isSolved(),
                 question.getCreatedAt(),
                 question.getUpdatedAt(),
-                question.isEdited());
+                question.isEdited(),
+                answerCount);
     }
 
     /** Collapses runs of whitespace so a multi-line body still reads as one line. */

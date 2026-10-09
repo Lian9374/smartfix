@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Engineers')}"><title>Engineers · SmartFix</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('technicians')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('technicians')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<section class="card page-context workspace-heading"><div><span class="section-kicker">Administration</span><h1>Engineers</h1><p>Accounts, availability and dispatch readiness.</p></div><a class="btn btn--primary" th:href="@{/admin/users/new(role=TECHNICIAN)}">Create engineer account</a></section>
+<section class="card"><div class="card__header"><h2 class="card__title">Engineer directory</h2><span class="card__hint" th:text="|${#lists.size(technicians)} accounts|"></span></div>
+<div th:if="${#lists.isEmpty(technicians)}" class="workspace-empty"><h3>No engineers yet</h3><p>Create an engineer account, or change an existing account's role in Accounts.</p><a th:href="@{/admin/users}">Manage accounts →</a></div>
+<div class="workspace-list"><article class="workspace-list__item" th:each="engineer : ${technicians}" th:with="profile=${profiles[engineer.id]}"><div class="workspace-list__main"><h3 th:text="${engineer.displayName}"></h3><p th:text="|${engineer.username} · Account #${engineer.id}|"></p>
+<p th:if="${profile != null}"><span th:text="${profile.skills}"></span><span aria-hidden="true"> · </span><span th:text="|${#sets.size(profile.serviceAreaIds)} service areas|"></span></p><p th:if="${profile == null}">Profile not configured. The engineer must select skills and service areas before assignment.</p></div>
+<div class="workspace-list__actions"><span th:replace="~{fragments/components :: accountStatusBadge(${engineer.accountStatus})}"></span><span class="badge" th:if="${profile != null}" th:text="${profile.availabilityStatus}"></span><span class="badge" th:if="${engineer.passwordChangeRequired}">Password setup required</span><a class="btn btn--secondary btn--small" th:href="@{/admin/users(search=${engineer.username})}">Manage access</a></div></article></div></section></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>My Work Orders - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
-<body><header><h1>My Work Orders</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
-<p th:if="${orders.empty}">No work orders on this page.</p>
-<section th:each="status : ${statuses}"><h2 th:text="${status}"></h2><ul>
-<li th:each="order : ${orders.content}" th:if="${order.status == status}"><a th:href="@{/workorders/{id}(id=${order.id})}" th:text="${order.ticketNumber}"></a></li>
-</ul></section>
-<nav><a th:if="${orders.hasPrevious()}" th:href="@{/workorders/mine(page=${orders.number - 1},size=${orders.size})}">Previous</a>
-<span th:text="${orders.totalElements + ' work orders'}"></span>
-<a th:if="${orders.hasNext()}" th:href="@{/workorders/mine(page=${orders.number + 1},size=${orders.size})}">Next</a></nav>
-</main></body></html>
+<head th:replace="~{fragments/layout :: head('Engineer workspace')}"><title>Engineer workspace · SmartFix</title></head>
+<body><div class="app-shell"><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('work-orders')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<section class="workspace-hero"><div><span class="section-kicker">Your campus, cared for</span><h1>Engineer workspace</h1><p>Your current assignments. One repair at a time.</p><a class="btn btn--primary" th:href="@{/technician/profile}">Skills &amp; availability</a></div><img class="workspace-hero__art" th:src="@{/images/campus-maintenance.png}" alt=""></section>
+<section class="card workspace-filters" aria-label="Filter work orders"><form th:action="@{/technician}" method="get">
+<div class="form-field"><label for="work-status">Status</label><select id="work-status" name="status"><option value="">All statuses</option><option th:each="item : ${statuses}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(item.toString(),'_',' ')))}" th:selected="${item == selectedStatus}"></option></select></div><div class="form-field"><label for="work-priority">Priority</label><select id="work-priority" name="priority"><option value="">All priorities</option><option th:each="item : ${priorities}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(item.toString(),'_',' ')))}" th:selected="${item == selectedPriority}"></option></select></div>
+<div class="form-field"><label for="work-since">Work order created since (UTC)</label><input id="work-since" type="date" name="since" th:value="${since}"></div><div class="form-field"><label for="queue-sort">Order</label><select id="queue-sort" name="sort"><option value="newest" th:selected="${selectedSort == 'newest'}">Newest</option><option value="oldest" th:selected="${selectedSort == 'oldest'}">Oldest</option><option value="updated" th:selected="${selectedSort == 'updated'}">Recently updated</option></select></div>
+<input type="hidden" name="size" th:value="${orders.size}"><button class="btn btn--primary" type="submit">Apply</button><a th:href="@{/technician}">Clear</a></form></section>
+<section class="card"><div class="card__header"><h2 class="card__title">My work orders</h2><span class="card__hint" th:text="|${orders.totalElements} work orders|"></span></div>
+<div th:if="${orders.empty}" class="workspace-empty"><h3>No work orders on this page.</h3><p>Try clearing the filters. New engineers should set their skills and service areas before dispatch.</p><a th:href="@{/technician/profile}">Set up your profile →</a></div>
+<div class="workspace-list" th:unless="${orders.empty}"><a class="workspace-list__item" th:each="order : ${orders.content}" th:href="@{/workorders/{id}(id=${order.id})}"><div class="workspace-list__main"><span class="meta" th:text="${order.ticketNumber}"></span><h3 th:text="${order.title}"></h3><p th:text="${locationNames[order.locationId]}"></p><time class="meta" th:datetime="${order.updatedAt}" th:text="|Updated ${#temporals.format(order.updatedAt,'dd MMM, HH:mm','Asia/Singapore')}|"></time></div><div class="workspace-list__actions"><span th:replace="~{fragments/components :: statusBadge(${order.status})}"></span><span th:replace="~{fragments/components :: urgencyBadge(${order.priority})}"></span><span class="workspace-arrow" aria-hidden="true">→</span></div></a></div></section>
+<nav class="workspace-pagination" aria-label="Work order pages"><a class="btn btn--secondary" th:if="${orders.hasPrevious()}" th:href="@{/technician(page=${orders.number-1},size=${orders.size},status=${selectedStatus},priority=${selectedPriority},since=${since},sort=${selectedSort})}">Previous</a><span th:if="${orders.totalPages > 0}" th:text="|Page ${orders.number+1} of ${orders.totalPages}|"></span><a class="btn btn--secondary" th:if="${orders.hasNext()}" th:href="@{/technician(page=${orders.number+1},size=${orders.size},status=${selectedStatus},priority=${selectedPriority},since=${since},sort=${selectedSort})}">Next</a></nav></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

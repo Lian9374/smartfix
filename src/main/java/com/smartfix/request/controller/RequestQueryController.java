@@ -65,12 +65,22 @@ public class RequestQueryController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) RequestStatus status,
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) com.smartfix.request.domain.MaintenanceCategory category,
+            @RequestParam(required = false) com.smartfix.request.domain.UrgencyLevel priority,
+            @RequestParam(defaultValue = "newest") String sort,
             Model model) {
         model.addAttribute(
                 "pagination",
-                requestQueryService.listForReview(principal.getUserId(), status, page, size));
+                requestQueryService.searchForAdministration(principal.getUserId(), search, status, category, priority, sort, page, size));
         model.addAttribute("statuses", RequestStatus.values());
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("search", search);
+        model.addAttribute("categories", com.smartfix.request.domain.MaintenanceCategory.values());
+        model.addAttribute("priorities", com.smartfix.request.domain.UrgencyLevel.values());
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedPriority", priority);
+        model.addAttribute("selectedSort", sort);
         return "admin/request-queue";
     }
 

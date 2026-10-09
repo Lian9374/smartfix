@@ -248,8 +248,10 @@ class CampusMapIntegrationIT {
 
     @Test void homeAndNavigationExposeTheActualMapEntry() throws Exception {
         for (String username : List.of("map.requester", "map.technician", "map.admin")) {
-            String home = mvc.perform(get("/").session(login(username)))
-                    .andExpect(status().isOk()).andExpect(content().string(containsString("Explore campus")))
+            String route = username.equals("map.requester") ? "/" : username.equals("map.admin") ? "/admin" : "/technician";
+            if (!route.equals("/")) mvc.perform(get("/").session(login(username))).andExpect(redirectedUrl(route));
+            String home = mvc.perform(get(route).session(login(username)))
+                    .andExpect(status().isOk())
                     .andExpect(content().string(containsString("href=\"/campus-map\"")))
                     .andReturn().getResponse().getContentAsString();
             if (username.equals("map.requester")) export("home.html", home);

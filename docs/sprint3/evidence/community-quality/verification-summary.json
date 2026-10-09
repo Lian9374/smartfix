@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-09",
+  "featureBase": "becfc781191e38a27f79d3c89b5eed8a05e31889",
+  "mainBase": "06f00815479cd910f33b80701d2834d2e6922843",
+  "featureVerify": {
+    "passed": true,
+    "unitWebRepository": 392,
+    "integration": 167,
+    "total": 559,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "target/community-quality-verify-final.log"
+  },
+  "featureNativePostgres": {
+    "passed": true,
+    "total": 16,
+    "registrationConcurrency": 2,
+    "answerAndPostingConcurrency": 5,
+    "communityMigration": 1,
+    "moderation": 8,
+    "repeatedRepositoryUnitTests": 9,
+    "log": "target/community-quality-postgres-verified.log"
+  },
+  "mainIntegrationVerify": {
+    "passed": true,
+    "unitWebRepository": 459,
+    "integration": 249,
+    "total": 708,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "../smartfix-community-main-check/community-main-verify.log"
+  },
+  "finalMainUiVerify": {
+    "passed": true,
+    "unit": 4,
+    "integration": 26,
+    "total": 30,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "log": "../smartfix-community-main-check/community-main-ui-verify.log"
+  },
+  "browser": {
+    "passed": true,
+    "checks": 107,
+    "keyboardActions": 299,
+    "applicationLaunches": 2,
+    "results": "browser-results.json",
+    "widths": [
+      1440,
+      1000,
+      768,
+      390,
+      320
+    ],
+    "textContrastSamples": 72,
+    "minimumSampleRatio": 4.759
+  },
+  "mainNativePostgresProbe": {
+    "passed": false,
+    "existingMainBlocker": true,
+    "migration": "V20__create_notifications.sql",
+    "sqlState": "42P07",
+    "message": "relation \"notifications\" already exists",
+    "cause": "Both existing V14 and V20 create notifications",
+    "log": "../smartfix-community-main-check/community-main-postgres-probe.log"
+  },
+  "limitations": [
+    "B review requested separately; approval remains pending",
+    "Physical device and actual screen reader checks remain manual",
+    "Contrast samples do not certify complete WCAG compliance",
+    "Registration limiter is single-instance memory and resets after restart",
+    "No email verification/captcha in this scope",
+    "Published migration history reconciliation remains separate; no repair/clean performed"
+  ]
+}

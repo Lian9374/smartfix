@@ -190,6 +190,7 @@ class UserBootstrapServiceTest {
     void refusesAWeakConfiguredPassword() {
         enable();
         properties.setPassword("weak");
+        when(userRepository.claimBootstrapInitialization()).thenReturn(1);
 
         assertThatThrownBy(() -> bootstrapService.initialize())
                 .isInstanceOf(InputValidationException.class);
@@ -255,6 +256,7 @@ class UserBootstrapServiceTest {
     }
 
     private void stubCreation() {
+        when(userRepository.claimBootstrapInitialization()).thenReturn(1);
         when(userRepository.existsByUsername(anyString())).thenReturn(false);
         when(userRepository.saveAndFlush(any(User.class))).thenAnswer(invocation -> {
             User user = invocation.getArgument(0);

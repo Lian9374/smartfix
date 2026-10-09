@@ -15,7 +15,13 @@ import java.util.List;
 import java.util.Optional;
 
 /** Persistence owned by the request module for the maintenance-request aggregate root. */
-public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Long> {
+public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceRequest, Long>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<MaintenanceRequest> {
+
+    interface StatusCount { RequestStatus getStatus(); long getTotal(); }
+
+    @Query("select r.status as status, count(r) as total from MaintenanceRequest r group by r.status")
+    List<StatusCount> countStatuses();
 
     @Query("select new com.smartfix.request.dto.LocationRequestCount(r.locationId, r.status, count(r)) "
             + "from MaintenanceRequest r where r.status in :statuses group by r.locationId, r.status")

@@ -1,0 +1,987 @@
+{
+  "date": "2026-10-09T08:09:05.818Z",
+  "database": "isolated PostgreSQL",
+  "keyboardActions": 299,
+  "appLaunches": 2,
+  "passed": true,
+  "checks": [
+    {
+      "label": "keyboard registration qa.alice",
+      "passed": true
+    },
+    {
+      "label": "keyboard registration qa.bob",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.alice",
+      "passed": true
+    },
+    {
+      "label": "question-form heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "question-form sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "question-form no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "question-form no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "question-form no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "question-form no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "question-form no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "live title character count",
+      "passed": true
+    },
+    {
+      "label": "keyboard question posted",
+      "passed": true
+    },
+    {
+      "label": "question-detail-empty heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "question-detail-empty sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.113,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.543,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "question-detail-empty no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "question-detail-empty no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "question-detail-empty no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "question-detail-empty no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "question-detail-empty no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "question-edit heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "question-edit sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "question-edit no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "question-edit no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "question-edit no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "question-edit no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "question-edit no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.bob",
+      "passed": true
+    },
+    {
+      "label": "keyboard answer posted",
+      "passed": true
+    },
+    {
+      "label": "answer-edit heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "answer-edit sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "answer-edit no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "answer-edit no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "answer-edit no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "answer-edit no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "answer-edit no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.alice",
+      "passed": true
+    },
+    {
+      "label": "keyboard answer accepted",
+      "passed": true
+    },
+    {
+      "label": "feed displays nickname and one visible answer",
+      "passed": true
+    },
+    {
+      "label": "community-feed heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "community-feed sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary search-submit",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "discussion__meta",
+          "ratio": 4.759,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--success",
+          "ratio": 5.668,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "community-feed no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "community-feed no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "community-feed no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "community-feed no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "community-feed no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "my-questions heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "my-questions sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--info",
+          "ratio": 8.379,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--success",
+          "ratio": 5.668,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "my-questions no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "my-questions no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "my-questions no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "my-questions no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "my-questions no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "my community has no duplicated shown count",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.bob",
+      "passed": true
+    },
+    {
+      "label": "my-answers heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "my-answers sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--info",
+          "ratio": 8.379,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "my-answers no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "my-answers no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "my-answers no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "my-answers no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "my-answers no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "keyboard report submitted",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.admin",
+      "passed": true
+    },
+    {
+      "label": "report-queue heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "report-queue sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--success",
+          "ratio": 5.668,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.088,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.088,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.088,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary btn--small",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "report-queue no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "report-queue no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "report-queue no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "report-queue no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "report-queue no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "handled view has stable restore entry",
+      "passed": true
+    },
+    {
+      "label": "handled-reports heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "handled-reports sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--danger",
+          "ratio": 6.472,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "report-decision__meta",
+          "ratio": 6.534,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "handled-reports no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "handled-reports no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "handled-reports no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "handled-reports no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "handled-reports no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "restoration retains handled queue",
+      "passed": true
+    },
+    {
+      "label": "real audit records hide and restore",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.alice",
+      "passed": true
+    },
+    {
+      "label": "restored question retains its accepted answer",
+      "passed": true
+    },
+    {
+      "label": "application restarted as a different process",
+      "passed": true,
+      "detail": {
+        "before": 10488,
+        "after": 51136
+      }
+    },
+    {
+      "label": "keyboard login qa.alice",
+      "passed": true
+    },
+    {
+      "label": "question / answer / acceptance survive restart",
+      "passed": true,
+      "detail": {
+        "before": {
+          "title": "Community keyboard and restart acceptance",
+          "accepted": 1,
+          "body": true
+        },
+        "after": {
+          "title": "Community keyboard and restart acceptance",
+          "accepted": 1,
+          "body": true
+        }
+      }
+    },
+    {
+      "label": "keyboard login qa.admin",
+      "passed": true
+    },
+    {
+      "label": "report / decision / restored visibility survive restart",
+      "passed": true
+    },
+    {
+      "label": "restart-handled-reports heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "restart-handled-reports sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--neutral",
+          "ratio": 6.636,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "badge badge--success",
+          "ratio": 5.668,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "report-decision__meta",
+          "ratio": 6.534,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "restart-handled-reports no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "restart-handled-reports no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "restart-handled-reports no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "restart-handled-reports no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "restart-handled-reports no horizontal overflow at 320",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.bob",
+      "passed": true
+    },
+    {
+      "label": "acceptance notification survives restart",
+      "passed": true
+    },
+    {
+      "label": "keyboard login qa.alice",
+      "passed": true
+    },
+    {
+      "label": "answer notification survives restart",
+      "passed": true
+    },
+    {
+      "label": "server rejects short fields and renders errors",
+      "passed": true,
+      "detail": {
+        "status": 200
+      }
+    },
+    {
+      "label": "server error focuses first invalid field",
+      "passed": true
+    },
+    {
+      "label": "validation-errors heading / unique IDs / labels / described-by / scripts",
+      "passed": true,
+      "detail": {
+        "heading": 1,
+        "unique": true,
+        "missing": [],
+        "labels": [],
+        "errors": []
+      }
+    },
+    {
+      "label": "validation-errors sampled rendered text contrast",
+      "passed": true,
+      "detail": [
+        {
+          "selector": "badge badge--brand",
+          "ratio": 5.407,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "page-head__subtitle",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-character-count",
+          "ratio": 5.912,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "form-field__hint",
+          "ratio": 5.454,
+          "required": 4.5,
+          "passed": true
+        },
+        {
+          "selector": "btn btn--primary",
+          "ratio": 6.253,
+          "required": 4.5,
+          "passed": true
+        }
+      ]
+    },
+    {
+      "label": "validation-errors no horizontal overflow at 1440",
+      "passed": true
+    },
+    {
+      "label": "validation-errors no horizontal overflow at 1000",
+      "passed": true
+    },
+    {
+      "label": "validation-errors no horizontal overflow at 768",
+      "passed": true
+    },
+    {
+      "label": "validation-errors no horizontal overflow at 390",
+      "passed": true
+    },
+    {
+      "label": "validation-errors no horizontal overflow at 320",
+      "passed": true
+    }
+  ]
+}

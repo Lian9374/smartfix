@@ -130,6 +130,8 @@ class CommunityAnswerConcurrencyPostgresIT {
     }
 
     @Autowired private CommunityAnswerService answersTo;
+    @Autowired private com.smartfix.community.service.CommunityQuestionService questionService;
+    @Autowired private com.smartfix.community.config.CommunityProperties properties;
     @Autowired private CommunityQuestionRepository questions;
     @Autowired private CommunityAnswerRepository answers;
     @Autowired private UserService users;
@@ -141,9 +143,70 @@ class CommunityAnswerConcurrencyPostgresIT {
         // The schema outlives a single test method, so each one starts from nothing and can
         // create its accounts under plain names.
         recorder.clear();
+        properties.getPosting().setMaxPerRateLimitWindow(20);
+        properties.getPosting().setDuplicateDetectionEnabled(true);
+        jdbc.update("DELETE FROM notifications");
+        // Break the composite acceptance reference before deleting its answer rows.
+        jdbc.update("UPDATE community_questions SET accepted_answer_id = NULL");
         jdbc.update("DELETE FROM community_answers");
         jdbc.update("DELETE FROM community_questions");
         jdbc.update("DELETE FROM users");
+    }
+
+    @Test
+    void concurrentQuestionsCannotExceedTheRollingQuota() throws Exception {
+        Long author = account("quota.asker", Role.REQUESTER);
+        properties.getPosting().setMaxPerRateLimitWindow(2);
+        List<Callable<Long>> calls = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            final int number = i;
+            calls.add(() -> {
+                var command = new com.smartfix.community.dto.QuestionFormCommand();
+                command.setTitle("Concurrent quota question " + number);
+                command.setBody("A synthetic question for strict concurrent quota verification.");
+                command.setCategory(CommunityCategory.OTHER);
+                return questionService.ask(command, author);
+            });
+        }
+        var outcomes = together(calls);
+        assertThat(outcomes.stream().filter(Outcome::succeeded)).hasSize(2);
+        assertThat(outcomes.stream().filter(o -> !o.succeeded()).map(Outcome::failure))
+                .hasSize(6).allSatisfy(e -> assertThat(e).isInstanceOf(com.smartfix.common.exception.InputValidationException.class));
+        assertThat(questions.findByAuthorId(author, org.springframework.data.domain.PageRequest.of(0, 10)).getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void concurrentAnswersAcrossDifferentQuestionsShareTheAuthorsQuota() throws Exception {
+        Long asker = account("quota.asker", Role.REQUESTER);
+        Long author = account("quota.answerer", Role.REQUESTER);
+        properties.getPosting().setMaxPerRateLimitWindow(2);
+        List<Callable<Long>> calls = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            Long question = openQuestion(asker, "Concurrent answer quota " + i);
+            calls.add(() -> {
+                var command = new com.smartfix.community.dto.AnswerFormCommand();
+                command.setBody("A synthetic answer for strict concurrent quota verification.");
+                return answersTo.post(question, command, author);
+            });
+        }
+        var outcomes = together(calls);
+        assertThat(outcomes.stream().filter(Outcome::succeeded)).hasSize(2);
+        assertThat(outcomes.stream().filter(o -> !o.succeeded()).map(Outcome::failure))
+                .hasSize(6).allSatisfy(e -> assertThat(e).isInstanceOf(com.smartfix.common.exception.InputValidationException.class));
+        assertThat(answers.findByAuthorId(author, org.springframework.data.domain.PageRequest.of(0, 10)).getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    void concurrentIdenticalQuestionsAreInsertedOnlyOnce() throws Exception {
+        Long author = account("duplicate.asker", Role.REQUESTER);
+        var command = new com.smartfix.community.dto.QuestionFormCommand();
+        command.setTitle("Identical simultaneous question");
+        command.setBody("An identical question submitted concurrently from several sessions.");
+        command.setCategory(CommunityCategory.OTHER);
+        var outcomes = together(java.util.Collections.nCopies(8, (Callable<Long>) () -> questionService.ask(command, author)));
+        assertThat(outcomes.stream().filter(Outcome::succeeded)).hasSize(1);
+        assertThat(outcomes.stream().filter(o -> !o.succeeded()).map(Outcome::failure))
+                .hasSize(7).allSatisfy(e -> assertThat(e).isInstanceOf(com.smartfix.common.exception.InputValidationException.class));
     }
 
     // ------------------------------------------------------- two acceptances
