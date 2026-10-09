@@ -1,29 +1,22 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
+<head th:replace="~{fragments/layout :: head('Engineer profile')}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My technician profile &middot; SmartFix</title>
     <link rel="stylesheet" th:href="@{/css/site.css}">
 </head>
 <body>
-<header class="site-header">
-    <span class="brand">SmartFix</span>
-    <nav aria-label="Main navigation">
-        <a th:href="@{/}">Home</a>
-        <a th:href="@{/workorders/mine}">My work orders</a>
-        <form th:action="@{/logout}" method="post" class="inline-form">
-            <button type="submit">Sign out</button>
-        </form>
-    </nav>
-</header>
-<main class="content">
+<div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('technician-profile')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('technician-profile')}"></th:block>
+<main id="main-content" class="content workspace-page">
+    <section class="card page-context workspace-heading"><div>
     <h1>My technician profile</h1>
     <p>Choose the repairs you handle, the locations you cover and your current availability.</p>
+    </div><a class="btn btn--secondary" th:href="@{/technician}">Back to workspace</a></section>
     <p th:if="${successMessage}"><output th:text="${successMessage}">Your profile was saved.</output></p>
     <p th:unless="${profileActive}" role="alert">Your technician profile is inactive. Contact an administrator.</p>
 
-    <form th:if="${profileActive}" th:action="@{/technician/profile}" th:object="${profileCommand}" method="post">
+    <form class="card workspace-profile" th:if="${profileActive}" th:action="@{/technician/profile}" th:object="${profileCommand}" method="post">
         <input type="hidden" th:field="*{version}">
         <div th:if="${#fields.hasAnyErrors()}" role="alert">
             <p>Please check your selections and try again.</p>
@@ -60,9 +53,9 @@
             </p>
             <p id="availability-errors" th:errors="*{availabilityStatus}">Select your availability.</p>
         </fieldset>
-        <p><button type="submit" th:disabled="${#lists.isEmpty(locations)}">Save profile</button></p>
+        <p><button class="btn btn--primary" type="submit" th:disabled="${#lists.isEmpty(locations)}">Save profile</button></p>
     </form>
 </main>
-<footer><span>SWE5006 &middot; SmartFix team</span></footer>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block>
 </body>
 </html>

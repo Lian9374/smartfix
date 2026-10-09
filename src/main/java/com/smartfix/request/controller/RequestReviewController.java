@@ -48,7 +48,7 @@ public class RequestReviewController {
             @Valid @ModelAttribute("command") RequestReviewCommand command,
             BindingResult errors,
             @AuthenticationPrincipal SmartFixUserDetails principal,
-            Model model) {
+            Model model, org.springframework.web.servlet.mvc.support.RedirectAttributes redirect) {
         if (!errors.hasErrors()) {
             try {
                 reviews.review(
@@ -57,6 +57,7 @@ public class RequestReviewController {
                         principal.getUserId(),
                         command.getReject(),
                         command.getComment());
+                redirect.addFlashAttribute("successMessage", command.getReject() ? "Request rejected." : "Review saved. The request is ready for dispatch.");
                 return "redirect:/requests/" + ticket;
             } catch (InputValidationException invalid) {
                 errors.reject(

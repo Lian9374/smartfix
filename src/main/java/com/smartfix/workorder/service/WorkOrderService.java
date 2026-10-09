@@ -101,6 +101,37 @@ public class WorkOrderService {
         return response(requireAssigned(id, actorId));
     }
 
+    public Page<WorkOrderQueueRow> queue(Long actorId, WorkOrderStatus status,
+            com.smartfix.request.domain.UrgencyLevel priority, java.time.LocalDate since,
+            String sort, int page, int size) {
+        requireTechnician(actorId);
+        var activeIds = assignments.findActiveRequestIds(actorId, orders.findRequestIdsByTechnicianId(actorId));
+        var contexts = requests.workSummaries(activeIds);
+        var matchingIds = contexts.values().stream()
+                .filter(r -> priority == null || r.priority() == priority)
+                .map(com.smartfix.request.dto.RequestWorkSummary::id).toList();
+        var direction = "oldest".equals(sort) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        String field = "updated".equals(sort) ? "updatedAt" : "createdAt";
+        var pageable = PageRequest.of(Math.max(0, page), size <= 0 ? 20 : Math.min(100, size),
+                Sort.by(direction, field, "id"));
+        if (matchingIds.isEmpty()) return Page.empty(pageable);
+        org.springframework.data.jpa.domain.Specification<WorkOrder> filters = (root, query, cb) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            predicates.add(cb.equal(root.get("technicianId"), actorId));
+            predicates.add(root.get("requestId").in(matchingIds));
+            if (status != null) predicates.add(cb.equal(root.get("status"), status));
+            if (since != null) predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"),
+                    since.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));
+            return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
+        };
+        return orders.findAll(filters, pageable).map(w -> {
+            var context = contexts.get(w.getRequestId());
+            return new WorkOrderQueueRow(w.getId(), w.getRequestId(), context.ticketNumber(), context.title(),
+                    context.locationId(), context.priority(), context.status(), w.getStatus(),
+                    w.getCreatedAt(), w.getUpdatedAt());
+        });
+    }
+
     public List<RepairRecordResponse> findRecords(Long id, Long actorId) {
         requireAssigned(id, actorId);
         return records.findByWorkOrderIdOrderByCreatedAtAscIdAsc(id).stream()

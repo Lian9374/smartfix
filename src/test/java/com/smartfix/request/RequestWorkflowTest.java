@@ -100,6 +100,7 @@ class RequestWorkflowTest {
         for (String table :
                 List.of(
                         "notifications",
+                        "audit_entries",
                         "repair_records",
                         "request_feedback",
                         "request_status_history",

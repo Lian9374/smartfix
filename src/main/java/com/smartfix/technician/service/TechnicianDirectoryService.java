@@ -53,6 +53,13 @@ public class TechnicianDirectoryService {
         return profiles.findByUserId(actorUserId).map(TechnicianDirectoryService::toResponse);
     }
 
+    public List<TechnicianProfileResponse> listProfilesForAdministrator(Long actorId) {
+        var actor = users.getUserAccess(actorId);
+        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE)
+            throw new AccessDeniedException("Administrator access required.");
+        return profiles.findAll().stream().map(TechnicianDirectoryService::toResponse).toList();
+    }
+
     @Transactional
     public TechnicianProfileResponse updateProfile(Long actorUserId, UpdateTechnicianProfileCommand command) {
         requireActiveTechnician(actorUserId);

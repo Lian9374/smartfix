@@ -77,6 +77,10 @@ public class User {
     @Column(name = "security_version", nullable = false)
     private long securityVersion;
 
+    @Column(name = "password_change_required", nullable = false)
+    @org.hibernate.annotations.ColumnDefault("false")
+    private boolean passwordChangeRequired;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -213,6 +217,19 @@ public class User {
     protected void replacePasswordHash(String newPasswordHash) {
         Objects.requireNonNull(newPasswordHash, "newPasswordHash");
         this.passwordHash = newPasswordHash;
+    }
+
+    public boolean isPasswordChangeRequired() { return passwordChangeRequired; }
+
+    public void requirePasswordChange(Instant changedAt) {
+        passwordChangeRequired = true;
+        invalidateSessions(changedAt);
+    }
+
+    public void changePassword(String encodedPassword, boolean requireChange, Instant changedAt) {
+        replacePasswordHash(encodedPassword);
+        passwordChangeRequired = requireChange;
+        invalidateSessions(changedAt);
     }
 
     /**

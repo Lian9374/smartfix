@@ -203,7 +203,7 @@ class TechnicianProfileIT {
         jdbc.update("UPDATE locations SET display_name = '<script>alert(1)</script>' WHERE id = 10");
         mvc.perform(get(ROUTE).with(account("tech.one"))).andExpect(status().isOk())
                 .andExpect(content().string(containsString("&lt;script&gt;")))
-                .andExpect(content().string(not(containsString("<script>"))));
+                .andExpect(content().string(not(containsString("<script>alert(1)</script>"))));
         jdbc.update("UPDATE locations SET active = FALSE");
         mvc.perform(get(ROUTE).with(account("tech.one"))).andExpect(status().isOk())
                 .andExpect(content().string(containsString("No active locations")))

@@ -63,8 +63,7 @@ public class UserBootstrapService {
         if (created) {
             log.info("Created the bootstrap administrator account '{}'.", command.getUsername());
         } else {
-            log.info("Bootstrap administrator account '{}' already exists; nothing was changed.",
-                    command.getUsername());
+            log.info("Administrator bootstrap is already initialized or its username is in use; nothing was changed.");
         }
     }
 

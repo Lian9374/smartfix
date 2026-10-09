@@ -9,7 +9,8 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.*;
 
-public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long> {
+public interface WorkOrderRepository extends JpaRepository<WorkOrder, Long>,
+        org.springframework.data.jpa.repository.JpaSpecificationExecutor<WorkOrder> {
     Optional<WorkOrder> findByRequestId(Long requestId);
 
     Page<WorkOrder> findByTechnicianId(Long technicianId, Pageable pageable);

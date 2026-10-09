@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maintenance Requests - SmartFix</title><link rel="stylesheet" th:href="@{/css/site.css}"></head>
-<body><header><h1>Maintenance Requests</h1><nav><a th:href="@{/}">Home</a></nav></header><main>
-<a th:href="@{/admin/requests/lookup}">Look up a ticket</a>
-<form th:action="@{/admin/requests}" method="get"><label>Status <select name="status"><option value="">All statuses</option>
-<option th:each="status : ${statuses}" th:value="${status}" th:text="${status}" th:selected="${status == selectedStatus}"></option></select></label><button>Filter</button></form>
-<p th:if="${pagination.empty}">No requests match this page or filter.</p>
-<table th:unless="${pagination.empty}"><thead><tr><th>Ticket</th><th>Title</th><th>Status</th><th>Location</th><th>Assignment</th></tr></thead><tbody>
-<tr th:each="request : ${pagination.content}"><td><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.ticketNumber}"></a></td>
-<td th:text="${request.title}"></td><td th:text="${request.status}"></td><td th:text="${request.locationDisplayName}"></td>
-<td><a th:if="${request.status.name() == 'UNDER_REVIEW' or request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS' or request.status.name() == 'REOPENED'}"
-       th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a></td></tr></tbody></table>
-<nav><a th:if="${pagination.hasPrevious()}" th:href="@{/admin/requests(page=${pagination.number - 1},size=${pagination.size},status=${selectedStatus})}">Previous</a>
-<span th:text="${pagination.totalElements + ' requests'}"></span>
-<a th:if="${pagination.hasNext()}" th:href="@{/admin/requests(page=${pagination.number + 1},size=${pagination.size},status=${selectedStatus})}">Next</a></nav>
-</main></body></html>
+<head th:replace="~{fragments/layout :: head('Request queue')}"><title>Request queue · SmartFix</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('request-queue')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('request-queue')}"></th:block>
+<main id="main-content" class="content workspace-page">
+<section class="card page-context workspace-heading"><div><span class="section-kicker">Administration</span><h1>Request queue</h1><p>All campus requests, from first report to closure.</p></div><a class="btn btn--secondary" th:href="@{/admin/requests/lookup}">Look up a ticket</a></section>
+<section class="card workspace-filters" aria-label="Filter requests"><form method="get" th:action="@{/admin/requests}">
+<div class="form-field workspace-search"><label for="request-search">Search</label><input id="request-search" name="search" maxlength="120" placeholder="Ticket, title or details" th:value="${search}"></div>
+<div class="form-field"><label for="request-status">Status</label><select id="request-status" name="status"><option value="">All statuses</option><option th:each="item : ${statuses}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(item.toString(),'_',' ')))}" th:selected="${item == selectedStatus}"></option></select></div>
+<div class="form-field"><label for="request-category">Category</label><select id="request-category" name="category"><option value="">All categories</option><option th:each="item : ${categories}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(item.toString(),'_',' ')))}" th:selected="${item == selectedCategory}"></option></select></div>
+<div class="form-field"><label for="request-priority">Priority</label><select id="request-priority" name="priority"><option value="">All priorities</option><option th:each="item : ${priorities}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(item.toString(),'_',' ')))}" th:selected="${item == selectedPriority}"></option></select></div><div class="form-field"><label for="queue-sort">Order</label><select id="queue-sort" name="sort"><option value="newest" th:selected="${selectedSort == 'newest'}">Newest</option><option value="oldest" th:selected="${selectedSort == 'oldest'}">Oldest</option><option value="updated" th:selected="${selectedSort == 'updated'}">Recently updated</option></select></div>
+<input type="hidden" name="size" th:value="${pagination.size}"><button class="btn btn--primary" type="submit">Apply</button><a th:href="@{/admin/requests}">Clear</a></form></section>
+<section class="card"><div class="card__header"><h2 class="card__title">Maintenance requests</h2><span class="card__hint" th:text="|${pagination.totalElements} requests|"></span></div>
+<div th:if="${pagination.empty}" class="workspace-empty"><h3>No matching requests</h3><p>Change the filters or search term.</p><a th:href="@{/admin/requests}">Show all requests</a></div>
+<div class="workspace-list" th:unless="${pagination.empty}"><article class="workspace-list__item" th:each="request : ${pagination.content}">
+<div class="workspace-list__main"><span class="meta" th:text="${request.ticketNumber}"></span><h3><a th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})}" th:text="${request.title}"></a></h3><p><span th:text="${request.locationDisplayName}"></span><span aria-hidden="true"> · </span><span th:text="${request.category}"></span></p><time class="meta" th:datetime="${request.createdAt}" th:text="${#temporals.format(request.createdAt,'dd MMM yyyy, HH:mm','Asia/Singapore')}"></time></div>
+<div class="workspace-list__actions"><span th:replace="~{fragments/components :: statusBadge(${request.status})}"></span><span th:replace="~{fragments/components :: urgencyBadge(${request.priority})}"></span>
+<a class="btn btn--secondary btn--small" th:if="${request.status.name() == 'SUBMITTED' or request.status.name() == 'UNDER_REVIEW'}" th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review</a>
+<a class="btn btn--secondary btn--small" th:if="${request.status.name() == 'UNDER_REVIEW' or request.status.name() == 'ASSIGNED' or request.status.name() == 'IN_PROGRESS' or request.status.name() == 'REOPENED'}" th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Dispatch</a></div></article></div></section>
+<nav class="workspace-pagination" aria-label="Request pages"><a class="btn btn--secondary" th:if="${pagination.hasPrevious()}" th:href="@{/admin/requests(page=${pagination.number-1},size=${pagination.size},search=${search},status=${selectedStatus},category=${selectedCategory},priority=${selectedPriority},sort=${selectedSort})}">Previous</a><span th:if="${pagination.totalPages > 0}" th:text="|Page ${pagination.number+1} of ${pagination.totalPages}|"></span><a class="btn btn--secondary" th:if="${pagination.hasNext()}" th:href="@{/admin/requests(page=${pagination.number+1},size=${pagination.size},search=${search},status=${selectedStatus},category=${selectedCategory},priority=${selectedPriority},sort=${selectedSort})}">Next</a></nav></main>
+<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

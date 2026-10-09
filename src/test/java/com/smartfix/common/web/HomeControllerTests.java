@@ -89,9 +89,8 @@ class HomeControllerTests {
         SmartFixUserDetails principal = new SmartFixUserDetails(new UserAuthenticationData(
                 9L, "root.admin", "hash", Role.ADMINISTRATOR, AccountStatus.ACTIVE, 0L));
         mockMvc.perform(get("/").with(user(principal)))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Administration")))
-                .andExpect(content().string(not(containsString("Recent requests"))));
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/admin"));
         verify(requestQueryService, never()).listMyRequests(any(), anyInt(), anyInt());
     }
 
@@ -121,6 +120,12 @@ class HomeControllerTests {
                 new UserAccessResponse(7L, role, AccountStatus.ACTIVE, 0L));
         SmartFixUserDetails principal = new SmartFixUserDetails(new UserAuthenticationData(
                 7L, "alice", "hash", role, AccountStatus.ACTIVE, 0L));
+        if (role != Role.REQUESTER) {
+            mockMvc.perform(get("/").with(user(principal)))
+                    .andExpect(status().isFound())
+                    .andExpect(redirectedUrl(role == Role.ADMINISTRATOR ? "/admin" : "/technician"));
+            return;
+        }
         String navLink = role == Role.ADMINISTRATOR
                 ? "<span>Community</span>"
                 : ">Community</a>";

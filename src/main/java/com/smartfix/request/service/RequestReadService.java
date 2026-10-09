@@ -79,6 +79,15 @@ public class RequestReadService {
         return requests.countByStatus(status);
     }
 
+    public java.util.Map<Long, com.smartfix.request.dto.RequestWorkSummary> workSummaries(java.util.Collection<Long> ids) {
+        if (ids.isEmpty()) return java.util.Map.of();
+        var result = new java.util.HashMap<Long, com.smartfix.request.dto.RequestWorkSummary>();
+        requests.findAllById(ids).forEach(r -> result.put(r.getId(),
+                new com.smartfix.request.dto.RequestWorkSummary(r.getId(), r.getTicketNumber(), r.getTitle(),
+                        r.getLocationId(), r.getEffectiveUrgencyLevel(), r.getStatus(), r.getCreatedAt())));
+        return java.util.Map.copyOf(result);
+    }
+
     /** Read-only public aggregate for the campus map; resolved/terminal records are excluded. */
     public List<LocationRequestCount> activeMapCounts() {
         return requests.countByLocationAndStatus(List.of(RequestStatus.SUBMITTED,

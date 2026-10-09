@@ -1,5 +1,9 @@
 # SmartFix UI Guide
 
+Administrator and engineer pages now share the application shell: `/admin`, `/technician`,
+dispatch, profile and password setup. See [the role workspace handoff](sprint3/Admin_Engineer_Workspaces_CN.md)
+for real routes, supported actions, UI states and validation evidence.
+
 How the web pages are built, and how to add one without inventing a second style.
 Everything here is Thymeleaf, CSS and a small amount of plain JavaScript — no frontend
 build step, no framework, no external font or icon service. Community forms, lists and moderation actions work without JavaScript. Progressive

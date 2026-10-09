@@ -23,5 +23,9 @@ public record UserAccessResponse(
         Long userId,
         Role role,
         AccountStatus accountStatus,
-        long securityVersion) {
+        long securityVersion,
+        boolean passwordChangeRequired) {
+    public UserAccessResponse(Long userId, Role role, AccountStatus accountStatus, long securityVersion) {
+        this(userId, role, accountStatus, securityVersion, false);
+    }
 }

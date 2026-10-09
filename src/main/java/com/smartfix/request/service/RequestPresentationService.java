@@ -49,7 +49,9 @@ public class RequestPresentationService {
             if (assignments.isAvailable()
                     && r.getFinalUrgencyLevel() != null
                     && (r.getStatus() == RequestStatus.UNDER_REVIEW
-                            || r.getStatus() == RequestStatus.REOPENED)) actions.add("dispatch");
+                            || r.getStatus() == RequestStatus.REOPENED
+                            || r.getStatus() == RequestStatus.ASSIGNED
+                            || r.getStatus() == RequestStatus.IN_PROGRESS)) actions.add("dispatch");
         }
         if (role == Role.REQUESTER && r.getRequesterId().equals(actorId)) {
             if (r.getStatus() == RequestStatus.SUBMITTED

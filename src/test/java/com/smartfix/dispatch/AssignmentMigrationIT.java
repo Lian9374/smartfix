@@ -33,6 +33,10 @@ class AssignmentMigrationIT {
                         .locations("classpath:db/migration").load();
                 assertThat(latest.migrate().migrationsExecuted).isGreaterThanOrEqualTo(1);
                 latest.validate();
+                try (var result = sql.executeQuery("SELECT completed FROM account_initialization WHERE id=1")) {
+                    assertThat(result.next()).isTrue();
+                    assertThat(result.getBoolean(1)).as("An existing administrator closes bootstrap during upgrade").isTrue();
+                }
                 assertThat(latest.migrate().migrationsExecuted).isZero();
                 try (var result = sql.executeQuery("SELECT user_id FROM technician_profiles")) {
                     assertThat(result.next()).isTrue();

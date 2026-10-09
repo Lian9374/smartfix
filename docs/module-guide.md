@@ -5,9 +5,9 @@ what it must **not** own, likely future content, and the dependencies it may rea
 have. Use it to answer the question **"where should this code go?"** before writing it.
 
 > Current implemented modules include common, auth, user, facility, request, workorder,
-> community, notification, audit and reporting. Later entries still marked “likely”
-> describe target responsibilities, not completed scope. Latest main also contains B's
-> technician/dispatch implementation. See `sprint3/UserA_Quality_Completion_CN.md` for
+> community, notification, audit, reporting, technician and dispatch. Later entries still marked “likely”
+> describe target responsibilities, not completed scope. B's technician/dispatch model is now
+> integrated on this branch; see `sprint3/Admin_Engineer_Workspaces_CN.md`. See `sprint3/UserA_Quality_Completion_CN.md` for
 > the verified UserA branch boundary and integration dependencies.
 
 ---
