@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @Sql(scripts = {"/db/auth-test-schema.sql", "/db/migration/V3__create_locations.sql",
-        "/db/migration/V10__create_technician_profiles.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+        "/db/technician-test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class TechnicianProfileIT {
     private static final String ROUTE = "/technician/profile";
     @Autowired MockMvc mvc;

@@ -19,14 +19,14 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
-/** Executes the real V10 DDL in H2; this does not claim PostgreSQL/Flyway-chain verification. */
+/** Executes the V23 technician-table fixture in isolated H2; this does not claim PostgreSQL/Flyway-chain verification. */
 @DataJpaTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:technician-repository;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=none"})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("test")
 @Sql(scripts = {"/db/auth-test-schema.sql", "/db/migration/V3__create_locations.sql",
-        "/db/migration/V10__create_technician_profiles.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+        "/db/technician-test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class TechnicianProfileRepositoryTest {
     @Autowired TechnicianProfileRepository profiles;
     @Autowired EntityManager entities;

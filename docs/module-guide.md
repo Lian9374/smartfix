@@ -32,7 +32,7 @@ have. Use it to answer the question **"where should this code go?"** before writ
   web plumbing, shared generic configuration.
 - **Does not own:** any business concept. No request, dispatch, SLA, facility or
   technician logic — even if used by several classes.
-- **Current content:** `common/web/HomeController` (scaffold home page).
+- **Current content:** shared exceptions, clock configuration, navigation advice and the role-aware HomeController.
 - **Likely future content:** `common.exception` (global exception handler),
   `common.validation` (generic, module-independent validation),
   `common.configuration`.
@@ -348,6 +348,9 @@ through `audit`'s public API.
 
 ```mermaid
 flowchart LR
+    Community --> User
+    Notification --> Community
+    Community --> Audit
     Request --> User
     Request --> Facility
     Dispatch --> User

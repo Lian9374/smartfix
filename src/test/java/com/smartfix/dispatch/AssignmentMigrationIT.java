@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.UUID;
 import static org.assertj.core.api.Assertions.*;
 
-/** V11 is tested on PostgreSQL: H2 cannot validate the production partial unique index. */
+/** Tests the PostgreSQL upgrade from V10 and preserves existing profiles and assignment history. */
 class AssignmentMigrationIT {
     @Test
     void upgradesNonemptyV10AndEnforcesOneActiveAssignmentWhileRetainingHistory() throws Exception {
