@@ -39,6 +39,9 @@ spring:
 
 server:
   port: 8080
+  # Registration uses the connection peer. Never trust arbitrary forwarding headers.
+  # A trusted proxy / shared ingress limiter needs explicit deployment configuration.
+  forward-headers-strategy: none
   servlet:
     session:
       timeout: ${SMARTFIX_SESSION_TIMEOUT:30m}

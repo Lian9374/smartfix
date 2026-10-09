@@ -64,9 +64,11 @@ public class RegistrationController {
     static final String CREATED_MESSAGE = "Account created. Sign in to continue.";
 
     private final UserService userService;
+    private final com.smartfix.auth.service.RegistrationRateLimiter rateLimiter;
 
-    public RegistrationController(UserService userService) {
+    public RegistrationController(UserService userService, com.smartfix.auth.service.RegistrationRateLimiter rateLimiter) {
         this.userService = userService;
+        this.rateLimiter = rateLimiter;
     }
 
     /** @return the empty sign-up form, with the session its token needs already started */
@@ -94,7 +96,15 @@ public class RegistrationController {
     public ModelAndView register(@Valid @ModelAttribute(FORM) RegistrationCommand command,
                                  BindingResult errors,
                                  Model model,
-                                 RedirectAttributes redirect) {
+                                 RedirectAttributes redirect,
+                                 HttpServletRequest request,
+                                 jakarta.servlet.http.HttpServletResponse response) {
+        long retryAfter = rateLimiter.reserve(request.getRemoteAddr());
+        if (retryAfter > 0) {
+            errors.reject("registration.rateLimited", "Too many sign-up attempts. Please try again later.");
+            response.setHeader("Retry-After", Long.toString(retryAfter));
+            return renderForm(model, HttpStatus.TOO_MANY_REQUESTS);
+        }
         if (!errors.hasErrors() && !command.passwordsMatch()) {
             // The confirmation is a rule about two fields at once, which no annotation on
             // either one can express, so it attaches here. The service applies it again;

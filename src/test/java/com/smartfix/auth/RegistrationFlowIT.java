@@ -45,7 +45,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
         "spring.datasource.url=jdbc:h2:mem:smartfix-register-it;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "spring.jpa.hibernate.ddl-auto=create-drop",
-        "smartfix.bootstrap-admin.enabled=false"})
+        "smartfix.bootstrap-admin.enabled=false",
+        "smartfix.registration.rate-limit.max-per-address=200"})
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Sql("/db/auth-test-schema.sql")
