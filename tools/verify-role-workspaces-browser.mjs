@@ -52,6 +52,23 @@ try{
     await browser.send('Network.setBlockedURLs',{urls:[]});
     await go('/admin/announcements');
     check('Announcement form identifies timezone and counters',await evaluate(`document.body.innerText.includes('Singapore time') && !!document.querySelector('#announcement-content-count')`));
+    const announcementTitle='UserD QA announcement '+run;
+    await type('#announcement-title',announcementTitle);
+    await type('#announcement-content','Synthetic campus maintenance notice for isolated acceptance.');
+    await browser.evaluate(`document.querySelector('#announcement-valid-from').value='2000-01-01T00:00';`);
+    await activate('form[action="/admin/announcements"] button[type=submit]');
+    check('Real announcement draft creation has success feedback',await evaluate(`document.body.innerText.includes('Announcement draft created.')`));
+    const announcementId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(announcementTitle)})))?.querySelector('form[action$="/publish"]')?.getAttribute('action')?.split('/').at(-2)`);
+    check('Created announcement has a real draft action',/^\d+$/.test(announcementId||''));
+    await activate('form[action="/admin/announcements/'+announcementId+'/publish"] button',true);
+    check('Publish action has feedback',await evaluate(`document.body.innerText.includes('Announcement published.')`));
+    await go('/announcements');
+    check('Published announcement appears in real public list',await evaluate(`document.body.innerText.includes(${JSON.stringify(announcementTitle)})`));
+    await go('/admin/announcements');
+    await activate('form[action="/admin/announcements/'+announcementId+'/withdraw"] button',true);
+    check('Withdraw action has feedback',await evaluate(`document.body.innerText.includes('Announcement withdrawn.')`));
+    await go('/announcements');
+    check('Withdrawn announcement is absent from public list',await evaluate(`!document.body.innerText.includes(${JSON.stringify(announcementTitle)})`));
   }
   if (process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY !== 'true') {
   await go('/admin/users/new?role=TECHNICIAN');await type('#username',engineer);await type('#displayName','QA Engineer');await type('#password',password);await activate('form[action="/admin/users"] button[type=submit]');check('Real managed account creation',await evaluate('location.pathname==="/admin/users"'));engineerId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(engineer)})))?.querySelector('td.data-table__id')?.innerText`);
