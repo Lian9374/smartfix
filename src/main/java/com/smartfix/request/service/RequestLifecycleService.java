@@ -58,7 +58,7 @@ public class RequestLifecycleService {
             String ticketNumber, RequestStatus target, Long actorUserId, String comment) {
         MaintenanceRequest request = access.requireReadableRequest(ticketNumber, actorUserId);
         var actor = users.getUserAccess(actorUserId);
-        if (actor.accountStatus() != AccountStatus.ACTIVE)
+        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.passwordChangeRequired())
             throw new ResourceNotFoundException("Request not found");
         if (target == null) throw new InputValidationException("A target state is required.");
         if (!RequestTransition.allows(request.getStatus(), target, actor.role())) {
@@ -105,10 +105,12 @@ public class RequestLifecycleService {
         request.transitionTo(target, now);
         requests.saveAndFlush(
                 request); // Detect stale versions before success is returned/published.
-        history.save(
+        var persistedHistory = history.saveAndFlush(
                 RequestStatusHistory.transition(
                         request.getId(), change.fromStatus(), target, actorUserId, now, note));
-        hooks.forEach(h -> h.afterTransition(change));
+        var recordedChange = new RequestTransitionResponse(change.requestId(), change.ticketNumber(),
+                change.fromStatus(), change.toStatus(), change.actorUserId(), change.occurredAt(), persistedHistory.getId());
+        hooks.forEach(h -> h.afterTransition(recordedChange));
         events.publishEvent(
                 new RequestStatusChangedEvent(
                         request.getId(),
@@ -117,26 +119,27 @@ public class RequestLifecycleService {
                         change.fromStatus(),
                         target,
                         actorUserId,
-                        now));
-        return change;
+                        now,
+                        persistedHistory.getId()));
+        return recordedChange;
     }
 
     @Transactional
     public void recordInitialSubmission(Long requestId, Long actorUserId) {
-        MaintenanceRequest request =
-                requests.findById(requestId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Request not found"));
         var actor = users.getUserAccess(actorUserId);
-        if (actor.role() != Role.REQUESTER
-                || actor.accountStatus() != AccountStatus.ACTIVE
-                || !request.getRequesterId().equals(actorUserId))
+        if (actor.role() != Role.REQUESTER || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) throw new ResourceNotFoundException("Request not found");
+        MaintenanceRequest request =
+                requests.findForInitialHistory(requestId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Request not found"));
+        if (!request.getRequesterId().equals(actorUserId))
             throw new ResourceNotFoundException("Request not found");
         if (request.getStatus() != RequestStatus.SUBMITTED
                 || history.existsByRequestId(requestId)) {
             throw new BusinessConflictException(
                     "Initial history is already recorded or the request has progressed.");
         }
-        history.save(
+        var persistedHistory = history.saveAndFlush(
                 RequestStatusHistory.initialSubmission(
                         requestId, actorUserId, request.getCreatedAt()));
         events.publishEvent(
@@ -147,7 +150,8 @@ public class RequestLifecycleService {
                         null,
                         RequestStatus.SUBMITTED,
                         actorUserId,
-                        request.getCreatedAt()));
+                        request.getCreatedAt(),
+                        persistedHistory.getId()));
     }
 
     @Transactional(readOnly = true)

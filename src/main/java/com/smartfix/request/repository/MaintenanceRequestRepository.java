@@ -47,6 +47,11 @@ public interface MaintenanceRequestRepository extends JpaRepository<MaintenanceR
      */
     Optional<MaintenanceRequest> findByTicketNumber(String ticketNumber);
 
+    /** Serializes initial-history recording; used only inside its write transaction. */
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select r from MaintenanceRequest r where r.id = :id")
+    Optional<MaintenanceRequest> findForInitialHistory(@Param("id") Long id);
+
     /**
      * Finds requests submitted by one requester, ordered from newest to oldest.
      *

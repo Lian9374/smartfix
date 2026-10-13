@@ -189,6 +189,15 @@ class RequestAccessServiceTest {
     }
 
     @Test
+    void temporaryPasswordAccountCannotReadRequestsOrUseRoleGate() {
+        when(requestRepository.findByTicketNumber("SF-2026-000001"))
+                .thenReturn(Optional.of(mock(MaintenanceRequest.class)));
+        when(userService.getUserAccess(30L)).thenReturn(new UserAccessResponse(30L, Role.TECHNICIAN, AccountStatus.ACTIVE, 1L, true));
+        assertThrows(ResourceNotFoundException.class, () -> requestAccessService.requireReadableRequest("SF-2026-000001", 30L));
+        assertThrows(ResourceNotFoundException.class, () -> requestAccessService.requireRole(30L, Role.TECHNICIAN));
+    }
+
+    @Test
     void disabledTechnicianIsDeniedBeforeConsultingTheirAssignment() {
         var assignments = mock(RequestAssignmentAccessService.class);
         var request = mock(MaintenanceRequest.class);

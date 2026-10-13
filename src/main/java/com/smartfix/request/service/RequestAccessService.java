@@ -45,7 +45,7 @@ public class RequestAccessService {
 
         UserAccessResponse actor = userService.getUserAccess(actorUserId);
 
-        if (actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.passwordChangeRequired()) {
             throw notFound();
         }
 
@@ -67,7 +67,8 @@ public class RequestAccessService {
 
     public void requireRole(Long actorId, Role role) {
         var actor = userService.getUserAccess(actorId);
-        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.role() != role) throw notFound();
+        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.role() != role
+                || actor.passwordChangeRequired()) throw notFound();
     }
 
     private ResourceNotFoundException notFound() {

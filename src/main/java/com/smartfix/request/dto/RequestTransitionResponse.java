@@ -10,4 +10,10 @@ public record RequestTransitionResponse(
         RequestStatus fromStatus,
         RequestStatus toStatus,
         Long actorUserId,
-        Instant occurredAt) {}
+        Instant occurredAt,
+        Long historyId) {
+    public RequestTransitionResponse(Long requestId, String ticketNumber, RequestStatus fromStatus,
+            RequestStatus toStatus, Long actorUserId, Instant occurredAt) {
+        this(requestId, ticketNumber, fromStatus, toStatus, actorUserId, occurredAt, null);
+    }
+}

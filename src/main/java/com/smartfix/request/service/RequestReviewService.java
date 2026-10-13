@@ -36,7 +36,8 @@ public class RequestReviewService {
     public void review(
             String ticket, UrgencyLevel priority, Long actorId, boolean reject, String reason) {
         var actor = users.getUserAccess(actorId);
-        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) {
             throw new ResourceNotFoundException("Request not found");
         }
         if (priority == null) throw new InputValidationException("A final priority is required.");
