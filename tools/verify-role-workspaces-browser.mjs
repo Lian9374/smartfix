@@ -56,6 +56,8 @@ try{
   await login(engineer,'TECHNICIAN',changed);await layout('engineer-assigned');const order=await evaluate('document.querySelector("main a[href^=\\"/workorders/\\"]")?.getAttribute("href")');check('Assigned work order available',!!order);await go(order);await layout('work-order-created');await activate('form[action$="/accept"] button');
   if (process.env.ROLE_ACCEPTANCE_USERC === 'true') {
     await activate('.skip-link');check('Work order keyboard skip focuses main',await evaluate('document.activeElement.id==="main-content"'));
+    // Clear the fragment navigation before testing focus in a replacement document.
+    await go(order);
     const invalidRepair=await evaluate(`(async()=>{const form=document.querySelector('form[action$="/records"]');const response=await fetch(form.action,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({_csrf:form.querySelector('input[name="_csrf"]').value})});return {status:response.status,html:await response.text()};})()`);
     check('Work order server validation renders errors',invalidRepair.status===200&&invalidRepair.html.includes('aria-invalid="true"'));
     const frame=await browser.send('Page.getFrameTree');await browser.send('Page.setDocumentContent',{frameId:frame.frameTree.frame.id,html:invalidRepair.html});await wait(350);
