@@ -62,6 +62,8 @@ try{
     check('Work order server validation renders errors',invalidRepair.status===200&&invalidRepair.html.includes('aria-invalid="true"'));
     const frame=await browser.send('Page.getFrameTree');await browser.send('Page.setDocumentContent',{frameId:frame.frameTree.frame.id,html:invalidRepair.html});await wait(350);
     check('Work order validation focuses diagnosis',await evaluate('document.activeElement.id==="diagnosis"'));
+    check('Diagnosis validation explains the field',await evaluate('document.querySelector("#diagnosis-error").textContent.includes("Describe the diagnosis.")'));
+    check('Time validation identifies the missing value',await evaluate('document.querySelector("#minutesSpent-error").textContent.includes("Enter time spent in minutes.")'));
     check('Work order field describes its actual error',await evaluate('document.querySelector("#diagnosis").getAttribute("aria-describedby").split(/\\s+/).includes("diagnosis-error")'));
     check('Work order description links exist',await evaluate(`Array.from(document.querySelectorAll('[aria-describedby]')).every(element=>element.getAttribute('aria-describedby').split(/\\s+/).every(id=>document.getElementById(id)))`));
     await layout('work-order-invalid');
