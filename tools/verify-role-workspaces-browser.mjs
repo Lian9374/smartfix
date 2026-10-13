@@ -30,6 +30,46 @@ try{
   browser=await launch({port:9341,width:1440,height:960});
   await login('role.qa.admin','ADMINISTRATOR');check('Administrator lands on real overview',await evaluate('location.pathname==="/admin"'));await layout('admin-overview');
   for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts'],['/admin/reports','reports'],['/admin/announcements','announcements'],['/notifications','notifications'],['/campus-map','campus-map']]){await go(route);await layout(label);}
+  if (process.env.ROLE_ACCEPTANCE_USERD === 'true') {
+    const measurements = await evaluate(`(async()=>{const rows=[];for(const route of ['/admin/reports','/admin/reports/export.csv?start=2000-01-01&end=2000-01-02','/campus-map','/campus-map/status','/admin/facilities','/admin/announcements']){const samples=[];for(let i=0;i<5;i++){const start=performance.now();const response=await fetch(route,{cache:'no-store'});const body=await response.text();samples.push({milliseconds:performance.now()-start,status:response.status,bytes:new TextEncoder().encode(body).length});}rows.push({route,samples});}return rows;})()`);
+    check('UserD real endpoint measurement requests succeed',measurements.every(row=>row.samples.every(sample=>sample.status===200)));
+    writeFileSync(path.join(out,'endpoint-measurements.json'),JSON.stringify({checkedAt:new Date().toISOString(),release,environment:'Dedicated PostgreSQL; local browser fetch; five sequential samples per route; empty business records with migrated location catalogue',measurements},null,2));
+    await go('/admin/reports?start=2026-10-31&end=2026-10-01');
+    check('Invalid report interval stays in accessible form', await evaluate(`document.querySelector('#report-date-error')?.textContent.includes('End date') && document.querySelector('#report-end')?.getAttribute('aria-invalid')==='true' && !document.querySelector('a[href*="export.csv"]')`));
+    await layout('reports-invalid');
+    await go('/admin/reports?start=2000-01-01&end=2000-01-02');
+    check('Report explicit empty state and no invented SLA',await evaluate(`document.body.innerText.includes('No requests were created') && document.body.innerText.includes('SLA compliance is not available')`));
+    const csv=await evaluate(`fetch('/admin/reports/export.csv?start=2000-01-01&end=2000-01-02').then(async r=>({status:r.status,text:await r.text(),type:r.headers.get('content-type')}))`);
+    check('Real report CSV retains summary contract',csv.status===200 && csv.type.includes('text/csv') && csv.text.includes('Average Resolution Hours') && csv.text.includes('Category,Requests'));
+    check('Reversed CSV interval is a client error',await evaluate(`fetch('/admin/reports/export.csv?start=2026-10-31&end=2026-10-01').then(r=>r.status)` )===400);
+    await browser.send('Network.enable');
+    await browser.send('Network.setBlockedURLs',{urls:['*js/vendor/leaflet/leaflet.js*']});
+    await go('/campus-map');
+    check('Map library failure keeps textual directory',await evaluate(`!document.querySelector('#atlas-map-notice').hidden && document.querySelector('#atlas-map-notice').textContent.includes('could not load') && !!document.querySelector('.campus-building-directory')`));
+    await activate('[data-campus="UTOWN"]');
+    check('Map failure message persists after campus switch',await evaluate(`document.querySelector('#atlas-map-notice').textContent.includes('could not load') && !document.querySelector('#atlas-map-notice').hidden`));
+    await layout('campus-map-offline');
+    await browser.send('Network.setBlockedURLs',{urls:[]});
+    await go('/admin/announcements');
+    check('Announcement form identifies timezone and counters',await evaluate(`document.body.innerText.includes('Singapore time') && !!document.querySelector('#announcement-content-count')`));
+    const announcementTitle='UserD QA announcement '+run;
+    await type('#announcement-title',announcementTitle);
+    await type('#announcement-content','Synthetic campus maintenance notice for isolated acceptance.');
+    await browser.evaluate(`document.querySelector('#announcement-valid-from').value='2000-01-01T00:00';`);
+    await activate('form[action="/admin/announcements"] button[type=submit]');
+    check('Real announcement draft creation has success feedback',await evaluate(`document.body.innerText.includes('Announcement draft created.')`));
+    const announcementId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(announcementTitle)})))?.querySelector('form[action$="/publish"]')?.getAttribute('action')?.split('/').at(-2)`);
+    check('Created announcement has a real draft action',/^\d+$/.test(announcementId||''));
+    await activate('form[action="/admin/announcements/'+announcementId+'/publish"] button',true);
+    check('Publish action has feedback',await evaluate(`document.body.innerText.includes('Announcement published.')`));
+    await go('/announcements');
+    check('Published announcement appears in real public list',await evaluate(`document.body.innerText.includes(${JSON.stringify(announcementTitle)})`));
+    await go('/admin/announcements');
+    await activate('form[action="/admin/announcements/'+announcementId+'/withdraw"] button',true);
+    check('Withdraw action has feedback',await evaluate(`document.body.innerText.includes('Announcement withdrawn.')`));
+    await go('/announcements');
+    check('Withdrawn announcement is absent from public list',await evaluate(`!document.body.innerText.includes(${JSON.stringify(announcementTitle)})`));
+  }
   if (process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY !== 'true') {
   await go('/admin/users/new?role=TECHNICIAN');await type('#username',engineer);await type('#displayName','QA Engineer');await type('#password',password);await activate('form[action="/admin/users"] button[type=submit]');check('Real managed account creation',await evaluate('location.pathname==="/admin/users"'));engineerId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(engineer)})))?.querySelector('td.data-table__id')?.innerText`);
   await login(engineer,'TECHNICIAN');check('Temporary password forces setup',await evaluate('location.pathname==="/account/password"'));await layout('password-setup');

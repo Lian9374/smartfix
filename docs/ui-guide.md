@@ -702,3 +702,10 @@ stored HTML, credentials or private account fields. Counts include VISIBLE answe
 loaded once for a page. Moderation retains account IDs for administrative traceability.
 See `sprint3/UserA_Quality_Completion_CN.md` for browser/keyboard evidence and remaining
 physical-device/screen-reader checks.
+
+Sprint 4 UserD reporting and announcement pages reuse `.workspace-page`, shared heading
+cards and `.form-field` inputs. Date errors link to the actual error element; announcement
+period errors identify the end-time field. Publish/withdraw POSTs use existing confirmation
+and pending-submit feedback. Map basemap failures survive unrelated campus/search actions;
+building names and statuses remain readable without Leaflet. See
+`sprint4/UserD_Map_Reporting_Quality_CN.md` for measured query behavior and browser evidence.

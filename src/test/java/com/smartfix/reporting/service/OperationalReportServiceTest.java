@@ -124,6 +124,49 @@ class OperationalReportServiceTest {
                 100);
     }
 
+    @Test
+    void aggregatesAcrossPagesAndWeightsResolutionTimesByRecordCount() {
+        var start = Instant.parse("2026-10-01T00:00:00Z");
+        var end = start.plusSeconds(86400);
+        var first = java.util.stream.LongStream.rangeClosed(1, 100)
+                .mapToObj(id -> request(id, RequestStatus.CLOSED, MaintenanceCategory.HVAC,
+                        UrgencyLevel.LOW, start, start.plusSeconds(3600))).toList();
+        var last = request(101L, RequestStatus.RESOLVED, MaintenanceCategory.PLUMBING,
+                UrgencyLevel.HIGH, start, start.plusSeconds(7200));
+        when(requestReadService.findCreatedBetween(start, end, 0, 100))
+                .thenReturn(new PageImpl<>(first, PageRequest.of(0, 100), 101));
+        when(requestReadService.findCreatedBetween(start, end, 1, 100))
+                .thenReturn(new PageImpl<>(List.of(last), PageRequest.of(1, 100), 101));
+        var report = reportService.generate(start, end);
+        assertEquals(101, report.totalRequests());
+        assertEquals(100, report.closedRequests());
+        assertEquals(1, report.openRequests());
+        assertEquals(101, report.resolvedRequests());
+        assertEquals(102.0 / 101, report.averageResolutionHours(), 0.000001);
+        assertEquals(100L, report.requestsByCategory().get(MaintenanceCategory.HVAC));
+        verify(requestReadService).findCreatedBetween(start, end, 0, 100);
+        verify(requestReadService).findCreatedBetween(start, end, 1, 100);
+        org.mockito.Mockito.verifyNoMoreInteractions(requestReadService);
+    }
+
+    @Test
+    void emptyIntervalHasFiniteZeroMetricsAndInvalidIntervalDoesNotQuery() {
+        var start = Instant.parse("2026-10-01T00:00:00Z");
+        var end = start.plusSeconds(86400);
+        when(requestReadService.findCreatedBetween(start, end, 0, 100))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+        var report = reportService.generate(start, end);
+        assertEquals(0, report.totalRequests());
+        assertEquals(0.0, report.resolutionRatePercent());
+        assertEquals(0.0, report.averageResolutionHours());
+        assertEquals(java.util.Map.of(), report.requestsByStatus());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                com.smartfix.common.exception.InputValidationException.class,
+                () -> reportService.generate(end, start));
+        verify(requestReadService).findCreatedBetween(start, end, 0, 100);
+        org.mockito.Mockito.verifyNoMoreInteractions(requestReadService);
+    }
+
     private RequestSnapshotResponse request(
         Long id,
         RequestStatus status,

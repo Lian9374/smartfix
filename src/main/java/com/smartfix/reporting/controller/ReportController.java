@@ -62,6 +62,12 @@ public class ReportController {
                 ? end
                 : today;
 
+        model.addAttribute("startDate", effectiveStart);
+        model.addAttribute("endDate", effectiveEnd);
+        if (effectiveEnd.isBefore(effectiveStart) || effectiveEnd.equals(LocalDate.MAX)) {
+            model.addAttribute("dateError", "End date must not be before start date.");
+            return "reporting/report";
+        }
         var period = reportingPeriodService.toPeriod(
             effectiveStart,
             effectiveEnd);
@@ -87,6 +93,9 @@ public class ReportController {
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
         LocalDate end) {
 
+        if (end.isBefore(start) || end.equals(LocalDate.MAX)) {
+            throw new com.smartfix.common.exception.InputValidationException("Choose a valid reporting date range.");
+        }
         var period =
             reportingPeriodService.toPeriod(
                 start,

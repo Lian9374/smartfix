@@ -10,183 +10,55 @@ import com.smartfix.request.service.RequestReadService;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
 public class OperationalReportService {
-
     private static final int PAGE_SIZE = 100;
-
     private final RequestReadService requestReadService;
-
     public OperationalReportService(RequestReadService requestReadService) {
         this.requestReadService = requestReadService;
     }
-
-    public OperationalReportResponse generate(
-        Instant start,
-        Instant end) {
-
+    public OperationalReportResponse generate(Instant start, Instant end) {
         if (start == null || end == null || !start.isBefore(end)) {
-            throw new InputValidationException(
-                "A valid reporting interval is required.");
+            throw new InputValidationException("A valid reporting interval is required.");
         }
-
-        List<RequestSnapshotResponse> requests =
-            loadRequests(start, end);
-
-        long total = requests.size();
-
-        long open = requests.stream()
-            .filter(this::isOpen)
-            .count();
-
-        long resolved = requests.stream()
-            .filter(this::isResolved)
-            .count();
-
-        long closed = requests.stream()
-            .filter(request ->
-                request.status() == RequestStatus.CLOSED)
-            .count();
-
-        double resolutionRate =
-            total == 0
-                ? 0.0
-                : resolved * 100.0 / total;
-
-        double averageResolutionHours =
-            calculateAverageResolutionHours(requests);
-
-        return new OperationalReportResponse(
-            start,
-            end,
-            total,
-            open,
-            resolved,
-            closed,
-            resolutionRate,
-            averageResolutionHours,
-            countByStatus(requests),
-            countByCategory(requests),
-            countByUrgency(requests));
-    }
-
-    private List<RequestSnapshotResponse> loadRequests(
-        Instant start,
-        Instant end) {
-
-        List<RequestSnapshotResponse> result =
-            new ArrayList<>();
-
+        long total = 0, open = 0, resolved = 0, closed = 0, timed = 0;
+        double resolutionSeconds = 0;
+        var statuses = new EnumMap<RequestStatus, Long>(RequestStatus.class);
+        var categories = new EnumMap<MaintenanceCategory, Long>(MaintenanceCategory.class);
+        var urgencies = new EnumMap<UrgencyLevel, Long>(UrgencyLevel.class);
         int pageNumber = 0;
         Page<RequestSnapshotResponse> page;
-
         do {
-            page = requestReadService.findCreatedBetween(
-                start,
-                end,
-                pageNumber,
-                PAGE_SIZE);
-
-            result.addAll(page.getContent());
-            pageNumber++;
+            page = requestReadService.findCreatedBetween(start, end, pageNumber++, PAGE_SIZE);
+            // Retain one DTO page instead of all requests; scan each record once.
+            for (var request : page) {
+                total++;
+                switch (request.status()) {
+                    case CLOSED, REJECTED, CANCELLED -> { }
+                    default -> open++;
+                }
+                switch (request.status()) {
+                    case RESOLVED, CONFIRMED, CLOSED -> resolved++;
+                    default -> { }
+                }
+                if (request.status() == RequestStatus.CLOSED) closed++;
+                if (request.resolvedAt() != null) {
+                    resolutionSeconds += Duration.between(request.createdAt(), request.resolvedAt()).getSeconds();
+                    timed++;
+                }
+                statuses.merge(request.status(), 1L, Long::sum);
+                categories.merge(request.category(), 1L, Long::sum);
+                urgencies.merge(request.effectiveUrgencyLevel(), 1L, Long::sum);
+            }
         } while (page.hasNext());
-
-        return result;
-    }
-
-    private boolean isOpen(RequestSnapshotResponse request) {
-        return switch (request.status()) {
-            case CLOSED, REJECTED, CANCELLED -> false;
-            default -> true;
-        };
-    }
-
-    private boolean isResolved(RequestSnapshotResponse request) {
-        return switch (request.status()) {
-            case RESOLVED, CONFIRMED, CLOSED -> true;
-            default -> false;
-        };
-    }
-
-    private double calculateAverageResolutionHours(
-        List<RequestSnapshotResponse> requests) {
-
-        List<Long> resolutionSeconds = requests.stream()
-            .filter(request -> request.resolvedAt() != null)
-            .map(request ->
-                Duration.between(
-                        request.createdAt(),
-                        request.resolvedAt())
-                    .getSeconds())
-            .toList();
-
-        if (resolutionSeconds.isEmpty()) {
-            return 0.0;
-        }
-
-        double averageSeconds =
-            resolutionSeconds.stream()
-                .mapToLong(Long::longValue)
-                .average()
-                .orElse(0.0);
-
-        return averageSeconds / 3600.0;
-    }
-
-    private Map<RequestStatus, Long> countByStatus(
-        List<RequestSnapshotResponse> requests) {
-
-        Map<RequestStatus, Long> counts =
-            new EnumMap<>(RequestStatus.class);
-
-        for (RequestSnapshotResponse request : requests) {
-            counts.merge(
-                request.status(),
-                1L,
-                Long::sum);
-        }
-
-        return counts;
-    }
-
-    private Map<MaintenanceCategory, Long> countByCategory(
-        List<RequestSnapshotResponse> requests) {
-
-        Map<MaintenanceCategory, Long> counts =
-            new EnumMap<>(MaintenanceCategory.class);
-
-        for (RequestSnapshotResponse request : requests) {
-            counts.merge(
-                request.category(),
-                1L,
-                Long::sum);
-        }
-
-        return counts;
-    }
-
-    private Map<UrgencyLevel, Long> countByUrgency(
-        List<RequestSnapshotResponse> requests) {
-
-        Map<UrgencyLevel, Long> counts =
-            new EnumMap<>(UrgencyLevel.class);
-
-        for (RequestSnapshotResponse request : requests) {
-            counts.merge(
-                request.effectiveUrgencyLevel(),
-                1L,
-                Long::sum);
-        }
-
-        return counts;
+        return new OperationalReportResponse(start, end, total, open, resolved, closed,
+                total == 0 ? 0.0 : resolved * 100.0 / total,
+                timed == 0 ? 0.0 : resolutionSeconds / timed / 3600.0,
+                statuses, categories, urgencies);
     }
 }

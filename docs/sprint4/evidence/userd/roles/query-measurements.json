@@ -1,0 +1,106 @@
+{
+  "checkedAt": "2026-10-13T14:43:43.983Z",
+  "database": "PostgreSQL 16, isolated local acceptance database",
+  "fixtureRows": 600,
+  "fixtureLocations": 12,
+  "cleanup": "ROLLBACK; no fixture changes persisted",
+  "method": "Alternating reads: one warmup plus five samples per query. EXPLAIN ANALYZE server times only; excludes entity hydration, network transfer and browser rendering.",
+  "measurements": [
+    {
+      "method": "BASELINE",
+      "trial": 0,
+      "warmup": true,
+      "rows": 600,
+      "planningMilliseconds": 0.305,
+      "executionMilliseconds": 0.98
+    },
+    {
+      "method": "GROUPED",
+      "trial": 0,
+      "warmup": true,
+      "rows": 36,
+      "planningMilliseconds": 0.211,
+      "executionMilliseconds": 0.509
+    },
+    {
+      "method": "BASELINE",
+      "trial": 1,
+      "warmup": false,
+      "rows": 600,
+      "planningMilliseconds": 0.153,
+      "executionMilliseconds": 0.911
+    },
+    {
+      "method": "GROUPED",
+      "trial": 1,
+      "warmup": false,
+      "rows": 36,
+      "planningMilliseconds": 0.184,
+      "executionMilliseconds": 0.47
+    },
+    {
+      "method": "BASELINE",
+      "trial": 2,
+      "warmup": false,
+      "rows": 600,
+      "planningMilliseconds": 0.264,
+      "executionMilliseconds": 0.886
+    },
+    {
+      "method": "GROUPED",
+      "trial": 2,
+      "warmup": false,
+      "rows": 36,
+      "planningMilliseconds": 0.177,
+      "executionMilliseconds": 0.493
+    },
+    {
+      "method": "BASELINE",
+      "trial": 3,
+      "warmup": false,
+      "rows": 600,
+      "planningMilliseconds": 0.148,
+      "executionMilliseconds": 0.882
+    },
+    {
+      "method": "GROUPED",
+      "trial": 3,
+      "warmup": false,
+      "rows": 36,
+      "planningMilliseconds": 0.16,
+      "executionMilliseconds": 0.457
+    },
+    {
+      "method": "BASELINE",
+      "trial": 4,
+      "warmup": false,
+      "rows": 600,
+      "planningMilliseconds": 0.154,
+      "executionMilliseconds": 0.883
+    },
+    {
+      "method": "GROUPED",
+      "trial": 4,
+      "warmup": false,
+      "rows": 36,
+      "planningMilliseconds": 0.158,
+      "executionMilliseconds": 0.463
+    },
+    {
+      "method": "BASELINE",
+      "trial": 5,
+      "warmup": false,
+      "rows": 600,
+      "planningMilliseconds": 0.152,
+      "executionMilliseconds": 0.886
+    },
+    {
+      "method": "GROUPED",
+      "trial": 5,
+      "warmup": false,
+      "rows": 36,
+      "planningMilliseconds": 0.158,
+      "executionMilliseconds": 0.457
+    }
+  ]
+}

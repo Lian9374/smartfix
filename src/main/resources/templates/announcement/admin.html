@@ -14,9 +14,9 @@
 
     <th:block th:replace="~{fragments/layout :: appbar('announcements')}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content workspace-page">
 
-      <div class="page-head-row">
+      <div class="page-head-row card page-context workspace-heading">
         <div class="page-head">
           <h1 class="page-head__title">Manage Announcements</h1>
           <p class="page-head__subtitle">
@@ -25,55 +25,56 @@
         </div>
       </div>
 
-      <section class="card" aria-labelledby="create-heading">
+      <p class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></p>
+      <section class="card announcement-editor" aria-labelledby="create-heading">
         <div class="card__body">
 
-          <h2 id="create-heading">Create announcement</h2>
+          <h2 id="create-heading">Create announcement</h2><p class="form-field__hint">All dates and times use Singapore time (UTC+8).</p>
 
           <form th:action="@{/admin/announcements}"
                 th:object="${command}"
                 method="post">
 
-            <div>
+            <div class="form-field">
               <label for="announcement-title">Title</label>
               <input id="announcement-title"
                      type="text"
-                     th:field="*{title}"
+                     th:field="*{title}" th:attr="aria-invalid=${#fields.hasErrors('title')} ? 'true' : null, aria-describedby=${#fields.hasErrors('title')} ? 'announcement-title-error' : null"
                      maxlength="150"
                      required>
               <p th:if="${#fields.hasErrors('title')}"
-                 th:errors="*{title}"></p>
+                 id="announcement-title-error" role="alert" th:errors="*{title}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-content">Content</label>
               <textarea id="announcement-content"
-                        th:field="*{content}"
+                        th:field="*{content}" th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : null, aria-describedby=${#fields.hasErrors('content')} ? 'announcement-content-error' : null"
                         maxlength="4000"
                         required></textarea>
               <p th:if="${#fields.hasErrors('content')}"
-                 th:errors="*{content}"></p>
+                 id="announcement-content-error" role="alert" th:errors="*{content}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-valid-from">Valid from</label>
               <input id="announcement-valid-from"
                      type="datetime-local"
-                     th:field="*{validFrom}"
+                     th:field="*{validFrom}" th:attr="aria-invalid=${#fields.hasErrors('validFrom')} ? 'true' : null, aria-describedby=${#fields.hasErrors('validFrom')} ? 'announcement-validFrom-error' : null"
                      required>
               <p th:if="${#fields.hasErrors('validFrom')}"
-                 th:errors="*{validFrom}"></p>
+                 id="announcement-validFrom-error" role="alert" th:errors="*{validFrom}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-valid-to">Valid until (optional)</label>
               <input id="announcement-valid-to"
                      type="datetime-local"
-                     th:field="*{validTo}">
+                     th:field="*{validTo}" th:attr="aria-invalid=${#fields.hasErrors('validTo') or #fields.hasErrors('validPeriod')} ? 'true' : null, aria-describedby=${#fields.hasErrors('validPeriod')} ? 'announcement-period-error' : (${#fields.hasErrors('validTo')} ? 'announcement-validTo-error' : null)">
               <p th:if="${#fields.hasErrors('validTo')}"
-                 th:errors="*{validTo}"></p>
+                 id="announcement-validTo-error" role="alert" th:errors="*{validTo}"></p>
               <p th:if="${#fields.hasErrors('validPeriod')}"
-                 th:errors="*{validPeriod}"></p>
+                 id="announcement-period-error" role="alert" th:errors="*{validPeriod}"></p>
             </div>
 
             <button class="btn btn--primary" type="submit">
@@ -125,7 +126,7 @@
 
                   <form th:if="${announcement.status.name() == 'DRAFT'}"
                         th:action="@{/admin/announcements/{id}/publish(id=${announcement.id})}"
-                        method="post">
+                        method="post" data-confirm="Publish this announcement to campus users?">
                     <button class="btn btn--secondary" type="submit">
                       Publish
                     </button>
@@ -133,7 +134,7 @@
 
                   <form th:if="${announcement.status.name() == 'PUBLISHED'}"
                         th:action="@{/admin/announcements/{id}/withdraw(id=${announcement.id})}"
-                        method="post">
+                        method="post" data-confirm="Withdraw this announcement from campus users?">
                     <button class="btn btn--secondary" type="submit">
                       Withdraw
                     </button>

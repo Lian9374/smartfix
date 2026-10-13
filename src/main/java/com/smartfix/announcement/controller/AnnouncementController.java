@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -46,7 +47,7 @@ public class AnnouncementController {
         @Valid @ModelAttribute("command") CreateAnnouncementCommand command,
         BindingResult errors,
         @AuthenticationPrincipal SmartFixUserDetails principal,
-        Model model) {
+        Model model, RedirectAttributes feedback) {
 
         if (errors.hasErrors()) {
             populateAdminModel(model);
@@ -66,18 +67,21 @@ public class AnnouncementController {
             validTo,
             principal.getUserId());
 
+        feedback.addFlashAttribute("successMessage", "Announcement draft created.");
         return "redirect:/admin/announcements";
     }
 
     @PostMapping("/admin/announcements/{id}/publish")
-    public String publish(@PathVariable Long id) {
+    public String publish(@PathVariable Long id, RedirectAttributes feedback) {
         announcements.publish(id);
+        feedback.addFlashAttribute("successMessage", "Announcement published. Visibility follows its Singapore date range.");
         return "redirect:/admin/announcements";
     }
 
     @PostMapping("/admin/announcements/{id}/withdraw")
-    public String withdraw(@PathVariable Long id) {
+    public String withdraw(@PathVariable Long id, RedirectAttributes feedback) {
         announcements.withdraw(id);
+        feedback.addFlashAttribute("successMessage", "Announcement withdrawn.");
         return "redirect:/admin/announcements";
     }
 

@@ -30,7 +30,12 @@
       b.maintenanceFacilities && `${b.maintenanceFacilities} facilit${b.maintenanceFacilities === 1 ? 'y' : 'ies'} under maintenance`]
       .filter(Boolean).join(' · ');
   }
-  function showNotice(message) { notice.textContent = message; notice.hidden = !message; }
+  let basemapNotice = '';
+  function showNotice(message) {
+    notice.textContent = [message, basemapNotice].filter(Boolean).join(' ');
+    notice.hidden = !notice.textContent;
+  }
+  function showBasemapNotice(message) { basemapNotice = message; showNotice(''); }
   function draw() {
     if (!map) return;
     markers.clearLayers();
@@ -89,9 +94,9 @@
     let tileErrors = 0, loadedTiles = 0;
     tiles.on('loading', () => {tileErrors = 0;loadedTiles = 0;});
     tiles.on('tileload', () => {loadedTiles++;});
-    tiles.on('tileerror', () => { if (++tileErrors >= 3) showNotice('The online basemap is unavailable. Current statuses and the building directory are still shown.'); });
+    tiles.on('tileerror', () => { if (++tileErrors >= 3) showBasemapNotice('The online basemap is unavailable. Current statuses and the building directory are still shown.'); });
     tiles.on('load', () => {
-      if (loadedTiles > 0 && tileErrors === 0) showNotice('');
+      if (loadedTiles > 0 && tileErrors === 0) showBasemapNotice('');
     });
     markers = L.layerGroup().addTo(map);
     L.control.scale({imperial:false, position:'bottomleft'}).addTo(map);
@@ -99,7 +104,7 @@
     new ResizeObserver(() => map.invalidateSize()).observe(element);
     draw();
   } else {
-    showNotice('The online map could not load. Current statuses and the building directory are still shown.');
+    showBasemapNotice('The online map could not load. Current statuses and the building directory are still shown.');
   }
   document.querySelectorAll('[data-campus]').forEach(button => button.addEventListener('click', () => {showNotice('');selectCampus(button.dataset.campus);}));
   document.getElementById('atlas-find-form').addEventListener('submit', event => {
