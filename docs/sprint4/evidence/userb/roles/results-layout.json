@@ -1,0 +1,236 @@
+{
+  "checkedAt": "2026-10-13T13:10:55.285Z",
+  "release": {
+    "sourceCommit": "f207e052b10e00dd280f825e3523e2f547b6b2d5",
+    "sourceFingerprint": "2f2987c6acfe9d6f9ef90946e2e343dd5549b1fd17557d51cee9564d16286ea3",
+    "artifactSha256": "5339ab3aeada009ebcd582c2e1f82625b8be5c543eb2e190d30ce91dd3c29033",
+    "sourceChanges": []
+  },
+  "passed": true,
+  "checks": [
+    {
+      "label": "Flyway and Hibernate validate startup",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "Administrator lands on real overview",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/requests",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/technicians",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/facilities",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1440",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1000",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 768",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 390",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/users",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1440",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1000",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 768",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 390",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/reports",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1440",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1000",
+      "passed": true
+    },
+    {
+      "label": "reports layout 768",
+      "passed": true
+    },
+    {
+      "label": "reports layout 390",
+      "passed": true
+    },
+    {
+      "label": "reports layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/announcements",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1440",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1000",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 768",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 390",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /notifications",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1440",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1000",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 768",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 390",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /campus-map",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1440",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1000",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 768",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 390",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 320",
+      "passed": true
+    }
+  ]
+}

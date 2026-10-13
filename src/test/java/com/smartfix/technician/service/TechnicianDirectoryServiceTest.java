@@ -94,6 +94,30 @@ class TechnicianDirectoryServiceTest {
     }
 
     @Test
+    void temporaryPasswordAccountsCannotBypassSetupThroughTheService() {
+        when(users.getUserAccess(7L)).thenReturn(new UserAccessResponse(7L, Role.TECHNICIAN, AccountStatus.ACTIVE, 1, true));
+        assertThatThrownBy(() -> directory.getProfile(7L)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> directory.updateProfile(7L, validCommand())).isInstanceOf(AccessDeniedException.class);
+        verifyNoInteractions(profiles, locations);
+    }
+
+    @Test
+    void administratorDirectoryRejectsUnreadyActorsBeforeLoadingProfiles() {
+        assertThatThrownBy(() -> directory.listProfilesForAdministrator(null)).isInstanceOf(AccessDeniedException.class);
+        for (var access : java.util.List.of(
+                new UserAccessResponse(7L, Role.REQUESTER, AccountStatus.ACTIVE, 0),
+                new UserAccessResponse(7L, Role.ADMINISTRATOR, AccountStatus.DISABLED, 1),
+                new UserAccessResponse(7L, Role.ADMINISTRATOR, AccountStatus.ACTIVE, 1, true))) {
+            when(users.getUserAccess(7L)).thenReturn(access);
+            assertThatThrownBy(() -> directory.listProfilesForAdministrator(7L)).isInstanceOf(AccessDeniedException.class);
+        }
+        verifyNoInteractions(profiles, locations);
+        when(users.getUserAccess(7L)).thenReturn(new UserAccessResponse(7L, Role.ADMINISTRATOR, AccountStatus.ACTIVE, 0));
+        assertThat(directory.listProfilesForAdministrator(7L)).isEmpty();
+        verify(profiles).findAll();
+    }
+
+    @Test
     void serviceValidatesCommandsEvenWithoutMvc() {
         activeTechnician();
         var command = validCommand();

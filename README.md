@@ -18,6 +18,8 @@ The proposed five-person Sprint 4 plan, excluding AWS deployment, is recorded in
 [the Sprint 4 responsibility and acceptance plan](docs/sprint4/SmartFix_Sprint4_Development_Plan_CN.md).
 UserA implementation, actual verification results and remaining release gates are
 recorded in [the release acceptance record](docs/sprint4/UserA_Release_Acceptance_CN.md).
+Sprint 4 access, dispatch, registration limits and engineer-form follow-up are
+documented in [the UserB handoff](docs/sprint4/UserB_Access_Dispatch_Handoff_CN.md).
 
 Administrator and engineer workspaces, secure managed-account password setup and the next
 V23/V24 migrations are documented in [the role workspace handoff](docs/sprint3/Admin_Engineer_Workspaces_CN.md).

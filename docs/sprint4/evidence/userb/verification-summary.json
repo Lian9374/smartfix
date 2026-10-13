@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-13T13:14:15.5797340+00:00",
+  "branch": "feature/sprint4-userb-access-dispatch",
+  "implementationCommit": "13bd107",
+  "finalImplementationCommit": "f207e05",
+  "moduleVerify": {
+    "failures": 0,
+    "skipped": 0,
+    "integrationTests": 114,
+    "unitTests": 21,
+    "errors": 0
+  },
+  "postgresVerify": {
+    "failures": 0,
+    "skipped": 0,
+    "nativeIntegrationTests": 64,
+    "unitTests": 41,
+    "errors": 0
+  },
+  "finalUnitVerify": {
+    "failures": 0,
+    "skipped": 0,
+    "integrationTests": "explicitly skipped in this package command",
+    "unitTests": 22,
+    "errors": 0
+  },
+  "compile": "BUILD SUCCESS",
+  "browser": {
+    "checks": 135,
+    "passed": true,
+    "release": {
+      "sourceCommit": "13bd107ac34e554128dc2d93f863f9bacf01594a",
+      "sourceFingerprint": "2fd8da1473df78c39eee65f675c4b192b02464d8d56b42ed0248dfb08a401fc2",
+      "artifactSha256": "fb4608b2aa30b3547b434c77eaee171782ba5b84e872af73c01c057dc945545c",
+      "sourceChanges": []
+    }
+  },
+  "finalLayout": {
+    "checks": 56,
+    "passed": true,
+    "release": {
+      "sourceCommit": "f207e052b10e00dd280f825e3523e2f547b6b2d5",
+      "sourceFingerprint": "2f2987c6acfe9d6f9ef90946e2e343dd5549b1fd17557d51cee9564d16286ea3",
+      "artifactSha256": "5339ab3aeada009ebcd582c2e1f82625b8be5c543eb2e190d30ce91dd3c29033",
+      "sourceChanges": []
+    }
+  },
+  "newMigrations": 0,
+  "relativeLinks": "PASS",
+  "limits": "per-process memory; restart resets; no multi-instance sharing; socket peer only",
+  "remaining": [
+    "AWS ingress configuration",
+    "physical-device/screen-reader",
+    "other work packages"
+  ]
+}

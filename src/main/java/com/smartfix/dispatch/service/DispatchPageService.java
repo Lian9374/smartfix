@@ -45,7 +45,8 @@ public class DispatchPageService {
     public DispatchPageResponse describe(String ticket, Long actorId) {
         if (actorId == null) throw new AccessDeniedException("An active administrator is required.");
         var actor = users.getUserAccess(actorId);
-        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) {
             throw new AccessDeniedException("An active administrator is required.");
         }
         var detail = queries.getRequestDetails(ticket, actorId);

@@ -24,7 +24,8 @@
             <p th:errors="*{version}">Reload the page before saving.</p>
             <a th:href="@{/technician/profile}">Reload saved profile</a>
         </div>
-        <fieldset aria-describedby="skills-help skills-errors">
+        <fieldset tabindex="-1" aria-describedby="skills-help"
+                  th:attr="aria-describedby=${#fields.hasErrors('skills')} ? 'skills-help skills-errors' : 'skills-help', aria-invalid=${#fields.hasErrors('skills')} ? 'true' : null">
             <legend>Skills</legend>
             <p id="skills-help">Select at least one type of repair.</p>
             <p th:each="skill : ${skills}">
@@ -33,7 +34,8 @@
             </p>
             <p id="skills-errors" th:errors="*{skills}">Select at least one skill.</p>
         </fieldset>
-        <fieldset aria-describedby="areas-help areas-errors">
+        <fieldset tabindex="-1" aria-describedby="areas-help"
+                  th:attr="aria-describedby=${#fields.hasErrors('serviceAreaIds')} ? 'areas-help areas-errors' : 'areas-help', aria-invalid=${#fields.hasErrors('serviceAreaIds')} ? 'true' : null">
             <legend>Service areas</legend>
             <p id="areas-help">Select at least one location where you can work.</p>
             <p th:if="${hasUnavailableAreas}" role="alert">A previously selected area is no longer available. Review your service areas before saving.</p>
@@ -44,7 +46,8 @@
             </p>
             <p id="areas-errors" th:errors="*{serviceAreaIds}">Select at least one service area.</p>
         </fieldset>
-        <fieldset aria-describedby="availability-help availability-errors">
+        <fieldset tabindex="-1" aria-describedby="availability-help"
+                  th:attr="aria-describedby=${#fields.hasErrors('availabilityStatus')} ? 'availability-help availability-errors' : 'availability-help', aria-invalid=${#fields.hasErrors('availabilityStatus')} ? 'true' : null">
             <legend>Availability</legend>
             <p id="availability-help">Choose On leave to stop appearing as a dispatch candidate.</p>
             <p th:each="availability : ${availabilities}">

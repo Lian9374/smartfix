@@ -238,6 +238,13 @@ class DispatchPageIT {
         assertThat(html).contains("&lt;script&gt;").doesNotContain(payload);
     }
 
+    @Test
+    void temporaryPasswordAdministratorCannotReadDispatchEvenThroughService() {
+        jdbc.update("UPDATE users SET password_change_required=true WHERE id=103");
+        assertThatThrownBy(() -> pages.describe(TICKET, 103L)).isInstanceOf(AccessDeniedException.class);
+        assertThat(assignments.findActiveAssignment(1L)).isEmpty();
+    }
+
     @ParameterizedTest
     @ValueSource(longs = {100, 101})
     void realPageAndWritesRejectNonAdministrators(long id) throws Exception {

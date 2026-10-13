@@ -26,6 +26,11 @@ Sprint 4 shared quality rules are maintained by UserA:
 See [Sprint 4 release acceptance](sprint4/UserA_Release_Acceptance_CN.md) for this
 iteration's evidence and remaining release gates.
 
+Engineer profile groups reference error descriptions only when those errors are
+rendered; invalid groups are programmatically focusable with tabindex=-1. The
+UserB browser negative case verifies the real 400 response and first-error focus.
+See [UserB handoff](sprint4/UserB_Access_Dispatch_Handoff_CN.md).
+
 How the web pages are built, and how to add one without inventing a second style.
 Everything here is Thymeleaf, CSS and a small amount of plain JavaScript — no frontend
 build step, no framework, no external font or icon service. Community forms, lists and moderation actions work without JavaScript. Progressive

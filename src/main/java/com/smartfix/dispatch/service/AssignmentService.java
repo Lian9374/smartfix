@@ -173,7 +173,8 @@ public class AssignmentService {
     private void requireAdministrator(Long actorUserId) {
         if (actorUserId == null) throw new AccessDeniedException("An active administrator is required.");
         var actor = users.getUserAccess(actorUserId);
-        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) {
             throw new AccessDeniedException("An active administrator is required.");
         }
     }
