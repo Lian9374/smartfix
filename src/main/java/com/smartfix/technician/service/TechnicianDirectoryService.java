@@ -54,8 +54,10 @@ public class TechnicianDirectoryService {
     }
 
     public List<TechnicianProfileResponse> listProfilesForAdministrator(Long actorId) {
+        if (actorId == null) throw new AccessDeniedException("Administrator access required.");
         var actor = users.getUserAccess(actorId);
-        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE)
+        if (actor.role() != Role.ADMINISTRATOR || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired())
             throw new AccessDeniedException("Administrator access required.");
         return profiles.findAll().stream().map(TechnicianDirectoryService::toResponse).toList();
     }
