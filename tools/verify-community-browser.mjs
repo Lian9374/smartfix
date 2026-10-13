@@ -85,7 +85,8 @@ async function login(name, role = 'REQUESTER') {
   await go('/login?accountType=' + role);
   await type('#username', name); await type('#password', password);
   await activate('button[type=submit]');
-  check('keyboard login ' + name, await browser.evaluate('location.pathname==="/"'));
+  const landing = role === 'ADMINISTRATOR' ? '/admin' : role === 'TECHNICIAN' ? '/technician' : '/';
+  check('keyboard login ' + name, await browser.evaluate(`location.pathname===${JSON.stringify(landing)}`));
 }
 async function register(name, displayName) {
   await browser.clearCookies(); await go('/register');
