@@ -1,0 +1,339 @@
+{
+  "checkedAt": "2026-10-13T15:51:15.5385988Z",
+  "release": {
+    "sourceCommit": "bc92cbdc0230acb2416b07f04747eb73f2b68f92",
+    "sourceFingerprint": "c4a7905e5bd5b4e36a8738c246d95ea85a3c40ef06d636e02567a9912084f5a8",
+    "artifactSha256": "a0bdb853d9c3d8e6c9060b6d0d9ae6405b75cbd6920cd6121fa354dd727bc8b5",
+    "sourceChanges": []
+  },
+  "module": {
+    "command": "mvn -o -B '-Dtest=*Notification*Test,DeliveryWorkerTest,EmailDeliveryServiceTest,SlaStateTest,*Attachment*Test' '-Dit.test=CommunityDeliveryIT' verify",
+    "passed": true,
+    "unit": 51,
+    "integration": 8
+  },
+  "intermediate": {
+    "passed": true,
+    "unit": 53,
+    "integration": 26
+  },
+  "fullAttempt": {
+    "completeVerifyPassed": false,
+    "rerunFullVerify": false,
+    "unit": 519,
+    "failure": "Authentication H2 schema fixture missing notification_email; subsequently fixed and all 29 authentication cases rerun successfully",
+    "unitPassed": true
+  },
+  "final": {
+    "command": "mvn -o -B -Ppostgres-it '-Dtest=DeliveryWorkerTest,SlaStateTest,AttachmentInspectionServiceTest,RequestSubmissionServiceTest' '-Dit.test=DeliveryReliabilityPostgresIT,UserEDeliveryMigrationPostgresIT,AuthenticationFlowIT' verify",
+    "passed": true,
+    "cases": [
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "reopenedResolutionRestartsAndDuplicateHistoryDoesNotRestartAgain",
+        "seconds": "0.682",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "reassignmentPausesAndResumeShiftsDeadline",
+        "seconds": "0.224",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "otherRequesterCannotReadPrivateAttachment",
+        "seconds": "0.137",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "concurrentStageAndDeliveryAreIdempotent",
+        "seconds": "0.157",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "committedStageSurvivesConnectionReconnectAndCanBeDelivered",
+        "seconds": "0.191",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "selfReplyAndRestoreKeepExistingRecipientRules",
+        "seconds": "0.04",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "slaComputesDeadlineFromRealSubmissionAndEscalatesOnceConcurrently",
+        "seconds": "0.128",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "adminPagesRenderAndRequesterCannotCallThem",
+        "seconds": "1.003",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "noContactIsSkippedWithoutExternalMail",
+        "seconds": "0.065",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "metadataRollbackDeletesOnlyTheNewStoredFile",
+        "seconds": "0.093",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "noPolicyReturnsExplicitUnavailableWithoutDeadline",
+        "seconds": "0.048",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "rollbackLeavesNeitherOutboxNorNotification",
+        "seconds": "0.038",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "emailFailureHasFiniteRetriesAndManualRetryAudit",
+        "seconds": "0.8",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "failureDoesNotRollbackBusinessAndSuccessfulRetryRecovers",
+        "seconds": "0.155",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "initialSubmissionNullSourceIsDelivered",
+        "seconds": "0.059",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "onlyAdminCanManageContactPolicyOrRetries",
+        "seconds": "0.049",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "duplicateEventStagesOnlyOneTaskPerChannel",
+        "seconds": "0.066",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.DeliveryReliabilityPostgresIT",
+        "name": "communityAcceptedAndHiddenHaveStableKeys",
+        "seconds": "0.079",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.notification.UserEDeliveryMigrationPostgresIT",
+        "name": "upgradesV25WithoutChangingAccountsNotificationsOrAudit",
+        "seconds": "3.188",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "eachAccountSignsInThroughItsOwnEntryPoint(Role)[1]",
+        "seconds": "3.701",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "eachAccountSignsInThroughItsOwnEntryPoint(Role)[2]",
+        "seconds": "0.585",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "eachAccountSignsInThroughItsOwnEntryPoint(Role)[3]",
+        "seconds": "0.582",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "disabledAccountLosesAllExistingSessionsOnTheirNextRequests",
+        "seconds": "1.101",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "aValueThatNamesNoAccountTypeIsRefusedRatherThanIgnored",
+        "seconds": "0.658",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "aDisabledAccountIsRefusedThroughItsOwnEntryPointToo",
+        "seconds": "0.508",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "unknownWrongAndDisabledCredentialsHaveSamePublicResult",
+        "seconds": "1.137",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "administratorCanCreateAccountThroughCsrfProtectedForm",
+        "seconds": "1.043",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "aRoleParameterOnTheSignInFormGrantsNothing",
+        "seconds": "0.619",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "roleChangeInvalidatesOldSessionAndNewLoginGetsNewRole",
+        "seconds": "0.866",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "aRequestWithoutTheFieldSignsInAsBefore",
+        "seconds": "0.542",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "exactlyOneSegmentIsCheckedWhateverTheAddressSays(Role)[1]",
+        "seconds": "0.518",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "exactlyOneSegmentIsCheckedWhateverTheAddressSays(Role)[2]",
+        "seconds": "0.531",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "exactlyOneSegmentIsCheckedWhateverTheAddressSays(Role)[3]",
+        "seconds": "0.503",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "allRolesCanLoginAndGetTheirOwnHome(Role)[1]",
+        "seconds": "0.61",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "allRolesCanLoginAndGetTheirOwnHome(Role)[2]",
+        "seconds": "0.555",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "allRolesCanLoginAndGetTheirOwnHome(Role)[3]",
+        "seconds": "0.566",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "theRegisterEntryIsOfferedWhateverSegmentIsSelected(Role)[1]",
+        "seconds": "0.493",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "theRegisterEntryIsOfferedWhateverSegmentIsSelected(Role)[2]",
+        "seconds": "0.494",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "theRegisterEntryIsOfferedWhateverSegmentIsSelected(Role)[3]",
+        "seconds": "0.48",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "normalizesUsernameAndErasesCredentialsFromSession",
+        "seconds": "0.552",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "missingAccountGetsSafe404WithFiltersEnabled",
+        "seconds": "0.583",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "choosingAnAccountTypeThatIsNotTheAccountsOwnRefusesTheSignIn",
+        "seconds": "0.58",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "theSignInPageOffersTheThreeRolesAndOnlyTheRequesterCanSignUp",
+        "seconds": "0.426",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "realHttpLoginUsesRenderedCsrfAndContainerRendersForbiddenPage",
+        "seconds": "1.025",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "logoutClearsSessionAndProtectedPagesRedirect",
+        "seconds": "0.551",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "missingCsrfDoesNotChangeDatabase",
+        "seconds": "0.548",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "requesterCannotCreateUsersEvenWithValidCsrf",
+        "seconds": "0.54",
+        "passed": true
+      },
+      {
+        "class": "com.smartfix.auth.AuthenticationFlowIT",
+        "name": "loginChangesExistingSessionId",
+        "seconds": "0.544",
+        "passed": true
+      }
+    ],
+    "unit": 13,
+    "integration": 48
+  },
+  "compile": {
+    "passed": true,
+    "command": "mvn -o -DskipTests compile"
+  },
+  "jsSyntax": true,
+  "diffCheck": true,
+  "latestMigration": 27,
+  "migrationCount": 25,
+  "notExecuted": [
+    "Actual cross-JVM restart recovery",
+    "New pages browser/mobile-device/screen-reader acceptance",
+    "Real SMTP transport",
+    "Complete verify rerun after authentication fixture fix",
+    "AWS deployment"
+  ],
+  "note": "Counts overlap; do not add them as a unique total. User requested expedited completion."
+}
