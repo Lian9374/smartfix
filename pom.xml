@@ -124,6 +124,7 @@
                         <exclude>**/DispatchPagePostgresIT.java</exclude>
                         <exclude>**/TechnicianAccessPostgresIT.java</exclude>
                         <exclude>**/AccountInitializationPostgresIT.java</exclude>
+                        <exclude>**/LegacyMigrationRecoveryPostgresIT.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>

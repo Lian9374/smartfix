@@ -50,6 +50,7 @@ class AttachmentPersistenceIT {
             try {
                 Flyway flyway =
                         Flyway.configure()
+                                .callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility())
                                 .dataSource(
                                         url,
                                         username,

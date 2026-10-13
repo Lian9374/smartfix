@@ -14,6 +14,11 @@ This README is the team's engineering handbook. If you are new to the repository
 start here: it tells you what SmartFix is, what currently works, where code belongs,
 and how to work safely with the shared project. Detailed guides live in [`docs/`](docs/).
 
+The proposed five-person Sprint 4 plan, excluding AWS deployment, is recorded in
+[the Sprint 4 responsibility and acceptance plan](docs/sprint4/SmartFix_Sprint4_Development_Plan_CN.md).
+UserA implementation, actual verification results and remaining release gates are
+recorded in [the release acceptance record](docs/sprint4/UserA_Release_Acceptance_CN.md).
+
 Administrator and engineer workspaces, secure managed-account password setup and the next
 V23/V24 migrations are documented in [the role workspace handoff](docs/sprint3/Admin_Engineer_Workspaces_CN.md).
 

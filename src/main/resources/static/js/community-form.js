@@ -2,6 +2,30 @@
   'use strict';
   var scope = document.querySelector('.community-detail-page');
   if (!scope) { return; }
+  var pendingMessage = document.createElement('p');
+  pendingMessage.className = 'form-field__hint';
+  pendingMessage.setAttribute('role', 'status');
+  pendingMessage.hidden = true;
+  scope.append(pendingMessage);
+  scope.addEventListener('submit', function (event) {
+    var form = event.target;
+    if (!(form instanceof HTMLFormElement) || form.method.toLowerCase() !== 'post') { return; }
+    if (form.dataset.pending === 'true') { event.preventDefault(); return; }
+    // Confirmation handlers elsewhere in the page retain control of cancellation.
+    if (event.defaultPrevented) { return; }
+    form.dataset.pending = 'true';
+    form.setAttribute('aria-busy', 'true');
+    pendingMessage.textContent = 'Saving…';
+    pendingMessage.hidden = false;
+    // Keep name/value submitters enabled; do not remove fields from the POST.
+  });
+  window.addEventListener('pageshow', function () {
+    pendingMessage.hidden = true;
+    scope.querySelectorAll('form[data-pending]').forEach(function (form) {
+      delete form.dataset.pending;
+      form.removeAttribute('aria-busy');
+    });
+  });
   scope.querySelectorAll('textarea[maxlength], input[data-character-count]').forEach(function (input, index) {
     var counter = document.createElement('span');
     counter.className = 'form-character-count';

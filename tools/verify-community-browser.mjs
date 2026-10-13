@@ -6,15 +6,17 @@ import {createWriteStream, existsSync, mkdirSync, writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 import {launch} from './browser-cdp.mjs';
+import {releaseIdentity} from './release-evidence.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const output = path.join(root, 'docs/sprint3/evidence/community-quality');
+const output = path.resolve(root, process.env.COMMUNITY_ACCEPTANCE_OUTPUT || 'docs/sprint3/evidence/community-quality');
 const jdbc = process.env.COMMUNITY_ACCEPTANCE_DB_URL;
 if (!/^jdbc:postgresql:\/\/(127\.0\.0\.1|localhost):\d+\/smartfix_community_acceptance_test$/.test(jdbc || '')) {
   throw new Error('Set COMMUNITY_ACCEPTANCE_DB_URL to a fresh local smartfix_community_acceptance_test database. Existing application databases are refused.');
 }
 const jar = process.env.COMMUNITY_ACCEPTANCE_JAR || path.join(root, 'target/smartfix-0.0.1-SNAPSHOT.jar');
 if (!existsSync(jar)) throw new Error('Build the application with mvn verify first.');
+const release = releaseIdentity(root, jar);
 mkdirSync(output, {recursive: true});
 const origin = 'http://127.0.0.1:18080';
 const password = 'TestPassword9'; // Synthetic credentials used only by this test.
@@ -83,7 +85,8 @@ async function login(name, role = 'REQUESTER') {
   await go('/login?accountType=' + role);
   await type('#username', name); await type('#password', password);
   await activate('button[type=submit]');
-  check('keyboard login ' + name, await browser.evaluate('location.pathname==="/"'));
+  const landing = role === 'ADMINISTRATOR' ? '/admin' : role === 'TECHNICIAN' ? '/technician' : '/';
+  check('keyboard login ' + name, await browser.evaluate(`location.pathname===${JSON.stringify(landing)}`));
 }
 async function register(name, displayName) {
   await browser.clearCookies(); await go('/register');
@@ -152,6 +155,9 @@ try {
   await go('/community');
   await activate('a[href="/community/questions/new"]');
   await inspect('question-form');
+  await go('/community/questions/new');
+  await activate('.skip-link');
+  check('keyboard skip link focuses main content', await browser.evaluate('document.activeElement.id==="main-content"'));
   await type('#title', 'Community keyboard and restart acceptance');
   check('live title character count', await browser.evaluate('document.querySelector("#title-count").textContent.startsWith("41 / ")'));
   await type('#body', 'A synthetic campus question for keyboard, moderation and restart verification.');
@@ -232,7 +238,7 @@ try {
   await browser.sleep(500);
   check('server error focuses first invalid field', await browser.evaluate('document.activeElement.id==="title"'));
   await inspect('validation-errors');
-  writeFileSync(path.join(output, 'browser-results.json'), JSON.stringify({date:new Date().toISOString(), database:'isolated PostgreSQL', keyboardActions, appLaunches:launches, passed:true, checks}, null, 2) + '\n');
+  writeFileSync(path.join(output, 'browser-results.json'), JSON.stringify({date:new Date().toISOString(), release, database:'isolated PostgreSQL', keyboardActions, appLaunches:launches, passed:true, checks}, null, 2) + '\n');
   console.log(JSON.stringify({passed:true, checks:checks.length, keyboardActions, appLaunches:launches}));
 } catch (error) {
   if (browser) {

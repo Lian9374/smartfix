@@ -52,6 +52,7 @@ class CommunityMigrationPostgresIT {
             sql.execute("CREATE SCHEMA " + schema);
             try {
                 Flyway.configure()
+                        .callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility())
                         .dataSource(url, user, password)
                         .schemas(schema)
                         .defaultSchema(schema)

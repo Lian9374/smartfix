@@ -4,12 +4,14 @@ import {createWriteStream, mkdirSync, writeFileSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {launch} from './browser-cdp.mjs';
+import {releaseIdentity} from './release-evidence.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const db=process.env.ROLE_ACCEPTANCE_DB_URL;
 if(!/^jdbc:postgresql:\/\/(127\.0\.0\.1|localhost):\d+\/smartfix_role_acceptance_test$/.test(db||'')) throw Error('A dedicated local smartfix_role_acceptance_test database is required.');
-const out=path.join(root,'docs/sprint3/evidence/role-workspaces'); mkdirSync(out,{recursive:true});
+const out=path.resolve(root,process.env.ROLE_ACCEPTANCE_OUTPUT||'docs/sprint3/evidence/role-workspaces'); mkdirSync(out,{recursive:true});
 const origin='http://127.0.0.1:18081', password='TestPassword9', changed='ChangedPassword8';
-const run=Date.now(); const engineer="role.qa.engineer."+run, requester="role.qa.requester."+run; const checks=[]; let browser,app,engineerId;
+const release=releaseIdentity(root,process.env.ROLE_ACCEPTANCE_JAR||path.join(root,'target/smartfix-0.0.1-SNAPSHOT.jar'));
+const run=Date.now(); const engineer="role.qa.engineer."+run, requester="role.qa.requester."+run; const checks=[]; let browser,app,engineerId,completed=false;
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function check(label,value){checks.push({label,passed:!!value});if(!value)throw Error(label);console.log('PASS '+label);}
 async function evaluate(expression){return browser.evaluate("return "+expression+";");}
@@ -27,7 +29,7 @@ try{
   execFileSync('C:\\Program Files\\PostgreSQL\\16\\bin\\psql.exe',['-h','127.0.0.1','-p',new URL(db.slice(5)).port,'-U',process.env.TEST_DB_USERNAME||'smartfix','-d','smartfix_role_acceptance_test','-v','ON_ERROR_STOP=1','-c',"INSERT INTO locations(location_code,display_name) VALUES ('ROLE-QA','Role QA Lab') ON CONFLICT DO NOTHING"],{windowsHide:true,env:{...process.env,PGPASSWORD:process.env.TEST_DB_PASSWORD||''}});
   browser=await launch({port:9341,width:1440,height:960});
   await login('role.qa.admin','ADMINISTRATOR');check('Administrator lands on real overview',await evaluate('location.pathname==="/admin"'));await layout('admin-overview');
-  for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts']]){await go(route);await layout(label);}
+  for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts'],['/admin/reports','reports'],['/admin/announcements','announcements'],['/notifications','notifications'],['/campus-map','campus-map']]){await go(route);await layout(label);}
   if (process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY !== 'true') {
   await go('/admin/users/new?role=TECHNICIAN');await type('#username',engineer);await type('#displayName','QA Engineer');await type('#password',password);await activate('form[action="/admin/users"] button[type=submit]');check('Real managed account creation',await evaluate('location.pathname==="/admin/users"'));engineerId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(engineer)})))?.querySelector('td.data-table__id')?.innerText`);
   await login(engineer,'TECHNICIAN');check('Temporary password forces setup',await evaluate('location.pathname==="/account/password"'));await layout('password-setup');
@@ -40,4 +42,5 @@ try{
   await login(engineer,'TECHNICIAN',changed);await layout('engineer-assigned');const order=await evaluate('document.querySelector("main a[href^=\\"/workorders/\\"]")?.getAttribute("href")');check('Assigned work order available',!!order);await go(order);await layout('work-order-created');await activate('form[action$="/accept"] button');await type('#diagnosis','Electrical fixture failed.');await type('#actionTaken','Replaced the test fixture and verified operation.');await type('#minutesSpent','15');await activate('form[action$="/records"] button');await layout('work-order-recorded');await type('#resolutionNote','Synthetic repair completed and checked.');await activate('form[action$="/complete"] button',true);check('Solution awaits requester confirmation',await evaluate('document.body.innerText.includes("Solution submitted")'));
   await login(requester,'REQUESTER');await go('/requests/'+ticket);await activate('form[action$="/confirm"] button');await login('role.qa.admin','ADMINISTRATOR');await go('/requests/'+ticket);await activate('form[action$="/close"] button');check('Full role lifecycle reaches CLOSED',await evaluate('document.body.innerText.includes("Closed")||document.body.innerText.includes("CLOSED")'));
   }
-}finally{writeFileSync(path.join(out,process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY === 'true' ? 'results-layout.json' : 'results.json'),JSON.stringify({checkedAt:new Date().toISOString(),checks},null,2));if(browser)await browser.close();if(app&&app.exitCode===null){const ended=new Promise(r=>app.once('exit',r));app.kill();await ended;}}
+  completed=true;
+}finally{writeFileSync(path.join(out,process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY === 'true' ? 'results-layout.json' : 'results.json'),JSON.stringify({checkedAt:new Date().toISOString(),release,passed:completed&&checks.every(check=>check.passed),checks},null,2));if(browser)await browser.close();if(app&&app.exitCode===null){const ended=new Promise(r=>app.once('exit',r));app.kill();await ended;}}

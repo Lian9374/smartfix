@@ -122,6 +122,7 @@
   the intent unambiguous.
 -->
 <th:block th:fragment="sidebar(active)">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
   <th:block th:if="${navRole == 'ADMINISTRATOR'}">
     <aside class="sidebar" id="app-sidebar" data-nav-panel aria-label="Main navigation">
       <div class="sidebar__top">
@@ -310,6 +311,7 @@
     * the password reveal is an enhancement over typing into the field
 -->
 <th:block th:fragment="scripts">
+  <script defer th:src="@{/js/accessibility.js}"></script>
   <script defer th:src="@{/js/community-form.js}"></script>
   <script defer th:src="@{/js/workspace.js}"></script>
   <script>

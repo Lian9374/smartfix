@@ -1,4 +1,6 @@
-Set-Location "C:\Users\zhour\smartfix"
+param([switch]$ReconcileLegacyMigrations)
+
+Set-Location $PSScriptRoot
 
 $env:DB_PORT = "5433"
 docker compose up -d --wait db
@@ -11,4 +13,9 @@ $env:DB_USERNAME = "smartfix"
 $env:DB_PASSWORD = "smartfix"
 $env:SMARTFIX_BOOTSTRAP_ADMIN_ENABLED = "false"
 
-mvn spring-boot:run "-Dspring-boot.run.profiles=dev"
+$runOptions = @('spring-boot:run', '-Dspring-boot.run.profiles=dev')
+if ($ReconcileLegacyMigrations) {
+    $runOptions += '-Dspring-boot.run.arguments=--smartfix.database.reconcile-legacy-migrations=true'
+}
+mvn @runOptions
+if ($LASTEXITCODE -ne 0) { throw 'SmartFix startup failed. Check the first underlying error in the Maven log.' }

@@ -16,7 +16,7 @@ class CampusCatalogueMigrationPostgresIT {
             assertTrue(connection.getCatalog().endsWith("_test"), "Use a dedicated test database");
             sql.execute("CREATE SCHEMA " + schema);
             try {
-                var flyway = Flyway.configure().dataSource(url, username, password).schemas(schema)
+                var flyway = Flyway.configure().callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility()).dataSource(url, username, password).schemas(schema)
                         .defaultSchema(schema).locations("classpath:db/migration").target("21").load();
                 flyway.migrate();
                 sql.execute("SET search_path TO " + schema);
@@ -29,8 +29,8 @@ class CampusCatalogueMigrationPostgresIT {
                 try (var insert = connection.prepareStatement("INSERT INTO locations(location_code,display_name,active) VALUES(?,'Previously disabled',FALSE)")) {
                     insert.setString(1, firstCode); insert.executeUpdate();
                 }
-                var latest = Flyway.configure().dataSource(url, username, password).schemas(schema)
-                        .defaultSchema(schema).locations("classpath:db/migration").load();
+                var latest = Flyway.configure().callbacks(new com.smartfix.common.configuration.LegacyMigrationCompatibility()).dataSource(url, username, password).schemas(schema)
+                        .defaultSchema(schema).locations("classpath:db/migration").target("22").load();
                 assertEquals(1, latest.migrate().migrationsExecuted);
                 latest.validate(); assertEquals(0, latest.migrate().migrationsExecuted);
                 try (var rows = sql.executeQuery("SELECT id,floor,room,display_name FROM locations WHERE location_code='OLD-COM1'")) {
