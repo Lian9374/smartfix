@@ -20,6 +20,8 @@ UserA implementation, actual verification results and remaining release gates ar
 recorded in [the release acceptance record](docs/sprint4/UserA_Release_Acceptance_CN.md).
 Sprint 4 access, dispatch, registration limits and engineer-form follow-up are
 documented in [the UserB handoff](docs/sprint4/UserB_Access_Dispatch_Handoff_CN.md).
+Database migration verification, lifecycle event identities and work-order quality
+are recorded in [the UserC handoff](docs/sprint4/UserC_Migration_Workflow_Handoff_CN.md).
 
 Administrator and engineer workspaces, secure managed-account password setup and the next
 V23/V24 migrations are documented in [the role workspace handoff](docs/sprint3/Admin_Engineer_Workspaces_CN.md).

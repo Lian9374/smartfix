@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-10-13T14:08:30.3880363+00:00",
+  "branch": "feature/sprint4-userc-migration-workflow",
+  "coreImplementationCommit": "367cc4f",
+  "finalImplementationCommit": "43a6d8e",
+  "navigationToolCommit": "984355a",
+  "compile": "BUILD SUCCESS",
+  "moduleVerify": {
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "unitTests": 30,
+    "integrationTests": 97
+  },
+  "postgresVerify": {
+    "errors": 0,
+    "nativeIntegrationTests": 84,
+    "skipped": 0,
+    "unitTests": 21,
+    "failures": 0
+  },
+  "finalPackage": {
+    "result": "BUILD SUCCESS",
+    "unitTests": 13,
+    "integrationTests": "not run; skipITs package"
+  },
+  "browser": {
+    "release": {
+      "sourceCommit": "43a6d8e2a0bf8a0e21ed9f3be4250a0ecf02ac5a",
+      "sourceFingerprint": "65e89eae5fae17bf696727748d749f0db1bc4a16ff5e2ae8f6ca1bbba8e9c191",
+      "artifactSha256": "92042bee52f5c1df5f1a40aa058b23eaeab46859a763263e0f53ae6012df5e84",
+      "sourceChanges": []
+    },
+    "checks": 135,
+    "passed": true
+  },
+  "migrations": {
+    "newFiles": 0,
+    "count": 23,
+    "historicalChanges": 0,
+    "strictValidation": "verified on isolated PostgreSQL",
+    "latest": 25
+  },
+  "syntax": "PASS",
+  "relativeLinks": "PASS",
+  "remaining": [
+    "E initial null-state handling and reliable delivery",
+    "physical-device/screen-reader",
+    "other work packages",
+    "AWS"
+  ]
+}
