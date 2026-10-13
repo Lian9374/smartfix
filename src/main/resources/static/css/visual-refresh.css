@@ -1,5 +1,11 @@
 /* Shared signed-in UI: stronger hierarchy, quieter copy, purposeful colour. */
 /* Role workspaces reuse the shared shell, mint palette and existing form controls. */
+.announcement-editor .card__body{padding:24px}
+.announcement-editor textarea{min-height:160px}
+.announcement-editor button[type=submit]{margin-top:20px}
+.report-filters .card__body{display:flex;align-items:end;flex-wrap:wrap;gap:14px;padding:24px}
+.report-filters .form-field{flex:1 1 180px;margin:0!important;min-width:0}
+.report-filters input,.announcement-editor input[type=datetime-local]{min-height:46px;border:1px solid #cedbd4;border-radius:10px;background:#fff;padding:10px 14px;font:inherit;max-width:100%;min-width:0}
 .workspace-page .table-scroll{position:relative}
 .workspace-columns>.card{margin-top:0;align-self:start}
 .workspace-filters input{min-height:46px;padding:10px 14px;width:100%;min-width:0;border:1px solid #cedbd4;border-radius:10px;font:inherit;background:#fff}

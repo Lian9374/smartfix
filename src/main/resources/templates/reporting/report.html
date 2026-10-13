@@ -22,25 +22,25 @@
       </div>
 
       <p id="report-date-error" class="alert" role="alert" th:if="${dateError}" th:text="${dateError}"></p>
-      <form class="card"
+      <form class="card report-filters"
             method="get"
             th:action="@{/admin/reports}">
         <div class="card__body">
 
-          <label for="report-start">Start date</label>
+          <div class="form-field"><label for="report-start">Start date</label>
           <input id="report-start"
                  type="date"
                  name="start"
                  th:value="${startDate}"
-                 required>
+                 required></div>
 
-          <label for="report-end">End date</label>
+          <div class="form-field"><label for="report-end">End date</label>
           <input id="report-end"
                  th:attr="aria-invalid=${dateError != null} ? 'true' : null, aria-describedby=${dateError != null} ? 'report-date-error' : null"
                  type="date"
                  name="end"
                  th:value="${endDate}"
-                 required>
+                 required></div>
 
           <button class="btn btn--primary"
                   type="submit">

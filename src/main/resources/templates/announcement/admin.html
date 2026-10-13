@@ -26,7 +26,7 @@
       </div>
 
       <p class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></p>
-      <section class="card" aria-labelledby="create-heading">
+      <section class="card announcement-editor" aria-labelledby="create-heading">
         <div class="card__body">
 
           <h2 id="create-heading">Create announcement</h2><p class="form-field__hint">All dates and times use Singapore time (UTC+8).</p>
@@ -35,7 +35,7 @@
                 th:object="${command}"
                 method="post">
 
-            <div>
+            <div class="form-field">
               <label for="announcement-title">Title</label>
               <input id="announcement-title"
                      type="text"
@@ -46,7 +46,7 @@
                  id="announcement-title-error" role="alert" th:errors="*{title}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-content">Content</label>
               <textarea id="announcement-content"
                         th:field="*{content}" th:attr="aria-invalid=${#fields.hasErrors('content')} ? 'true' : null, aria-describedby=${#fields.hasErrors('content')} ? 'announcement-content-error' : null"
@@ -56,7 +56,7 @@
                  id="announcement-content-error" role="alert" th:errors="*{content}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-valid-from">Valid from</label>
               <input id="announcement-valid-from"
                      type="datetime-local"
@@ -66,7 +66,7 @@
                  id="announcement-validFrom-error" role="alert" th:errors="*{validFrom}"></p>
             </div>
 
-            <div>
+            <div class="form-field">
               <label for="announcement-valid-to">Valid until (optional)</label>
               <input id="announcement-valid-to"
                      type="datetime-local"
