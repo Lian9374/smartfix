@@ -31,6 +31,9 @@ try{
   await login('role.qa.admin','ADMINISTRATOR');check('Administrator lands on real overview',await evaluate('location.pathname==="/admin"'));await layout('admin-overview');
   for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts'],['/admin/reports','reports'],['/admin/announcements','announcements'],['/notifications','notifications'],['/campus-map','campus-map']]){await go(route);await layout(label);}
   if (process.env.ROLE_ACCEPTANCE_USERD === 'true') {
+    const measurements = await evaluate(`(async()=>{const rows=[];for(const route of ['/admin/reports','/admin/reports/export.csv?start=2000-01-01&end=2000-01-02','/campus-map','/campus-map/status','/admin/facilities','/admin/announcements']){const samples=[];for(let i=0;i<5;i++){const start=performance.now();const response=await fetch(route,{cache:'no-store'});const body=await response.text();samples.push({milliseconds:performance.now()-start,status:response.status,bytes:new TextEncoder().encode(body).length});}rows.push({route,samples});}return rows;})()`);
+    check('UserD real endpoint measurement requests succeed',measurements.every(row=>row.samples.every(sample=>sample.status===200)));
+    writeFileSync(path.join(out,'endpoint-measurements.json'),JSON.stringify({checkedAt:new Date().toISOString(),release,environment:'Dedicated PostgreSQL; local browser fetch; five sequential samples per route; empty business records with migrated location catalogue',measurements},null,2));
     await go('/admin/reports?start=2026-10-31&end=2026-10-01');
     check('Invalid report interval stays in accessible form', await evaluate(`document.querySelector('#report-date-error')?.textContent.includes('End date') && document.querySelector('#report-end')?.getAttribute('aria-invalid')==='true' && !document.querySelector('a[href*="export.csv"]')`));
     await layout('reports-invalid');
@@ -38,6 +41,7 @@ try{
     check('Report explicit empty state and no invented SLA',await evaluate(`document.body.innerText.includes('No requests were created') && document.body.innerText.includes('SLA compliance is not available')`));
     const csv=await evaluate(`fetch('/admin/reports/export.csv?start=2000-01-01&end=2000-01-02').then(async r=>({status:r.status,text:await r.text(),type:r.headers.get('content-type')}))`);
     check('Real report CSV retains summary contract',csv.status===200 && csv.type.includes('text/csv') && csv.text.includes('Average Resolution Hours') && csv.text.includes('Category,Requests'));
+    check('Reversed CSV interval is a client error',await evaluate(`fetch('/admin/reports/export.csv?start=2026-10-31&end=2026-10-01').then(r=>r.status)` )===400);
     await browser.send('Network.enable');
     await browser.send('Network.setBlockedURLs',{urls:['*js/vendor/leaflet/leaflet.js*']});
     await go('/campus-map');
