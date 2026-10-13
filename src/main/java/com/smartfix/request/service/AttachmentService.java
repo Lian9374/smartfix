@@ -98,6 +98,21 @@ public class AttachmentService {
         }
 
         List<Attachment> attachments =
+                storedAttachmentsWithRollbackCompensation(stored,requestId);
+        return attachmentRepository.saveAll(attachments).stream().map(this::toResponse).toList();
+    }
+
+    private List<Attachment> storedAttachmentsWithRollbackCompensation(List<StoredAttachment> stored,Long requestId) {
+        if(org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization(){
+                    @Override public void afterCompletion(int status){
+                        if(status==STATUS_ROLLED_BACK)deleteStoredFiles(stored);
+                        else if(status==STATUS_UNKNOWN)log.warn("Attachment transaction outcome unknown; retained files for reconciliation");
+                    }
+                });
+        }
+        return
                 stored.stream()
                         .map(file -> Attachment.create(
                                 requestId,
@@ -109,11 +124,6 @@ public class AttachmentService {
                         ))
                         .toList();
 
-        return attachmentRepository
-                .saveAll(attachments)
-                .stream()
-                .map(this::toResponse)
-                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -32,6 +32,18 @@ spring:
   thymeleaf:
     cache: false   # dev-friendly; override to true for prod-style runs
 
+  mail:
+    host: ${SMARTFIX_SMTP_HOST:localhost}
+    port: ${SMARTFIX_SMTP_PORT:25}
+    username: ${SMARTFIX_SMTP_USERNAME:}
+    password: ${SMARTFIX_SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMARTFIX_SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMARTFIX_SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
   servlet: 
     multipart:
       max-file-size: ${SMARTFIX_UPLOAD_MAX_FILE_SIZE:5242880}
@@ -57,6 +69,19 @@ server:
     include-exception: false
 
 smartfix:
+  sla:
+    scan-milliseconds: ${SMARTFIX_SLA_SCAN_MILLISECONDS:60000}
+  notification:
+    delivery:
+      max-attempts: ${SMARTFIX_DELIVERY_MAX_ATTEMPTS:4}
+      batch-size: ${SMARTFIX_DELIVERY_BATCH_SIZE:50}
+      retry-seconds: ${SMARTFIX_DELIVERY_RETRY_SECONDS:1}
+      scan-milliseconds: ${SMARTFIX_DELIVERY_SCAN_MILLISECONDS:15000}
+      scheduling-enabled: ${SMARTFIX_DELIVERY_SCHEDULING_ENABLED:true}
+      eager-enabled: ${SMARTFIX_DELIVERY_EAGER_ENABLED:true}
+    email:
+      enabled: ${SMARTFIX_NOTIFICATION_EMAIL_ENABLED:false}
+      from: ${SMARTFIX_NOTIFICATION_EMAIL_FROM:smartfix@localhost}
   registration:
     rate-limit:
       max-per-address: ${SMARTFIX_REGISTRATION_MAX_PER_ADDRESS:5}
@@ -83,6 +108,9 @@ smartfix:
 
 # Health endpoint used to verify the application is up.
 management:
+  health:
+    mail:
+      enabled: ${SMARTFIX_SMTP_HEALTH_ENABLED:false}
   endpoints:
     web:
       exposure:

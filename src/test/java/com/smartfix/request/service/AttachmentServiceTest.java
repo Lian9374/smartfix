@@ -30,6 +30,14 @@ import com.smartfix.request.validation.AttachmentValidator;
 
 class AttachmentServiceTest {
 
+    @Test void rollbackAfterMetadataSaveCompensatesStoredFiles(){
+        when(repository.saveAll(anyList())).thenAnswer(invocation->invocation.getArgument(0));
+        var stored=stored("fixture.png","fixture-key.png");
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+        try{service.saveMetadata(100L,List.of(stored));for(var callback:org.springframework.transaction.support.TransactionSynchronizationManager.getSynchronizations())callback.afterCompletion(org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK);verify(storageService).delete("fixture-key.png");}
+        finally{org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();}
+    }
+
     private AttachmentValidator validator;
     private AttachmentStorageService storageService;
     private AttachmentRepository repository;

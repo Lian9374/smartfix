@@ -13,7 +13,7 @@
 <article class="audit-entry" th:each="entry : ${entries}">
 <div><h3 th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(entry.action,'_',' ')))}"></h3>
 <p class="meta" th:text="|${#strings.capitalize(#strings.toLowerCase(entry.targetType))} #${entry.targetId} · ${entry.outcome}|"></p></div>
-<div class="audit-meta"><span th:text="|By Account #${entry.actorUserId}|"></span><time th:datetime="${entry.occurredAt}" th:text="${#temporals.format(entry.occurredAt, 'yyyy-MM-dd HH:mm')}"></time></div>
+<div class="audit-meta"><span th:text="${entry.actorUserId == null} ? 'Automated system' : |By Account #${entry.actorUserId}|"></span><time th:datetime="${entry.occurredAt}" th:text="${#temporals.format(entry.occurredAt, 'yyyy-MM-dd HH:mm')}"></time></div>
 </article>
 <nav class="list-pagination" th:if="${pagination.hasPrevious() or pagination.hasNext()}" aria-label="Audit pages">
 <a class="btn btn--secondary" th:if="${pagination.hasPrevious()}" th:href="@{/admin/community/audit(page=${pagination.number - 1},size=${pagination.size})}">Previous</a>

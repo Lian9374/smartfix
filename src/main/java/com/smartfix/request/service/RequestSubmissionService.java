@@ -82,9 +82,12 @@ public class RequestSubmissionService {
             throw new InputValidationException("Attachments do not meet the upload requirements.");
         }
         AtomicBoolean committed = new AtomicBoolean(false);
+        AtomicBoolean transactionStarted = new AtomicBoolean(false);
+        java.util.concurrent.atomic.AtomicInteger completion = new java.util.concurrent.atomic.AtomicInteger(TransactionSynchronization.STATUS_UNKNOWN);
         try {
             return transaction.execute(
                     status -> {
+                        transactionStarted.set(true);
                         TransactionSynchronizationManager.registerSynchronization(
                                 new TransactionSynchronization() {
                                     @Override
@@ -96,11 +99,12 @@ public class RequestSubmissionService {
                                     public void afterCommit() {
                                         committed.set(true);
                                     }
+                                    @Override public void afterCompletion(int result){completion.set(result);}
                                 });
                         // Revalidate mutable account/location data inside the DB transaction.
                         var current = users.getUserAccess(actorUserId);
                         if (current.role() != Role.REQUESTER
-                                || current.accountStatus() != AccountStatus.ACTIVE) {
+                                || current.accountStatus() != AccountStatus.ACTIVE || current.passwordChangeRequired()) {
                             throw new ResourceNotFoundException("Request not found");
                         }
                         locations.requireActiveLocation(command.getLocationId());
@@ -120,7 +124,7 @@ public class RequestSubmissionService {
                         return new MaintenanceRequestSubmissionResponse(request.getTicketNumber());
                     });
         } catch (RuntimeException failure) {
-            if (!committed.get()) attachments.deleteStoredFiles(stored);
+            if (!committed.get() && (!transactionStarted.get() || completion.get()==TransactionSynchronization.STATUS_ROLLED_BACK)) attachments.deleteStoredFiles(stored);
             throw failure;
         }
     }

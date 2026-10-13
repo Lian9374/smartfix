@@ -62,6 +62,11 @@ public class User {
     @Column(name = "display_name", nullable = false, length = DISPLAY_NAME_MAX_LENGTH)
     private String displayName;
 
+    @Column(name="notification_email",length=254)
+    private String notificationEmail;
+    public String getNotificationEmail(){return notificationEmail;}
+    public void setNotificationEmail(String value){notificationEmail=value;}
+
     /** BCrypt hash. Never the plain password, never rendered, never logged. */
     @Column(name = "password_hash", nullable = false, length = 100)
     private String passwordHash;

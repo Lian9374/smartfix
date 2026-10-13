@@ -1,96 +1,26 @@
 package com.smartfix.notification.listener;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
-
-import com.smartfix.notification.service.NotificationService;
+import com.smartfix.notification.service.DeliveryOutboxService;
 import com.smartfix.request.event.RequestStatusChangedEvent;
 import com.smartfix.workorder.event.WorkOrderCompletedEvent;
-
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.*;
 @Component
 public class NotificationEventListener {
-
-    private static final Logger log =
-            LoggerFactory.getLogger(NotificationEventListener.class);
-
-    private final NotificationService notificationService;
-
-    public NotificationEventListener(
-            NotificationService notificationService
-    ) {
-        this.notificationService = notificationService;
+    private final DeliveryOutboxService outbox;
+    public NotificationEventListener(DeliveryOutboxService outbox){this.outbox=outbox;}
+    @TransactionalEventListener(phase=TransactionPhase.BEFORE_COMMIT)
+    public void on(RequestStatusChangedEvent e){
+        String identity=e.historyId()!=null?"HISTORY:"+e.historyId():
+            (e.fromStatus()==null?"INITIAL":e.fromStatus().name())+":"+e.toStatus()+":"+e.occurredAt();
+        outbox.enqueue(e.requesterId(),"REQUEST_STATUS_CHANGED","Maintenance Request Updated",
+            "Request "+e.ticketNumber()+" status changed to "+e.toStatus()+".",e.requestId(),
+            "REQUEST_STATUS_CHANGED:"+e.requestId()+":"+identity);
     }
-
-    @TransactionalEventListener(
-            phase = TransactionPhase.AFTER_COMMIT
-    )
-    public void on(RequestStatusChangedEvent event) {
-
-        try {
-            String dedupKey =
-                    "REQUEST_STATUS_CHANGED:"
-                            + event.requestId()
-                            + ":"
-                            + event.fromStatus().name()
-                            + ":"
-                            + event.toStatus().name()
-                            + ":"
-                            + event.occurredAt()
-                            + ":"
-                            + event.requesterId();
-
-            notificationService.createNotification(
-                    event.requesterId(),
-                    "REQUEST_STATUS_CHANGED",
-                    "Maintenance Request Updated",
-                    "Request " + event.ticketNumber()
-                            + " status changed to "
-                            + event.toStatus().name() + ".",
-                    event.requestId(),
-                    dedupKey
-            );
-
-        } catch (RuntimeException exception) {
-            log.error(
-                    "Failed to process request status notification: {}",
-                    exception.getClass().getSimpleName()
-            );
-        }
-    }
-
-    @TransactionalEventListener(
-            phase = TransactionPhase.AFTER_COMMIT
-    )
-    public void on(WorkOrderCompletedEvent event) {
-
-        try {
-            String dedupKey =
-                    "WORK_ORDER_COMPLETED:"
-                            + event.workOrderId()
-                            + ":"
-                            + event.occurredAt()
-                            + ":"
-                            + event.requesterId();
-
-            notificationService.createNotification(
-                    event.requesterId(),
-                    "WORK_ORDER_COMPLETED",
-                    "Maintenance Work Completed",
-                    "Maintenance work for request "
-                            + event.ticketNumber()
-                            + " has been completed.",
-                    event.requestId(),
-                    dedupKey
-            );
-
-        } catch (RuntimeException exception) {
-            log.error(
-                    "Failed to process work order notification: {}",
-                    exception.getClass().getSimpleName()
-            );
-        }
+    @TransactionalEventListener(phase=TransactionPhase.BEFORE_COMMIT)
+    public void on(WorkOrderCompletedEvent e){
+        String identity=e.resolutionHistoryId()!=null?"HISTORY:"+e.resolutionHistoryId():e.occurredAt().toString();
+        outbox.enqueue(e.requesterId(),"WORK_ORDER_COMPLETED","Maintenance Work Completed",
+            "Maintenance work for request "+e.ticketNumber()+" has been completed.",e.requestId(),
+            "WORK_ORDER_COMPLETED:"+e.workOrderId()+":"+identity);
     }
 }

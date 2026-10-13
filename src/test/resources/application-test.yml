@@ -24,5 +24,8 @@ spring:
 
 # Never bootstrap from a developer's environment during isolated tests.
 smartfix:
+  notification:
+    delivery:
+      scheduling-enabled: false
   bootstrap-admin:
     enabled: false

@@ -22,7 +22,7 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.smartfix.notification.service.NotificationService;
+import com.smartfix.notification.service.DeliveryOutboxService;
 import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.event.RequestStatusChangedEvent;
 
@@ -30,7 +30,7 @@ class NotificationTransactionTest {
 
     private AnnotationConfigApplicationContext context;
 
-    private NotificationService notificationService;
+    private DeliveryOutboxService notificationService;
 
     private static final Instant NOW =
             Instant.parse("2026-10-08T10:00:00Z");
@@ -39,13 +39,13 @@ class NotificationTransactionTest {
     void setUp() {
 
         notificationService =
-                mock(NotificationService.class);
+                mock(DeliveryOutboxService.class);
 
         context =
                 new AnnotationConfigApplicationContext();
 
         context.registerBean(
-                NotificationService.class,
+                DeliveryOutboxService.class,
                 () -> notificationService
         );
 
@@ -108,7 +108,7 @@ class NotificationTransactionTest {
         });
 
         verify(notificationService, times(1))
-                .createNotification(
+                .enqueue(
                         eq(10L),
                         eq("REQUEST_STATUS_CHANGED"),
                         eq("Maintenance Request Updated"),

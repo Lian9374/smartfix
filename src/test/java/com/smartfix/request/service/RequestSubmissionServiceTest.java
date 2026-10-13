@@ -26,7 +26,9 @@ import java.util.*;
 
 class RequestSubmissionServiceTest {
     @Test
-    void cleansFilesWhenTheDatabaseCommitFails() {
+    void cleansFilesAfterDefiniteRollback() { submissionFailure(true); }
+    @Test void retainsFilesWhenCommitOutcomeIsUnknown() { submissionFailure(false); }
+    private void submissionFailure(boolean rolledBack) {
         var requests = mock(MaintenanceRequestRepository.class);
         var tickets = mock(RequestTicketNumberGenerator.class);
         var lifecycle = mock(RequestLifecycleService.class);
@@ -37,7 +39,10 @@ class RequestSubmissionServiceTest {
         var manager = mock(PlatformTransactionManager.class);
         var transaction = new SimpleTransactionStatus();
         when(manager.getTransaction(any())).thenReturn(transaction);
-        doThrow(new TransactionSystemException("synthetic commit failure"))
+        doAnswer(invocation->{
+            if(rolledBack)for(var callback:TransactionSynchronizationManager.getSynchronizations())callback.afterCompletion(org.springframework.transaction.support.TransactionSynchronization.STATUS_ROLLED_BACK);
+            throw new TransactionSystemException("synthetic commit failure");
+        })
                 .when(manager)
                 .commit(transaction);
         when(users.getUserAccess(1L))
@@ -81,7 +86,8 @@ class RequestSubmissionServiceTest {
         try {
             assertThatThrownBy(() -> service.submit(c, List.of(), 1L))
                     .isInstanceOf(TransactionSystemException.class);
-            verify(attachments).deleteStoredFiles(files);
+            if(rolledBack)verify(attachments).deleteStoredFiles(files);
+            else verify(attachments,never()).deleteStoredFiles(anyList());
             verify(lifecycle).recordInitialSubmission(10L, 1L);
         } finally {
             TransactionSynchronizationManager.clearSynchronization();

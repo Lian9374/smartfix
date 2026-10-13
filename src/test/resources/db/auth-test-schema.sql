@@ -15,6 +15,7 @@ CREATE TABLE users (
     account_status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (account_status IN ('ACTIVE', 'DISABLED')),
     security_version BIGINT NOT NULL DEFAULT 0 CHECK (security_version >= 0),
     password_change_required BOOLEAN NOT NULL DEFAULT FALSE,
+    notification_email VARCHAR(254),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

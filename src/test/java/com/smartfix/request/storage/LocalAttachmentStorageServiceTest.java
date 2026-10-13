@@ -19,6 +19,17 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LocalAttachmentStorageServiceTest {
 
+    @Test void partiallyWrittenStreamIsRemovedOnIoFailure()throws Exception{
+        var properties=new AttachmentProperties();properties.setDir(tempDir);
+        var validator=org.mockito.Mockito.mock(AttachmentValidator.class);
+        var file=org.mockito.Mockito.mock(org.springframework.web.multipart.MultipartFile.class);
+        org.mockito.Mockito.when(validator.detectContentType(file)).thenReturn("image/png");
+        org.mockito.Mockito.when(file.getOriginalFilename()).thenReturn("fixture.png");
+        org.mockito.Mockito.when(file.getInputStream()).thenReturn(new java.io.InputStream(){int calls;public int read()throws IOException{if(calls++<100)return 1;throw new IOException("Synthetic stream failure");}});
+        assertThrows(IllegalStateException.class,()->new LocalAttachmentStorageService(properties,validator).store(file));
+        try(var files=Files.list(tempDir)){assertEquals(0,files.count());}
+    }
+
     @TempDir
     Path tempDir;
 

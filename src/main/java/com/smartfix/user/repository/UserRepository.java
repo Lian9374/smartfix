@@ -16,10 +16,14 @@ import java.util.Optional;
  * Persistence for {@link User}.
  *
  * <p>This interface is private to the {@code user} module. Other modules reach account
- * data through {@code UserService} only (plan section 7.3), so it is never injected
+ * data through the user module's public services ({@code UserService} and the
+ * notification-contact API), so it is never injected
  * into a controller or into {@code auth} / {@code request}.</p>
  */
 public interface UserRepository extends JpaRepository<User, Long> {
+
+    @Query("select u.id from User u where u.role=:role and u.accountStatus=:status order by u.id")
+    List<Long> notificationRecipientIds(@Param("role") Role role,@Param("status") AccountStatus status);
 
     interface PublicName {
         Long getId();
