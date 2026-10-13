@@ -68,6 +68,8 @@ class CampusMapIntegrationIT {
     @Autowired private MaintenanceRequestRepository requests;
     @Autowired private RequestStatusHistoryRepository history;
     @Autowired private CampusMapStatusService statuses;
+    @Autowired private jakarta.persistence.EntityManagerFactory entityManagerFactory;
+    @Autowired private com.smartfix.facility.service.FacilityService facilityService;
     // H2 cannot execute the counter's PostgreSQL ON CONFLICT statement. The counter itself
     // remains covered against PostgreSQL in RequestWorkflowPostgresIT; submission is real here.
     @MockitoBean private RequestTicketNumberGenerator tickets;
@@ -96,6 +98,31 @@ class CampusMapIntegrationIT {
         facility(engineering, "Drinking fountain", UNDER_MAINTENANCE);
         facility(library, "Reading room lighting", OUT_OF_SERVICE);
         facility(inactive, "INACTIVE_FACILITY", OPERATIONAL);
+    }
+
+    @Test void mapAggregatesAndFacilityListAvoidLoadingPerLocation() {
+        for (int i = 0; i < 120; i++) facility(engineering, "Load fixture " + i, OPERATIONAL);
+        var statistics = entityManagerFactory.unwrap(org.hibernate.SessionFactory.class).getStatistics();
+        statistics.setStatisticsEnabled(true);
+        try {
+            statistics.clear();
+            var baseline = facilities.findByLocationActiveTrueOrderByNameAscIdAsc();
+            long baselineQueries = statistics.getPrepareStatementCount();
+            long baselineEntities = statistics.getEntityLoadCount();
+            statistics.clear();
+            var grouped = facilities.countActiveByLocationAndStatus();
+            long groupedQueries = statistics.getPrepareStatementCount();
+            long groupedEntities = statistics.getEntityLoadCount();
+            assertEquals(baseline.size(), grouped.stream().mapToLong(com.smartfix.facility.dto.LocationFacilityCount::count).sum());
+            assertEquals(1, groupedQueries);
+            assertEquals(0, groupedEntities);
+            assertTrue(baselineEntities >= 123);
+            statistics.clear();
+            assertEquals(124, facilityService.listFacilities().size());
+            assertEquals(1, statistics.getPrepareStatementCount());
+            System.out.printf("USERD_PERFORMANCE activeRows=%d baselineQueries=%d baselineEntities=%d groupedQueries=%d groupedEntities=%d facilityListQueries=%d%n",
+                    baseline.size(), baselineQueries, baselineEntities, groupedQueries, groupedEntities, statistics.getPrepareStatementCount());
+        } finally { statistics.setStatisticsEnabled(false); }
     }
 
     @Test void anonymousUsersMustSignIn() throws Exception {

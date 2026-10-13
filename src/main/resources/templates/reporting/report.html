@@ -10,9 +10,9 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('reports')}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content workspace-page">
 
-      <div class="page-head-row">
+      <div class="page-head-row card page-context workspace-heading">
         <div class="page-head">
           <h1 class="page-head__title">Operational Reports</h1>
           <p class="page-head__subtitle">
@@ -21,6 +21,7 @@
         </div>
       </div>
 
+      <p id="report-date-error" class="alert" role="alert" th:if="${dateError}" th:text="${dateError}"></p>
       <form class="card"
             method="get"
             th:action="@{/admin/reports}">
@@ -35,6 +36,7 @@
 
           <label for="report-end">End date</label>
           <input id="report-end"
+                 th:attr="aria-invalid=${dateError != null} ? 'true' : null, aria-describedby=${dateError != null} ? 'report-date-error' : null"
                  type="date"
                  name="end"
                  th:value="${endDate}"
@@ -46,6 +48,7 @@
           </button>
 
           <a class="btn btn--secondary"
+             th:if="${report != null}"
              th:href="@{/admin/reports/export.csv(
        start=${startDate},
        end=${endDate})}">
@@ -54,46 +57,20 @@
         </div>
       </form>
 
+      <p class="card page-context" th:if="${report != null and report.totalRequests == 0}">No requests were created in this date range. Choose another range to view activity.</p>
+      <th:block th:if="${report != null}">
       <section class="card" aria-labelledby="summary-heading">
         <div class="card__body">
           <h2 id="summary-heading">Summary</h2>
 
-          <p>
-            <strong>Total requests:</strong>
-            <span th:text="${report.totalRequests}">0</span>
-          </p>
-
-          <p>
-            <strong>Open requests:</strong>
-            <span th:text="${report.openRequests}">0</span>
-          </p>
-
-          <p>
-            <strong>Resolved requests:</strong>
-            <span th:text="${report.resolvedRequests}">0</span>
-          </p>
-
-          <p>
-            <strong>Closed requests:</strong>
-            <span th:text="${report.closedRequests}">0</span>
-          </p>
-
-          <p>
-            <strong>Resolution rate:</strong>
-            <span th:text="${#numbers.formatDecimal(
-                    report.resolutionRatePercent, 1, 1)}">
-              0.0
-            </span>%
-          </p>
-
-          <p>
-            <strong>Average resolution time:</strong>
-            <span th:text="${#numbers.formatDecimal(
-                    report.averageResolutionHours, 1, 1)}">
-              0.0
-            </span>
-            hours
-          </p>
+          <div class="workspace-metrics">
+            <div class="workspace-metric"><span>Total requests</span><strong th:text="${report.totalRequests}">0</strong></div>
+            <div class="workspace-metric"><span>Open requests</span><strong th:text="${report.openRequests}">0</strong></div>
+            <div class="workspace-metric"><span>Resolved requests</span><strong th:text="${report.resolvedRequests}">0</strong></div>
+            <div class="workspace-metric"><span>Closed requests</span><strong th:text="${report.closedRequests}">0</strong></div>
+            <div class="workspace-metric"><span>Resolution rate</span><strong th:text="|${#numbers.formatDecimal(report.resolutionRatePercent, 1, 1)}%|">0.0%</strong><small>Based on request states</small></div>
+            <div class="workspace-metric"><span>Average resolution</span><strong th:text="${#numbers.formatDecimal(report.averageResolutionHours, 1, 1)}">0.0</strong><small>Hours to recorded resolution</small></div>
+          </div>
         </div>
       </section>
 
@@ -193,9 +170,11 @@
         </div>
       </section>
 
+      </th:block>
       <section class="card" aria-labelledby="definition-heading">
         <div class="card__body">
           <h2 id="definition-heading">Metric definitions</h2>
+          <p>SLA compliance is not available in this report. Resolution rate measures request states, not deadline compliance.</p>
 
           <p>
             Requests are included when they were created during the selected

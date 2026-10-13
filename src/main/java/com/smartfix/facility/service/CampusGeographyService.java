@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /** Local, reviewed public snapshot: runtime requests never crawl third-party directories. */
 @Service
@@ -57,10 +56,11 @@ public class CampusGeographyService {
             String building = aliases.get(normalize(location.getBuilding()));
             if (building != null) addresses.put(location.getId(), building);
         }
-        var counts = facilities.findByLocationActiveTrueOrderByNameAscIdAsc().stream()
-                .collect(Collectors.groupingBy(facility -> new Key(
-                        addresses.get(facility.getLocation().getId()), facility.getStatus()),
-                        Collectors.counting()));
+        Map<Key, Long> counts = new HashMap<>();
+        for (var group : facilities.countActiveByLocationAndStatus()) {
+            counts.merge(new Key(addresses.get(group.locationId()), group.status()),
+                    group.count(), Long::sum);
+        }
         var summaries = counts.entrySet().stream().map(entry -> new CampusGeography.FacilityCount(
                 entry.getKey().buildingId(), entry.getKey().status(), entry.getValue())).toList();
         return new CampusGeography(catalogue.buildings(), catalogue.verifiedOn(),

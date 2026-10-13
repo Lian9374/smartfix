@@ -30,6 +30,25 @@ try{
   browser=await launch({port:9341,width:1440,height:960});
   await login('role.qa.admin','ADMINISTRATOR');check('Administrator lands on real overview',await evaluate('location.pathname==="/admin"'));await layout('admin-overview');
   for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts'],['/admin/reports','reports'],['/admin/announcements','announcements'],['/notifications','notifications'],['/campus-map','campus-map']]){await go(route);await layout(label);}
+  if (process.env.ROLE_ACCEPTANCE_USERD === 'true') {
+    await go('/admin/reports?start=2026-10-31&end=2026-10-01');
+    check('Invalid report interval stays in accessible form', await evaluate(`document.querySelector('#report-date-error')?.textContent.includes('End date') && document.querySelector('#report-end')?.getAttribute('aria-invalid')==='true' && !document.querySelector('a[href*="export.csv"]')`));
+    await layout('reports-invalid');
+    await go('/admin/reports?start=2000-01-01&end=2000-01-02');
+    check('Report explicit empty state and no invented SLA',await evaluate(`document.body.innerText.includes('No requests were created') && document.body.innerText.includes('SLA compliance is not available')`));
+    const csv=await evaluate(`fetch('/admin/reports/export.csv?start=2000-01-01&end=2000-01-02').then(async r=>({status:r.status,text:await r.text(),type:r.headers.get('content-type')}))`);
+    check('Real report CSV retains summary contract',csv.status===200 && csv.type.includes('text/csv') && csv.text.includes('Average Resolution Hours') && csv.text.includes('Category,Requests'));
+    await browser.send('Network.enable');
+    await browser.send('Network.setBlockedURLs',{urls:['*js/vendor/leaflet/leaflet.js*']});
+    await go('/campus-map');
+    check('Map library failure keeps textual directory',await evaluate(`!document.querySelector('#atlas-map-notice').hidden && document.querySelector('#atlas-map-notice').textContent.includes('could not load') && !!document.querySelector('.campus-building-directory')`));
+    await activate('[data-campus="UTOWN"]');
+    check('Map failure message persists after campus switch',await evaluate(`document.querySelector('#atlas-map-notice').textContent.includes('could not load') && !document.querySelector('#atlas-map-notice').hidden`));
+    await layout('campus-map-offline');
+    await browser.send('Network.setBlockedURLs',{urls:[]});
+    await go('/admin/announcements');
+    check('Announcement form identifies timezone and counters',await evaluate(`document.body.innerText.includes('Singapore time') && !!document.querySelector('#announcement-content-count')`));
+  }
   if (process.env.ROLE_ACCEPTANCE_LAYOUT_ONLY !== 'true') {
   await go('/admin/users/new?role=TECHNICIAN');await type('#username',engineer);await type('#displayName','QA Engineer');await type('#password',password);await activate('form[action="/admin/users"] button[type=submit]');check('Real managed account creation',await evaluate('location.pathname==="/admin/users"'));engineerId=await evaluate(`([...document.querySelectorAll('tbody tr')].find(row=>row.innerText.includes(${JSON.stringify(engineer)})))?.querySelector('td.data-table__id')?.innerText`);
   await login(engineer,'TECHNICIAN');check('Temporary password forces setup',await evaluate('location.pathname==="/account/password"'));await layout('password-setup');

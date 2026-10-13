@@ -101,6 +101,16 @@ class ReportControllerTest {
     }
 
     @Test
+    void reversedDatesKeepFormAndDoNotGenerateReport() throws Exception {
+        mvc.perform(get("/admin/reports").param("start", "2026-10-31").param("end", "2026-10-01"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("reporting/report"))
+                .andExpect(model().attribute("dateError", "End date must not be before start date."))
+                .andExpect(model().attributeDoesNotExist("report"));
+        org.mockito.Mockito.verifyNoInteractions(reportService, reportingPeriodService, reportExportService);
+    }
+
+    @Test
     void exportCsvReturnsDownloadWithCsvBytes() throws Exception {
         Instant start =
             Instant.parse("2026-09-30T16:00:00Z");
