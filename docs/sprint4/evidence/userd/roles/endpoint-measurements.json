@@ -1,0 +1,192 @@
+{
+  "checkedAt": "2026-10-13T14:44:54.314Z",
+  "release": {
+    "sourceCommit": "4f549b538ea0457edeef769e597de2423cb7265c",
+    "sourceFingerprint": "29b269b0f7e7b050ccd7dea8cee9b52c41297ddbdee13a15eeb4b60144cf2fff",
+    "artifactSha256": "7f0dfd6fd519384c8e5aeb30668401160b98da3a9691b388005a5c03e932557d",
+    "sourceChanges": []
+  },
+  "environment": "Dedicated PostgreSQL; local browser fetch; five sequential samples per route; empty business records with migrated location catalogue",
+  "measurements": [
+    {
+      "route": "/admin/reports",
+      "samples": [
+        {
+          "milliseconds": 59.79999999701977,
+          "status": 200,
+          "bytes": 18935
+        },
+        {
+          "milliseconds": 58.5,
+          "status": 200,
+          "bytes": 18935
+        },
+        {
+          "milliseconds": 59.399999998509884,
+          "status": 200,
+          "bytes": 18935
+        },
+        {
+          "milliseconds": 51.19999999552965,
+          "status": 200,
+          "bytes": 18935
+        },
+        {
+          "milliseconds": 52.70000000298023,
+          "status": 200,
+          "bytes": 18935
+        }
+      ]
+    },
+    {
+      "route": "/admin/reports/export.csv?start=2000-01-01&end=2000-01-02",
+      "samples": [
+        {
+          "milliseconds": 22.599999994039536,
+          "status": 200,
+          "bytes": 240
+        },
+        {
+          "milliseconds": 14.100000001490116,
+          "status": 200,
+          "bytes": 240
+        },
+        {
+          "milliseconds": 15,
+          "status": 200,
+          "bytes": 240
+        },
+        {
+          "milliseconds": 13.799999997019768,
+          "status": 200,
+          "bytes": 240
+        },
+        {
+          "milliseconds": 12.800000004470348,
+          "status": 200,
+          "bytes": 240
+        }
+      ]
+    },
+    {
+      "route": "/campus-map",
+      "samples": [
+        {
+          "milliseconds": 196.60000000149012,
+          "status": 200,
+          "bytes": 171862
+        },
+        {
+          "milliseconds": 140.70000000298023,
+          "status": 200,
+          "bytes": 171862
+        },
+        {
+          "milliseconds": 145.60000000149012,
+          "status": 200,
+          "bytes": 171862
+        },
+        {
+          "milliseconds": 134.60000000149012,
+          "status": 200,
+          "bytes": 171862
+        },
+        {
+          "milliseconds": 126.5,
+          "status": 200,
+          "bytes": 171862
+        }
+      ]
+    },
+    {
+      "route": "/campus-map/status",
+      "samples": [
+        {
+          "milliseconds": 36.20000000298023,
+          "status": 200,
+          "bytes": 47132
+        },
+        {
+          "milliseconds": 26.80000000447035,
+          "status": 200,
+          "bytes": 47132
+        },
+        {
+          "milliseconds": 24.80000000447035,
+          "status": 200,
+          "bytes": 47132
+        },
+        {
+          "milliseconds": 23.200000002980232,
+          "status": 200,
+          "bytes": 47132
+        },
+        {
+          "milliseconds": 24.299999997019768,
+          "status": 200,
+          "bytes": 47132
+        }
+      ]
+    },
+    {
+      "route": "/admin/facilities",
+      "samples": [
+        {
+          "milliseconds": 52.600000001490116,
+          "status": 200,
+          "bytes": 15030
+        },
+        {
+          "milliseconds": 51,
+          "status": 200,
+          "bytes": 15030
+        },
+        {
+          "milliseconds": 50.19999999552965,
+          "status": 200,
+          "bytes": 15030
+        },
+        {
+          "milliseconds": 47.79999999701977,
+          "status": 200,
+          "bytes": 15030
+        },
+        {
+          "milliseconds": 49.20000000298023,
+          "status": 200,
+          "bytes": 15030
+        }
+      ]
+    },
+    {
+      "route": "/admin/announcements",
+      "samples": [
+        {
+          "milliseconds": 52,
+          "status": 200,
+          "bytes": 17315
+        },
+        {
+          "milliseconds": 47.400000005960464,
+          "status": 200,
+          "bytes": 17315
+        },
+        {
+          "milliseconds": 49.5,
+          "status": 200,
+          "bytes": 17315
+        },
+        {
+          "milliseconds": 51.70000000298023,
+          "status": 200,
+          "bytes": 17315
+        },
+        {
+          "milliseconds": 50.19999999552965,
+          "status": 200,
+          "bytes": 17315
+        }
+      ]
+    }
+  ]
+}

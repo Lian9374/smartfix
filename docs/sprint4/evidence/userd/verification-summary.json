@@ -1,0 +1,86 @@
+{
+  "checkedAt": "2026-10-13T14:47:40.3897611Z",
+  "branch": "feature/sprint4-userd-map-reporting",
+  "codeCommit": "4f549b538ea0457edeef769e597de2423cb7265c",
+  "moduleVerification": {
+    "integrationTests": 23,
+    "errors": 0,
+    "unitTests": 48,
+    "command": "mvn -o -B '-Dtest=*Report*Test,*Dashboard*Test,*Facility*Test,*Location*Test,*Announcement*Test' '-Dit.test=CampusMapIntegrationIT' verify",
+    "failures": 0,
+    "log": "target/sprint4-userd-verify-final.log",
+    "database": "H2 2.3.232"
+  },
+  "postgresVerification": {
+    "integrationTests": 24,
+    "errors": 0,
+    "unitTests": 10,
+    "command": "mvn -o -B -Ppostgres-it '-Dtest=ReportControllerTest,AnnouncementControllerTest' '-Dit.test=CampusMapPostgresIT,CampusCatalogueMigrationPostgresIT' verify",
+    "failures": 0,
+    "log": "target/sprint4-userd-postgres-verify.log",
+    "database": "PostgreSQL 16.11, disposable schema, Flyway enabled, Hibernate validate"
+  },
+  "finalPackage": {
+    "passed": true,
+    "unitTests": 10,
+    "command": "mvn -o -B '-Dtest=ReportControllerTest,AnnouncementControllerTest' -DskipITs package",
+    "note": "Rechecks final form layout templates; overlaps module controller tests"
+  },
+  "compile": {
+    "passed": true,
+    "command": "mvn -o -DskipTests compile"
+  },
+  "browser": {
+    "passed": true,
+    "viewports": [
+      1440,
+      1000,
+      768,
+      390,
+      320
+    ],
+    "results": "roles/results-layout.json",
+    "release": {
+      "sourceCommit": "4f549b538ea0457edeef769e597de2423cb7265c",
+      "sourceFingerprint": "29b269b0f7e7b050ccd7dea8cee9b52c41297ddbdee13a15eeb4b60144cf2fff",
+      "artifactSha256": "7f0dfd6fd519384c8e5aeb30668401160b98da3a9691b388005a5c03e932557d",
+      "sourceChanges": []
+    },
+    "checks": 87,
+    "screenshotsReviewed": [
+      "roles/reports-390.png",
+      "roles/announcements-390.png",
+      "roles/campus-map-offline-390.png"
+    ]
+  },
+  "performance": {
+    "queryData": "roles/query-measurements.json",
+    "nativeAggregateQueries": 1,
+    "groupedEntityLoads": 0,
+    "groupedMedianExecutionMilliseconds": 0.463,
+    "locations": 12,
+    "baselineEntityLoads": 125,
+    "fixtureRows": 600,
+    "endpointData": "roles/endpoint-measurements.json",
+    "baselineMedianExecutionMilliseconds": 0.886,
+    "groupedRows": 36,
+    "limitations": "Local small-scale measurements, not a production SLA or load test",
+    "oldRows": 600,
+    "fixtureCleanup": "ROLLBACK"
+  },
+  "javascript": {
+    "offlineMapFallback": true,
+    "syntax": true,
+    "command": "node tools/verify-map-fallback.mjs"
+  },
+  "migration": {
+    "changed": false,
+    "latestVersion": 25
+  },
+  "remaining": [
+    "UserE notification listener initial-event NPE and real SLA contract",
+    "Physical-device and screen-reader acceptance",
+    "Large deployment load validation and potential SQL pagination",
+    "AWS deployment outside this work package"
+  ]
+}

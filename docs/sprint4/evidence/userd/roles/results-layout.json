@@ -1,0 +1,360 @@
+{
+  "checkedAt": "2026-10-13T14:45:03.306Z",
+  "release": {
+    "sourceCommit": "4f549b538ea0457edeef769e597de2423cb7265c",
+    "sourceFingerprint": "29b269b0f7e7b050ccd7dea8cee9b52c41297ddbdee13a15eeb4b60144cf2fff",
+    "artifactSha256": "7f0dfd6fd519384c8e5aeb30668401160b98da3a9691b388005a5c03e932557d",
+    "sourceChanges": []
+  },
+  "passed": true,
+  "checks": [
+    {
+      "label": "Flyway and Hibernate validate startup",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "Administrator lands on real overview",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/requests",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/technicians",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/facilities",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1440",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1000",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 768",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 390",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/users",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1440",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1000",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 768",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 390",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/reports",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1440",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1000",
+      "passed": true
+    },
+    {
+      "label": "reports layout 768",
+      "passed": true
+    },
+    {
+      "label": "reports layout 390",
+      "passed": true
+    },
+    {
+      "label": "reports layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/announcements",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1440",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1000",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 768",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 390",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /notifications",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1440",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1000",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 768",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 390",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /campus-map",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1440",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1000",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 768",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 390",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 320",
+      "passed": true
+    },
+    {
+      "label": "UserD real endpoint measurement requests succeed",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/reports?start=2026-10-31&end=2026-10-01",
+      "passed": true
+    },
+    {
+      "label": "Invalid report interval stays in accessible form",
+      "passed": true
+    },
+    {
+      "label": "reports-invalid layout 1440",
+      "passed": true
+    },
+    {
+      "label": "reports-invalid layout 1000",
+      "passed": true
+    },
+    {
+      "label": "reports-invalid layout 768",
+      "passed": true
+    },
+    {
+      "label": "reports-invalid layout 390",
+      "passed": true
+    },
+    {
+      "label": "reports-invalid layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/reports?start=2000-01-01&end=2000-01-02",
+      "passed": true
+    },
+    {
+      "label": "Report explicit empty state and no invented SLA",
+      "passed": true
+    },
+    {
+      "label": "Real report CSV retains summary contract",
+      "passed": true
+    },
+    {
+      "label": "Reversed CSV interval is a client error",
+      "passed": true
+    },
+    {
+      "label": "HTTP /campus-map",
+      "passed": true
+    },
+    {
+      "label": "Map library failure keeps textual directory",
+      "passed": true
+    },
+    {
+      "label": "Map failure message persists after campus switch",
+      "passed": true
+    },
+    {
+      "label": "campus-map-offline layout 1440",
+      "passed": true
+    },
+    {
+      "label": "campus-map-offline layout 1000",
+      "passed": true
+    },
+    {
+      "label": "campus-map-offline layout 768",
+      "passed": true
+    },
+    {
+      "label": "campus-map-offline layout 390",
+      "passed": true
+    },
+    {
+      "label": "campus-map-offline layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/announcements",
+      "passed": true
+    },
+    {
+      "label": "Announcement form identifies timezone and counters",
+      "passed": true
+    },
+    {
+      "label": "Real announcement draft creation has success feedback",
+      "passed": true
+    },
+    {
+      "label": "Created announcement has a real draft action",
+      "passed": true
+    },
+    {
+      "label": "Publish action has feedback",
+      "passed": true
+    },
+    {
+      "label": "HTTP /announcements",
+      "passed": true
+    },
+    {
+      "label": "Published announcement appears in real public list",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/announcements",
+      "passed": true
+    },
+    {
+      "label": "Withdraw action has feedback",
+      "passed": true
+    },
+    {
+      "label": "HTTP /announcements",
+      "passed": true
+    },
+    {
+      "label": "Withdrawn announcement is absent from public list",
+      "passed": true
+    }
+  ]
+}
