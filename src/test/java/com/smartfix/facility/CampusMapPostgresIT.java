@@ -21,6 +21,8 @@ class CampusMapPostgresIT extends CampusMapIntegrationIT {
             throw new IllegalArgumentException("A dedicated local *_test database is required.");
         }
         properties.add("spring.datasource.url", () -> url);
+        properties.add("spring.datasource.driver-class-name", () -> "org.postgresql.Driver");
+        properties.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
         properties.add("spring.datasource.username", () -> required("TEST_DB_USERNAME"));
         properties.add("spring.datasource.password", () -> required("TEST_DB_PASSWORD"));
         properties.add("spring.datasource.hikari.schema", () -> SCHEMA);
