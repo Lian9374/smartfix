@@ -94,6 +94,14 @@ class TechnicianDirectoryServiceTest {
     }
 
     @Test
+    void temporaryPasswordAccountsCannotBypassSetupThroughTheService() {
+        when(users.getUserAccess(7L)).thenReturn(new UserAccessResponse(7L, Role.TECHNICIAN, AccountStatus.ACTIVE, 1, true));
+        assertThatThrownBy(() -> directory.getProfile(7L)).isInstanceOf(AccessDeniedException.class);
+        assertThatThrownBy(() -> directory.updateProfile(7L, validCommand())).isInstanceOf(AccessDeniedException.class);
+        verifyNoInteractions(profiles, locations);
+    }
+
+    @Test
     void serviceValidatesCommandsEvenWithoutMvc() {
         activeTechnician();
         var command = validCommand();

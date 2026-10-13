@@ -57,6 +57,12 @@ server:
     include-exception: false
 
 smartfix:
+  registration:
+    rate-limit:
+      max-per-address: ${SMARTFIX_REGISTRATION_MAX_PER_ADDRESS:5}
+      window: ${SMARTFIX_REGISTRATION_WINDOW:PT1H}
+      max-global-per-minute: ${SMARTFIX_REGISTRATION_MAX_GLOBAL_PER_MINUTE:100}
+      max-addresses: ${SMARTFIX_REGISTRATION_MAX_ADDRESSES:4096}
   bootstrap-admin:
     enabled: ${SMARTFIX_BOOTSTRAP_ADMIN_ENABLED:false}
     username: ${SMARTFIX_BOOTSTRAP_ADMIN_USERNAME:}

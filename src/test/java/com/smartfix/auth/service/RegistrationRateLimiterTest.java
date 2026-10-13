@@ -58,4 +58,43 @@ class RegistrationRateLimiterTest {
         when(clock.millis()).thenReturn(60_000L);
         assertThat(limiter.reserve("c")).isZero();
     }
+
+    @Test void retryAfterCoversBothTheGlobalAndAddressWindows() {
+        var limiter = new RegistrationRateLimiter(clock, 1, Duration.ofHours(1), 1, 2);
+        when(clock.millis()).thenReturn(0L);
+        assertThat(limiter.reserve("a")).isZero();
+        when(clock.millis()).thenReturn(1_000L);
+        assertThat(limiter.reserve("a")).isEqualTo(3599);
+        assertThat(limiter.reserve("b")).isEqualTo(59);
+    }
+
+    @Test void capacityRetryUsesTheLastReservationAndDoesNotResetAnActiveBucket() {
+        var limiter = new RegistrationRateLimiter(clock, 3, Duration.ofSeconds(10), 100, 1);
+        when(clock.millis()).thenReturn(0L);
+        assertThat(limiter.reserve("a")).isZero();
+        when(clock.millis()).thenReturn(9_000L);
+        assertThat(limiter.reserve("a")).isZero();
+        when(clock.millis()).thenReturn(10_000L);
+        assertThat(limiter.reserve("b")).isEqualTo(9);
+        when(clock.millis()).thenReturn(18_999L);
+        assertThat(limiter.reserve("b")).isEqualTo(1);
+        when(clock.millis()).thenReturn(19_000L);
+        assertThat(limiter.reserve("b")).isZero();
+    }
+
+    @Test void concurrentAddressFloodCannotExceedTheGlobalQuota() throws Exception {
+        var limiter = new RegistrationRateLimiter(Clock.fixed(Instant.EPOCH, ZoneOffset.UTC),
+                5, Duration.ofHours(1), 3, 4096);
+        var pool = Executors.newFixedThreadPool(12);
+        var start = new CyclicBarrier(12);
+        try {
+            var jobs = IntStream.range(0, 12).mapToObj(i -> pool.submit(() -> {
+                start.await(10, TimeUnit.SECONDS);
+                return limiter.reserve("peer-" + i);
+            })).toList();
+            int allowed = 0;
+            for (var job : jobs) { if (job.get(10, TimeUnit.SECONDS) == 0) { allowed++; } }
+            assertThat(allowed).isEqualTo(3);
+        } finally { pool.shutdownNow(); }
+    }
 }

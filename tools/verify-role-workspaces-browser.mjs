@@ -36,6 +36,20 @@ try{
   await type('#current-password',password);await type('#new-password',changed);await type('#confirm-password',changed);await activate('main button[type=submit]');check('Password replacement signs out',await evaluate('location.pathname==="/login"&&location.search.includes("passwordChanged")'));
   await login(engineer,'TECHNICIAN',changed);check('Engineer lands on own workspace',await evaluate('location.pathname==="/technician"'));await layout('engineer-empty');
   await go('/technician/profile');await layout('engineer-profile');await tabTo('input[name=skills][value=ELECTRICAL]');await browser.press('Space');await tabTo('input[name=serviceAreaIds]');await browser.press('Space');await tabTo('input[name=availabilityStatus][value=AVAILABLE]');await browser.press('Space');await activate('main button[type=submit]');check('Engineer saves real coverage and availability',await evaluate('document.body.innerText.includes("Your technician profile was saved.")'));
+  if (process.env.ROLE_ACCEPTANCE_USERB === 'true') {
+    for (const route of ['/admin','/admin/users','/admin/requests']) {
+      check('Engineer directly rejected from '+route,await evaluate(`(async()=> (await fetch(${JSON.stringify(route)})).status)()` )===403);
+    }
+    await go('/technician/profile');
+    check('Profile descriptions reference existing elements',await evaluate(`Array.from(document.querySelectorAll('[aria-describedby]')).every(element=>element.getAttribute('aria-describedby').split(/\\s+/).every(id=>document.getElementById(id)))`));
+    const invalid=await evaluate(`(async()=>{const token=document.querySelector('input[name="_csrf"]').value;const response=await fetch('/technician/profile',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({_csrf:token})});return {status:response.status,html:await response.text()};})()`);
+    check('Profile empty selection rejected by server',invalid.status===400);
+    const frame=await browser.send('Page.getFrameTree');
+    await browser.send('Page.setDocumentContent',{frameId:frame.frameTree.frame.id,html:invalid.html});await wait(350);
+    check('Profile first invalid group receives keyboard focus',await evaluate('document.activeElement.matches("fieldset[aria-invalid=true]")'));
+    check('Invalid profile descriptions reference existing errors',await evaluate(`Array.from(document.querySelectorAll('[aria-describedby]')).every(element=>element.getAttribute('aria-describedby').split(/\\s+/).every(id=>document.getElementById(id)))`));
+    await layout('engineer-profile-invalid');
+  }
   await browser.clearCookies();await go('/register');await type('#username',requester);await type('#displayName','QA Requester');await type('#password',password);await type('#confirmPassword',password);await activate('main button[type=submit]');await login(requester,'REQUESTER');
   await go('/requests/new');for(const selector of ['#locationId','#category','#urgencyLevel']){await tabTo(selector);await browser.press('ArrowDown');await browser.press('Enter');}await type('#title','Role QA electrical repair');await type('#description','Synthetic acceptance repair; no real campus incident.');await activate('main button[type=submit]');const ticket=await evaluate('location.pathname.split("/").at(-1)');check('Requester creates persisted repair',ticket.startsWith('SF-'));
   await login('role.qa.admin','ADMINISTRATOR');await go('/requests/'+ticket+'/review');await layout('review');await activate('main button[type=submit]',true);await go('/admin/requests/'+ticket+'/dispatch');await layout('dispatch');await activate(`button[name=technicianId][value="${engineerId}"]`);check('Assignment result visible',await evaluate('document.body.innerText.includes("QA Engineer")'));

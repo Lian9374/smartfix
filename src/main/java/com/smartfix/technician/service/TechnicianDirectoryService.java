@@ -120,7 +120,8 @@ public class TechnicianDirectoryService {
             throw new AccessDeniedException("An active technician account is required.");
         }
         var actor = users.getUserAccess(actorUserId);
-        if (actor.role() != Role.TECHNICIAN || actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.role() != Role.TECHNICIAN || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) {
             throw new AccessDeniedException("An active technician account is required.");
         }
     }

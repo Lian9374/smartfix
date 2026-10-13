@@ -128,6 +128,23 @@ class AssignmentIT {
                 TICKET, 100L, 101L, null, 103L, null, assigned.assignedAt()));
     }
 
+    @Test
+    void administratorWithTemporaryPasswordCannotDispatchThroughTheService() {
+        jdbc.update("UPDATE users SET password_change_required=true WHERE id=104");
+        assertThatThrownBy(() -> assignments.assign(TICKET, new AssignTechnicianCommand(101L), 104L))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        assertThat(count("assignments")).isZero();
+        var current = assign(101);
+        assertThatThrownBy(() -> assignments.reassign(TICKET,
+                new ReassignTechnicianCommand(102L, current.id(), "Synthetic coverage"), 104L))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        assertThatThrownBy(() -> assignments.withdraw(TICKET,
+                new WithdrawAssignmentCommand(current.id(), "Synthetic coverage"), 104L))
+                .isInstanceOf(org.springframework.security.access.AccessDeniedException.class);
+        assertThat(assignmentReads.findActiveAssignment(1L)).contains(current);
+        assertThat(count("assignments")).isEqualTo(1);
+    }
+
     @ParameterizedTest
     @ValueSource(longs = {100, 101})
     void nonAdministratorsCannotPerformAnyAssignmentMutation(long actor) {

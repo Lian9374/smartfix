@@ -46,13 +46,19 @@ public class RegistrationRateLimiter {
         attempts.values().removeIf(ArrayDeque::isEmpty);
         String key = peerAddress == null || peerAddress.isBlank() ? "unknown" : peerAddress;
         ArrayDeque<Long> address = attempts.get(key);
-        if (global.size() >= globalLimit) { return seconds(global.peekFirst() + 60_000 - now); }
+        long retryMillis = global.size() >= globalLimit ? global.peekFirst() + 60_000 - now : 0;
         if (address != null && address.size() >= perAddress) {
-            return seconds(address.peekFirst() + windowMillis - now);
+            retryMillis = Math.max(retryMillis, address.peekFirst() + windowMillis - now);
         }
+        if (address == null && attempts.size() >= maxAddresses) {
+            // A bucket is freed when its LAST reservation expires, not its first.
+            long bucketRetry = attempts.values().stream()
+                    .mapToLong(queue -> queue.peekLast() + windowMillis - now).min().orElse(windowMillis);
+            retryMillis = Math.max(retryMillis, bucketRetry);
+        }
+        if (retryMillis > 0) { return seconds(retryMillis); }
         if (address == null) {
             // Do not evict an active bucket: eviction would reset somebody's quota.
-            if (attempts.size() >= maxAddresses) { return seconds(windowMillis); }
             address = new ArrayDeque<>();
             attempts.put(key, address);
         }
@@ -65,5 +71,5 @@ public class RegistrationRateLimiter {
         while (!queue.isEmpty() && queue.peekFirst() <= cutoff) { queue.removeFirst(); }
     }
 
-    private static long seconds(long millis) { return Math.max(1, (millis + 999) / 1000); }
+    private static long seconds(long millis) { return Math.max(1, millis / 1000 + (millis % 1000 == 0 ? 0 : 1)); }
 }
