@@ -8,4 +8,10 @@ public record WorkOrderCompletedEvent(
         String ticketNumber,
         Long technicianId,
         Long requesterId,
-        Instant occurredAt) {}
+        Instant occurredAt,
+        Long resolutionHistoryId) {
+    public WorkOrderCompletedEvent(Long workOrderId, Long requestId, String ticketNumber,
+            Long technicianId, Long requesterId, Instant occurredAt) {
+        this(workOrderId, requestId, ticketNumber, technicianId, requesterId, occurredAt, null);
+    }
+}

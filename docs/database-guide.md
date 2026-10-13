@@ -1,5 +1,9 @@
 # SmartFix Database Guide — PostgreSQL + Flyway
 
+The current migration inventory and Sprint 4 recovery verification are recorded in
+[the migration register](sprint4/Migration_Register_CN.md). No historical SQL was
+changed by the UserC lifecycle fixes; follow the register before assigning new versions.
+
 This guide covers local PostgreSQL, Docker, environment variables, and — most
 importantly — how to evolve the schema **safely** with Flyway.
 

@@ -455,6 +455,71 @@ class RequestWorkflowTest {
     }
 
     @Test
+    void concurrentInitialHistoryHasOneWinnerAndOneBusinessConflict() throws Exception {
+        String ticket = submitted();
+        Long requestId = id(ticket);
+        // Remove only this isolated test fixture's initial row to exercise recovery.
+        history.deleteAll();
+        committed.events.clear();
+        CountDownLatch start = new CountDownLatch(1);
+        try (ExecutorService pool = Executors.newFixedThreadPool(2)) {
+            Callable<Boolean> attempt = () -> {
+                start.await();
+                try { lifecycle.recordInitialSubmission(requestId, 1L); return true; }
+                catch (BusinessConflictException expected) { return false; }
+            };
+            Future<Boolean> first = pool.submit(attempt), second = pool.submit(attempt);
+            start.countDown();
+            assertThat(List.of(first.get(20, TimeUnit.SECONDS), second.get(20, TimeUnit.SECONDS)))
+                    .containsExactlyInAnyOrder(true, false);
+        }
+        var rows = history.findAllByRequestIdOrderByChangedAtAsc(requestId);
+        assertThat(rows).hasSize(1);
+        assertThat(committed.events).hasSize(1);
+        assertThat(committed.events.getFirst().historyId()).isEqualTo(rows.getFirst().getId());
+        assertThat(committed.events.getFirst().fromStatus()).isNull();
+    }
+
+    @Test
+    void publishedChangesIdentifyTheirPersistedHistoryRows() {
+        String ticket = submitted();
+        Long requestId = id(ticket);
+        assertThat(committed.events.getFirst().historyId())
+                .isEqualTo(history.findAllByRequestIdOrderByChangedAtAsc(requestId).getFirst().getId());
+        var change = lifecycle.transition(ticket, RequestStatus.CANCELLED, 1L, null);
+        assertThat(change.historyId()).isNotNull();
+        assertThat(committed.events.getLast().historyId()).isEqualTo(change.historyId());
+        assertThat(history.findById(change.historyId()).orElseThrow().getToStatus()).isEqualTo(RequestStatus.CANCELLED);
+        int eventCount = committed.events.size();
+        assertThatThrownBy(() -> lifecycle.transition(ticket, RequestStatus.CANCELLED, 1L, null))
+                .isInstanceOf(BusinessConflictException.class);
+        assertThat(committed.events).hasSize(eventCount);
+        assertThat(history.findAllByRequestIdOrderByChangedAtAsc(requestId)).hasSize(2);
+    }
+
+    @Test
+    void temporaryPasswordCannotBypassRequestOrWorkOrderServiceGates() {
+        String ticket = submitted();
+        Long requestId = id(ticket);
+        reviews.review(ticket, UrgencyLevel.HIGH, 3L, false, null);
+        assignments.assign(requestId, 4L);
+        lifecycle.transition(ticket, RequestStatus.ASSIGNED, 3L, null);
+        Long orderId = workorders.findByRequestId(requestId).orElseThrow().id();
+        long historyCount = history.count();
+        int events = committed.events.size();
+        jdbc.update("UPDATE users SET password_change_required=true WHERE id IN (1,3,4)");
+        assertThatThrownBy(() -> submissions.submit(command(), List.of(), 1L)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> reviews.review(ticket, UrgencyLevel.LOW, 3L, false, null)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> lifecycle.transition(ticket, RequestStatus.IN_PROGRESS, 4L, null)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> workorders.accept(orderId, 4L)).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> workorders.recordRepair(orderId, 4L, repair())).isInstanceOf(ResourceNotFoundException.class);
+        assertThatThrownBy(() -> workorders.complete(orderId, 4L, completion())).isInstanceOf(ResourceNotFoundException.class);
+        assertThat(history.count()).isEqualTo(historyCount);
+        assertThat(committed.events).hasSize(events);
+        assertThat(workorders.findByRequestId(requestId).orElseThrow().status().name()).isEqualTo("CREATED");
+    }
+
+    @Test
     void pagesRenderRoleActionsAndEscapeUserText() throws Exception {
         String ticket = submitted();
         reviews.review(ticket, UrgencyLevel.MEDIUM, 3L, false, null);

@@ -63,7 +63,8 @@ public class RequestSubmissionService {
     public MaintenanceRequestSubmissionResponse submit(
             SubmitMaintenanceRequestCommand command, List<MultipartFile> files, Long actorUserId) {
         var actor = users.getUserAccess(actorUserId);
-        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.role() != Role.REQUESTER) {
+        if (actor.accountStatus() != AccountStatus.ACTIVE || actor.role() != Role.REQUESTER
+                || actor.passwordChangeRequired()) {
             throw new ResourceNotFoundException("Request not found");
         }
         if (command == null || !validator.validate(command).isEmpty()) {

@@ -14,4 +14,11 @@ public record RequestStatusChangedEvent(
         RequestStatus fromStatus,
         RequestStatus toStatus,
         Long actorUserId,
-        Instant occurredAt) {}
+        Instant occurredAt,
+        Long historyId) {
+    /** Legacy callers remain source-compatible; normal lifecycle publishing supplies historyId. */
+    public RequestStatusChangedEvent(Long requestId, String ticketNumber, Long requesterId,
+            RequestStatus fromStatus, RequestStatus toStatus, Long actorUserId, Instant occurredAt) {
+        this(requestId, ticketNumber, requesterId, fromStatus, toStatus, actorUserId, occurredAt, null);
+    }
+}

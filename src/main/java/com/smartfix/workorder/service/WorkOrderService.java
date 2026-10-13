@@ -207,7 +207,8 @@ public class WorkOrderService {
                         r.ticketNumber(),
                         actorId,
                         r.requesterId(),
-                        change.occurredAt()));
+                        change.occurredAt(),
+                        change.historyId()));
     }
 
     private WorkOrder requireAssigned(Long id, Long actorId) {
@@ -224,7 +225,8 @@ public class WorkOrderService {
 
     private void requireTechnician(Long actorId) {
         var actor = users.getUserAccess(actorId);
-        if (actor.role() != Role.TECHNICIAN || actor.accountStatus() != AccountStatus.ACTIVE) {
+        if (actor.role() != Role.TECHNICIAN || actor.accountStatus() != AccountStatus.ACTIVE
+                || actor.passwordChangeRequired()) {
             throw new ResourceNotFoundException("Work order not found");
         }
     }

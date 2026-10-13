@@ -14,6 +14,8 @@ UserA 的实际整改、验证结果和剩余发布门禁见
 [发布验收记录](docs/sprint4/UserA_Release_Acceptance_CN.md)。
 账号权限、派单、注册限流及工程师表单本轮收口见
 [UserB 交接](docs/sprint4/UserB_Access_Dispatch_Handoff_CN.md)。
+迁移复验、事件记录标识、生命周期和工单页面收口见
+[UserC 交接](docs/sprint4/UserC_Migration_Workflow_Handoff_CN.md)。
 
 这份中文 README 是**中文上手指南**，面向刚加入团队、还在熟悉
 Spring Boot / Maven / Git / Docker / PostgreSQL / 分层架构 / Modular Monolith
