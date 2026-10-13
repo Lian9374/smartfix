@@ -1,5 +1,9 @@
 # SmartFix Architecture
 
+Current non-AWS release validation and known boundaries are tracked in
+[the Sprint 4 acceptance record](sprint4/UserA_Release_Acceptance_CN.md).
+This record does not certify AWS deployment or unimplemented SLA/email delivery.
+
 This document explains the architecture of the SmartFix repository for the five team
 members. It is the authoritative description of *how code should be organised* and
 *how modules may talk to each other*.

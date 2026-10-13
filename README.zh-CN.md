@@ -10,6 +10,8 @@
 
 Sprint 4 的五人分工、修改边界和验收标准见
 [Sprint 4 非 AWS 开发计划](docs/sprint4/SmartFix_Sprint4_Development_Plan_CN.md)。
+UserA 的实际整改、验证结果和剩余发布门禁见
+[发布验收记录](docs/sprint4/UserA_Release_Acceptance_CN.md)。
 
 这份中文 README 是**中文上手指南**，面向刚加入团队、还在熟悉
 Spring Boot / Maven / Git / Docker / PostgreSQL / 分层架构 / Modular Monolith

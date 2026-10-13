@@ -8,6 +8,10 @@
 
 ## 当前状态索引（2026-10-09）
 
+2026-10-13 发布收口以 [Sprint 4 UserA 验收](../sprint4/UserA_Release_Acceptance_CN.md)
+为最新索引。历史通知迁移冲突已有 `940b69d` 兼容修复，本轮分支继承该修复；
+远程 main 是否具备修复及本轮测试结果须按发布记录判断，不能只依据以下历史状态。
+
 当前交付与验收以 [UserA 收口记录](UserA_Quality_Completion_CN.md)、
 [注册限流交接](Registration_Hardening_Handoff_CN.md) 和 ADR-003 为准。
 §11–17 是按阶段追加的历史记录，其中“举报未做”“无事件消费者”“没有限流”等旧句子

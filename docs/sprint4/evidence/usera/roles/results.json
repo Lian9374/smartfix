@@ -1,0 +1,500 @@
+{
+  "checkedAt": "2026-10-13T07:24:41.254Z",
+  "release": {
+    "sourceCommit": "eb89a71066bcbcaa2a17051bb589b154a62a5897",
+    "sourceFingerprint": "d1bb436e704522078bedac311f0437a91430a1b792e185feeb488379df116f9a",
+    "artifactSha256": "90706e99ea211bb6b9b37fa79bba20d95a9f378f29a30941e2055297d4031b4d",
+    "sourceChanges": []
+  },
+  "passed": true,
+  "checks": [
+    {
+      "label": "Flyway and Hibernate validate startup",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "Administrator lands on real overview",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-overview layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/requests",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1440",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 1000",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 768",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 390",
+      "passed": true
+    },
+    {
+      "label": "admin-queue layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/technicians",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-directory layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/facilities",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1440",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 1000",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 768",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 390",
+      "passed": true
+    },
+    {
+      "label": "facilities layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/users",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1440",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 1000",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 768",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 390",
+      "passed": true
+    },
+    {
+      "label": "accounts layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/reports",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1440",
+      "passed": true
+    },
+    {
+      "label": "reports layout 1000",
+      "passed": true
+    },
+    {
+      "label": "reports layout 768",
+      "passed": true
+    },
+    {
+      "label": "reports layout 390",
+      "passed": true
+    },
+    {
+      "label": "reports layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/announcements",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1440",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 1000",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 768",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 390",
+      "passed": true
+    },
+    {
+      "label": "announcements layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /notifications",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1440",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 1000",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 768",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 390",
+      "passed": true
+    },
+    {
+      "label": "notifications layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /campus-map",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1440",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 1000",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 768",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 390",
+      "passed": true
+    },
+    {
+      "label": "campus-map layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/users/new?role=TECHNICIAN",
+      "passed": true
+    },
+    {
+      "label": "Real managed account creation",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=TECHNICIAN",
+      "passed": true
+    },
+    {
+      "label": "Temporary password forces setup",
+      "passed": true
+    },
+    {
+      "label": "password-setup layout 1440",
+      "passed": true
+    },
+    {
+      "label": "password-setup layout 1000",
+      "passed": true
+    },
+    {
+      "label": "password-setup layout 768",
+      "passed": true
+    },
+    {
+      "label": "password-setup layout 390",
+      "passed": true
+    },
+    {
+      "label": "password-setup layout 320",
+      "passed": true
+    },
+    {
+      "label": "Password replacement signs out",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=TECHNICIAN",
+      "passed": true
+    },
+    {
+      "label": "Engineer lands on own workspace",
+      "passed": true
+    },
+    {
+      "label": "engineer-empty layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-empty layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-empty layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-empty layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-empty layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /technician/profile",
+      "passed": true
+    },
+    {
+      "label": "engineer-profile layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-profile layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-profile layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-profile layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-profile layout 320",
+      "passed": true
+    },
+    {
+      "label": "Engineer saves real coverage and availability",
+      "passed": true
+    },
+    {
+      "label": "HTTP /register",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=REQUESTER",
+      "passed": true
+    },
+    {
+      "label": "HTTP /requests/new",
+      "passed": true
+    },
+    {
+      "label": "Requester creates persisted repair",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "HTTP /requests/SF-2026-000001/review",
+      "passed": true
+    },
+    {
+      "label": "review layout 1440",
+      "passed": true
+    },
+    {
+      "label": "review layout 1000",
+      "passed": true
+    },
+    {
+      "label": "review layout 768",
+      "passed": true
+    },
+    {
+      "label": "review layout 390",
+      "passed": true
+    },
+    {
+      "label": "review layout 320",
+      "passed": true
+    },
+    {
+      "label": "HTTP /admin/requests/SF-2026-000001/dispatch",
+      "passed": true
+    },
+    {
+      "label": "dispatch layout 1440",
+      "passed": true
+    },
+    {
+      "label": "dispatch layout 1000",
+      "passed": true
+    },
+    {
+      "label": "dispatch layout 768",
+      "passed": true
+    },
+    {
+      "label": "dispatch layout 390",
+      "passed": true
+    },
+    {
+      "label": "dispatch layout 320",
+      "passed": true
+    },
+    {
+      "label": "Assignment result visible",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=TECHNICIAN",
+      "passed": true
+    },
+    {
+      "label": "engineer-assigned layout 1440",
+      "passed": true
+    },
+    {
+      "label": "engineer-assigned layout 1000",
+      "passed": true
+    },
+    {
+      "label": "engineer-assigned layout 768",
+      "passed": true
+    },
+    {
+      "label": "engineer-assigned layout 390",
+      "passed": true
+    },
+    {
+      "label": "engineer-assigned layout 320",
+      "passed": true
+    },
+    {
+      "label": "Assigned work order available",
+      "passed": true
+    },
+    {
+      "label": "HTTP /workorders/1",
+      "passed": true
+    },
+    {
+      "label": "work-order-created layout 1440",
+      "passed": true
+    },
+    {
+      "label": "work-order-created layout 1000",
+      "passed": true
+    },
+    {
+      "label": "work-order-created layout 768",
+      "passed": true
+    },
+    {
+      "label": "work-order-created layout 390",
+      "passed": true
+    },
+    {
+      "label": "work-order-created layout 320",
+      "passed": true
+    },
+    {
+      "label": "work-order-recorded layout 1440",
+      "passed": true
+    },
+    {
+      "label": "work-order-recorded layout 1000",
+      "passed": true
+    },
+    {
+      "label": "work-order-recorded layout 768",
+      "passed": true
+    },
+    {
+      "label": "work-order-recorded layout 390",
+      "passed": true
+    },
+    {
+      "label": "work-order-recorded layout 320",
+      "passed": true
+    },
+    {
+      "label": "Solution awaits requester confirmation",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=REQUESTER",
+      "passed": true
+    },
+    {
+      "label": "HTTP /requests/SF-2026-000001",
+      "passed": true
+    },
+    {
+      "label": "HTTP /login?accountType=ADMINISTRATOR",
+      "passed": true
+    },
+    {
+      "label": "HTTP /requests/SF-2026-000001",
+      "passed": true
+    },
+    {
+      "label": "Full role lifecycle reaches CLOSED",
+      "passed": true
+    }
+  ]
+}

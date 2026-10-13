@@ -1,0 +1,52 @@
+{
+  "checkedAt": "2026-10-13T07:32:17.2403678+00:00",
+  "branch": "feature/sprint4-usera-release-quality",
+  "codeFreezeCommit": "eb89a71",
+  "finalToolCommit": "67d5e8a",
+  "artifactSha256": "90706e99ea211bb6b9b37fa79bba20d95a9f378f29a30941e2055297d4031b4d",
+  "finalSourceFingerprint": "efab0f6e2439b3890878bf4e581efa68c4ece8ccb1f3c726cfb556ee2790433f",
+  "compile": "BUILD SUCCESS",
+  "defaultVerify": {
+    "unitTests": 489,
+    "integrationTests": 259,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "postgresVerify": {
+    "selection": "*PostgresIT,MigrationIT,AttachmentPersistenceIT,RequestMigrationIT,AssignmentMigrationIT",
+    "skipped": 0,
+    "nativeIntegrationTests": 120,
+    "failures": 0,
+    "errors": 0,
+    "selectedUnitTests": 13
+  },
+  "community": {
+    "checks": 108,
+    "applicationLaunches": 2,
+    "passed": true,
+    "keyboardActions": 330,
+    "sourceCommit": "67d5e8ab66fed30c3ca33384f456872b9c254f50"
+  },
+  "roles": {
+    "checks": 122,
+    "passed": true,
+    "sourceCommit": "eb89a71066bcbcaa2a17051bb589b154a62a5897"
+  },
+  "finalLayout": {
+    "checks": 56,
+    "passed": true,
+    "sourceCommit": "67d5e8ab66fed30c3ca33384f456872b9c254f50"
+  },
+  "syntaxCheckedFiles": 9,
+  "browserArtifactIdentity": "MATCH",
+  "relativeLinks": "PASS",
+  "releaseDecision": "AUTOMATED_USERA_ACCEPTANCE_PASS_FULL_RELEASE_GATES_OPEN",
+  "remaining": [
+    "physical-device",
+    "actual-screen-reader",
+    "team-review",
+    "SLA-email-reliable-delivery",
+    "AWS"
+  ]
+}
