@@ -24,6 +24,9 @@ Database migration verification, lifecycle event identities and work-order quali
 are recorded in [the UserC handoff](docs/sprint4/UserC_Migration_Workflow_Handoff_CN.md).
 Map aggregation, reporting, announcements and actual performance/accessibility evidence
 are recorded in [the UserD handoff](docs/sprint4/UserD_Map_Reporting_Quality_CN.md).
+Reliable notification delivery, optional email, SLA and attachment compensation are recorded
+in [the UserE handoff](docs/sprint4/UserE_Notification_Attachment_SLA_Handoff_CN.md),
+including the verification steps still outstanding.
 
 Administrator and engineer workspaces, secure managed-account password setup and the next
 V23/V24 migrations are documented in [the role workspace handoff](docs/sprint3/Admin_Engineer_Workspaces_CN.md).

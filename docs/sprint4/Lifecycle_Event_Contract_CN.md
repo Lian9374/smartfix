@@ -1,5 +1,7 @@
 # C → E 状态事件与真实记录标识契约
 
+UserE 已消费 historyId、处理初始 null 来源并补持久化队列：BEFORE_COMMIT 只暂存意图，AFTER_COMMIT／后台扫描投递。下文旧监听器缺口是 UserC 当时记录，本轮已修复；实际验证与未执行验收见 [UserE 交接](UserE_Notification_Attachment_SLA_Handoff_CN.md)。事件字段没有再改动。
+
 日期：2026-10-13；实现 `367cc4f`。新增字段是内部 Java 契约的兼容扩展，不是新的公网 API 或新状态机。
 
 ## RequestStatusChangedEvent

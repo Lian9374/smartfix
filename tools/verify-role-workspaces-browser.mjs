@@ -30,6 +30,21 @@ try{
   browser=await launch({port:9341,width:1440,height:960});
   await login('role.qa.admin','ADMINISTRATOR');check('Administrator lands on real overview',await evaluate('location.pathname==="/admin"'));await layout('admin-overview');
   for(const [route,label] of [['/admin/requests','admin-queue'],['/admin/technicians','engineer-directory'],['/admin/facilities','facilities'],['/admin/users','accounts'],['/admin/reports','reports'],['/admin/announcements','announcements'],['/notifications','notifications'],['/campus-map','campus-map']]){await go(route);await layout(label);}
+  if (process.env.ROLE_ACCEPTANCE_USERE === 'true') {
+    for(const [route,label] of [['/admin/delivery','delivery-workspace'],['/admin/sla','sla-workspace'],['/admin/attachments/inspection','attachment-inspection']]){await go(route);await layout(label);}
+    await go('/admin/sla');
+    check('SLA has no guessed enabled production policy',await evaluate(`document.body.innerText.includes('no enabled policies')`));
+    await type('#sla-duration','30');await type('#sla-reminder','5');
+    await activate('form[action="/admin/sla/policies"] button[type=submit], form[action="/admin/sla/policies"] button',true);
+    check('Real disabled SLA policy creation',await evaluate(`document.body.innerText.includes('Policy saved.') && document.body.innerText.includes('30 min') && document.body.innerText.includes('Disabled')`));
+    await layout('sla-configured');
+    await go('/admin/delivery');
+    const contactId=await evaluate(`document.querySelector('input[type=email]')?.id`);
+    check('Existing account contact entry is present',!!contactId);
+    await type('#'+contactId,'fixture@example.test');
+    await activate('form[action$="/'+contactId.replace('contact-','')+'"] button',true);
+    check('Business contact update succeeds through real UI',await evaluate(`document.body.innerText.includes('Business email contact updated.')`));
+  }
   if (process.env.ROLE_ACCEPTANCE_USERD === 'true') {
     const measurements = await evaluate(`(async()=>{const rows=[];for(const route of ['/admin/reports','/admin/reports/export.csv?start=2000-01-01&end=2000-01-02','/campus-map','/campus-map/status','/admin/facilities','/admin/announcements']){const samples=[];for(let i=0;i<5;i++){const start=performance.now();const response=await fetch(route,{cache:'no-store'});const body=await response.text();samples.push({milliseconds:performance.now()-start,status:response.status,bytes:new TextEncoder().encode(body).length});}rows.push({route,samples});}return rows;})()`);
     check('UserD real endpoint measurement requests succeed',measurements.every(row=>row.samples.every(sample=>sample.status===200)));
@@ -75,6 +90,7 @@ try{
   await login(engineer,'TECHNICIAN');check('Temporary password forces setup',await evaluate('location.pathname==="/account/password"'));await layout('password-setup');
   await type('#current-password',password);await type('#new-password',changed);await type('#confirm-password',changed);await activate('main button[type=submit]');check('Password replacement signs out',await evaluate('location.pathname==="/login"&&location.search.includes("passwordChanged")'));
   await login(engineer,'TECHNICIAN',changed);check('Engineer lands on own workspace',await evaluate('location.pathname==="/technician"'));await layout('engineer-empty');
+  if(process.env.ROLE_ACCEPTANCE_USERE==='true')for(const route of ['/admin/delivery','/admin/sla','/admin/attachments/inspection'])check('Engineer cannot call '+route,await evaluate(`fetch(${JSON.stringify(route)}).then(r=>r.status)` )===403);
   await go('/technician/profile');await layout('engineer-profile');await tabTo('input[name=skills][value=ELECTRICAL]');await browser.press('Space');await tabTo('input[name=serviceAreaIds]');await browser.press('Space');await tabTo('input[name=availabilityStatus][value=AVAILABLE]');await browser.press('Space');await activate('main button[type=submit]');check('Engineer saves real coverage and availability',await evaluate('document.body.innerText.includes("Your technician profile was saved.")'));
   if (process.env.ROLE_ACCEPTANCE_USERB === 'true') {
     for (const route of ['/admin','/admin/users','/admin/requests']) {

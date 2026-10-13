@@ -63,26 +63,27 @@ public StoredAttachment store(MultipartFile file) {
             );
         }
 
+        Path temporary=uploadDirectory.resolve(storedFilename+".part");
         try {
             Files.createDirectories(uploadDirectory);
 
-            try (InputStream input = file.getInputStream()) {
-                Files.copy(
-                        input,
-                        target,
-                        StandardCopyOption.REPLACE_EXISTING
-                );
+            try (InputStream input = file.getInputStream();var output=Files.newOutputStream(temporary,java.nio.file.StandardOpenOption.CREATE_NEW)) {
+                byte[] buffer=new byte[8192];long size=0;int read;
+                while((read=input.read(buffer))!=-1){size+=read;if(size>properties.getMaxFileSize())throw new IOException("Attachment stream exceeds upload limit");output.write(buffer,0,read);}
             }
+            try{Files.move(temporary,target,StandardCopyOption.ATOMIC_MOVE);}
+            catch(java.nio.file.AtomicMoveNotSupportedException unsupported){Files.move(temporary,target);}
 
             return new StoredAttachment(
                     originalFilename,
                     storedFilename,
                     contentType,
-                    file.getSize(),
+                    Files.size(target),
                     target
             );
 
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
+            try{Files.deleteIfExists(temporary);}catch(IOException cleanup){e.addSuppressed(cleanup);}
             throw new IllegalStateException(
                     "Failed to store attachment.",
                     e
@@ -119,7 +120,7 @@ public Resource loadAsResource(String storedFilename) {
         Resource resource =
                 new UrlResource(target.toUri());
 
-        if (!resource.exists()
+        if (!Files.isRegularFile(target,java.nio.file.LinkOption.NOFOLLOW_LINKS) || !resource.exists()
                 || !resource.isReadable()) {
             throw new IllegalStateException(
                     "Stored attachment is unavailable."

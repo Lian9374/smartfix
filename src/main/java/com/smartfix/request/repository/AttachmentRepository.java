@@ -10,6 +10,9 @@ import com.smartfix.request.domain.Attachment;
 public interface AttachmentRepository
         extends JpaRepository<Attachment, Long> {
 
+    @org.springframework.data.jpa.repository.Query("select a.storedFilename from Attachment a")
+    List<String> storedKeys();
+
     List<Attachment> findAllByRequestIdOrderByIdAsc(
             Long requestId
     );

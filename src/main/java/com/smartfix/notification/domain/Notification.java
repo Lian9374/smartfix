@@ -144,6 +144,7 @@ public class Notification {
 
     /** Only generate links for a known event; never accept a user-supplied URL. */
     public String getTargetUrl() {
+        if(referenceId!=null&&("SLA_BREACHED".equals(eventType)||"SLA_DUE_SOON".equals(eventType)))return "/admin/sla";
         return referenceId != null && ("COMMUNITY_ANSWER_CREATED".equals(eventType)
                 || "COMMUNITY_ANSWER_ACCEPTED".equals(eventType))
                 ? "/community/questions/" + referenceId : null;

@@ -18,6 +18,8 @@ UserA 的实际整改、验证结果和剩余发布门禁见
 [UserC 交接](docs/sprint4/UserC_Migration_Workflow_Handoff_CN.md)。
 地图聚合查询、报表、公告及性能／可访问性验证见
 [UserD 交接](docs/sprint4/UserD_Map_Reporting_Quality_CN.md)。
+可靠投递、可选业务邮件、SLA、附件补偿及尚未执行的验收见
+[UserE 交接](docs/sprint4/UserE_Notification_Attachment_SLA_Handoff_CN.md)。
 
 这份中文 README 是**中文上手指南**，面向刚加入团队、还在熟悉
 Spring Boot / Maven / Git / Docker / PostgreSQL / 分层架构 / Modular Monolith

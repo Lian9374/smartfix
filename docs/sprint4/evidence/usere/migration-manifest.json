@@ -1,0 +1,130 @@
+{
+  "algorithm": "SHA-256 of actual local file bytes; not Flyway CRC32",
+  "files": [
+    {
+      "filename": "V1__baseline.sql",
+      "version": 1,
+      "sha256": "0f986cbc21ab5b8f412311e389ddf121958001de56b58811af742ca22c7f6f02"
+    },
+    {
+      "filename": "V2__create_users.sql",
+      "version": 2,
+      "sha256": "04ea02909507cc1c6175a70a4b5c287d3900bc3e4c17c1d141adccfe9e41ff4c"
+    },
+    {
+      "filename": "V3__create_locations.sql",
+      "version": 3,
+      "sha256": "ad2a5ca340e44aead473923d22a0a11f2864ea27e5f3891dee4969e67b3cbce0"
+    },
+    {
+      "filename": "V4__create_maintenance_requests.sql",
+      "version": 4,
+      "sha256": "63bab694e050434edc300663c7d5e94b7405c2df7dab55da5319097b9af8f796"
+    },
+    {
+      "filename": "V5__create_request_attachments.sql",
+      "version": 5,
+      "sha256": "66520e052803127a9e65565a327825f3f9321b27fc9e53aebcaa24c7c3e54bff"
+    },
+    {
+      "filename": "V6__create_request_status_history.sql",
+      "version": 6,
+      "sha256": "57e461a2716b6477d4c5e35a98a02df6acda6ccaf3c8bbb4357176e1be0e43d9"
+    },
+    {
+      "filename": "V7__extend_request_lifecycle.sql",
+      "version": 7,
+      "sha256": "59b1e43f55db701045dae5d2846d3109b4dcdd609ddf2525c35d53b0a01a97ec"
+    },
+    {
+      "filename": "V8__create_work_orders.sql",
+      "version": 8,
+      "sha256": "2cd3658593a23bb0f228b39e8517be5467eb4bcfdf22cbe2fc6e17e1448a5280"
+    },
+    {
+      "filename": "V9__create_request_feedback.sql",
+      "version": 9,
+      "sha256": "8be885180955ffc57d87d86c0e791655f3efd2597682c2f6b342999147e2fde4"
+    },
+    {
+      "filename": "V10__create_technician_profiles.sql",
+      "version": 10,
+      "sha256": "969d9e4d7ecb00f612394385bc83f4f3fd23305fbe198296df78b9b1e5a9d2d0"
+    },
+    {
+      "filename": "V11__create_assignments.sql",
+      "version": 11,
+      "sha256": "cdc5a5894a5ac987f72778edffc22d081aba0984272d88bdd2b91f3cdf14f2f9"
+    },
+    {
+      "filename": "V12__create_facilities.sql",
+      "version": 12,
+      "sha256": "de407d2cd56618d7da29bec590df9e11fe544a60ee5f2756f113b98960c876ac"
+    },
+    {
+      "filename": "V14__create_notifications.sql",
+      "version": 14,
+      "sha256": "00f087bd089ba6ae542e4a530cacb4fedef6641dc582cd20d945a489efa278cf"
+    },
+    {
+      "filename": "V16__create_announcements.sql",
+      "version": 16,
+      "sha256": "cf127a07fe7efc9c2aab7f3309774a2a5c9915915ffd145847c7c26f372e8a70"
+    },
+    {
+      "filename": "V17__create_community_questions_and_answers.sql",
+      "version": 17,
+      "sha256": "94651bb3f6eaddd6f556310a050caee8db0989e2999f8c140209a80cc99cd90d"
+    },
+    {
+      "filename": "V18__add_community_accepted_answer_constraint.sql",
+      "version": 18,
+      "sha256": "7d2717b89acd46c4eaa842b669e2731993a8c0fcdcd377211b8d039f4a4de919"
+    },
+    {
+      "filename": "V19__create_community_reports.sql",
+      "version": 19,
+      "sha256": "74f6b2f6bf6ffcfa3fa6c0526988630d84bb9152a4057c652c8e4c5ea7794a6f"
+    },
+    {
+      "filename": "V20__create_notifications.sql",
+      "version": 20,
+      "sha256": "e75d0dfb5e3cec97fc2a8bd3cd15164e1f43c8df45f0ce159361f74cd4e044df"
+    },
+    {
+      "filename": "V21__create_audit_entries.sql",
+      "version": 21,
+      "sha256": "ac929f374b017749c94d5a0c9d7df2525a9d152d1d5274ffbab8b240d81aa6e4"
+    },
+    {
+      "filename": "V22__add_verified_nus_building_locations.sql",
+      "version": 22,
+      "sha256": "eb7704a0b63ce4eb2b246376e2ce28118f16744c1f1dfb7d016dce0d1697d7ff"
+    },
+    {
+      "filename": "V23__add_dispatch_and_technician_support.sql",
+      "version": 23,
+      "sha256": "41422c45ff9b9d80b23afe6c13f947dcb81b60a3228783888874a4df298ea687"
+    },
+    {
+      "filename": "V24__secure_account_initialization_and_passwords.sql",
+      "version": 24,
+      "sha256": "7a62d8d8be2a31fef1893e16556c91e5f44cc5ce7aa97370bab73b018c2b6d09"
+    },
+    {
+      "filename": "V25__reconcile_notification_schema.sql",
+      "version": 25,
+      "sha256": "949e7a44fb408480b88d4f231532ab98356ea6a8bfaa6c2b150b0e04044f9e42"
+    },
+    {
+      "filename": "V26__create_delivery_tasks.sql",
+      "version": 26,
+      "sha256": "a899c767996e47852f75a80c85a199a1437c53c0abaae1c32d6ee414290ca632"
+    },
+    {
+      "filename": "V27__add_notification_contacts_and_sla.sql",
+      "version": 27,
+      "sha256": "938829f7b0914abc53eeb9b1e38c2949dcd86cc58d3e9ac44d644777c06179dd"
+    }
+  ]
+}

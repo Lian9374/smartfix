@@ -17,14 +17,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.smartfix.notification.service.NotificationService;
+import com.smartfix.notification.service.DeliveryOutboxService;
 import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.event.RequestStatusChangedEvent;
 import com.smartfix.workorder.event.WorkOrderCompletedEvent;
 
 class NotificationEventListenerTest {
 
-    private NotificationService notificationService;
+    private DeliveryOutboxService notificationService;
     private NotificationEventListener listener;
 
     private static final Instant NOW =
@@ -32,8 +32,14 @@ class NotificationEventListenerTest {
 
     @BeforeEach
     void setUp() {
-        notificationService = mock(NotificationService.class);
+        notificationService = mock(DeliveryOutboxService.class);
         listener = new NotificationEventListener(notificationService);
+    }
+
+    @Test
+    void initialSubmissionAndStableHistoryIdAreSupported(){
+        listener.on(new RequestStatusChangedEvent(100L,"SF-2026-000001",10L,null,RequestStatus.SUBMITTED,10L,NOW,99L));
+        verify(notificationService).enqueue(eq(10L),eq("REQUEST_STATUS_CHANGED"),anyString(),anyString(),eq(100L),eq("REQUEST_STATUS_CHANGED:100:HISTORY:99"));
     }
 
     @Test
@@ -52,7 +58,7 @@ class NotificationEventListenerTest {
 
         listener.on(event);
 
-        verify(notificationService).createNotification(
+        verify(notificationService).enqueue(
                 eq(10L),
                 eq("REQUEST_STATUS_CHANGED"),
                 eq("Maintenance Request Updated"),
@@ -77,7 +83,7 @@ class NotificationEventListenerTest {
 
         listener.on(event);
 
-        verify(notificationService).createNotification(
+        verify(notificationService).enqueue(
                 eq(10L),
                 eq("WORK_ORDER_COMPLETED"),
                 eq("Maintenance Work Completed"),
@@ -108,7 +114,7 @@ class NotificationEventListenerTest {
                 ArgumentCaptor.forClass(String.class);
 
         verify(notificationService, times(2))
-                .createNotification(
+                .enqueue(
                         eq(10L),
                         eq("REQUEST_STATUS_CHANGED"),
                         anyString(),
@@ -143,7 +149,7 @@ class NotificationEventListenerTest {
                 ArgumentCaptor.forClass(String.class);
 
         verify(notificationService, times(2))
-                .createNotification(
+                .enqueue(
                         eq(10L),
                         eq("WORK_ORDER_COMPLETED"),
                         anyString(),
@@ -159,7 +165,7 @@ class NotificationEventListenerTest {
     }
 
     @Test
-    void notificationFailureDoesNotPropagate() {
+    void durableStagingFailurePropagatesToProtectAtomicity() {
 
         RequestStatusChangedEvent event =
                 new RequestStatusChangedEvent(
@@ -172,15 +178,15 @@ class NotificationEventListenerTest {
                         NOW
                 );
 
-        when(notificationService.createNotification(
+        org.mockito.Mockito.doThrow(new IllegalStateException("Database unavailable")).when(notificationService).enqueue(
                 anyLong(),
                 anyString(),
                 anyString(),
                 anyString(),
                 anyLong(),
                 anyString()
-        )).thenThrow(new IllegalStateException("Database unavailable"));
+        );
 
-        assertDoesNotThrow(() -> listener.on(event));
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalStateException.class,() -> listener.on(event));
     }
 }

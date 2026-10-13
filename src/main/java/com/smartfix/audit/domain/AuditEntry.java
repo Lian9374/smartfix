@@ -8,7 +8,7 @@ import java.time.Instant;
 public class AuditEntry {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, name = "actor_user_id") private Long actorUserId;
+    @Column(name = "actor_user_id") private Long actorUserId;
     @Column(nullable = false, length = 80) private String action;
     @Column(nullable = false, name = "target_type", length = 30) private String targetType;
     @Column(nullable = false, name = "target_id") private Long targetId;
@@ -16,6 +16,9 @@ public class AuditEntry {
     @Column(nullable = false, name = "occurred_at") private Instant occurredAt;
 
     protected AuditEntry() {}
+    public static AuditEntry system(String action,String targetType,Long targetId,String outcome,Instant when){
+        var entry=new AuditEntry();entry.action=java.util.Objects.requireNonNull(action);entry.targetType=java.util.Objects.requireNonNull(targetType);entry.targetId=java.util.Objects.requireNonNull(targetId);entry.outcome=java.util.Objects.requireNonNull(outcome);entry.occurredAt=java.util.Objects.requireNonNull(when);return entry;
+    }
     public AuditEntry(Long actorUserId, String action, String targetType, Long targetId,
                       String outcome, Instant occurredAt) {
         this.actorUserId = java.util.Objects.requireNonNull(actorUserId);
