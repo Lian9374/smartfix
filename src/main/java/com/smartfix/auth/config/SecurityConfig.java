@@ -51,6 +51,7 @@ public class SecurityConfig {
                         // account module leaks. CSRF still applies to the POST - the page
                         // carries the token like every other write does.
                         .requestMatchers(HttpMethod.GET, "/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/register").permitAll()
                         .requestMatchers(HttpMethod.GET, "/", "/home", "/campus-map", "/campus-map/status")
                         .authenticated()
 
