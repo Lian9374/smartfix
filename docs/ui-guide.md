@@ -4,6 +4,28 @@ Administrator and engineer pages now share the application shell: `/admin`, `/te
 dispatch, profile and password setup. See [the role workspace handoff](sprint3/Admin_Engineer_Workspaces_CN.md)
 for real routes, supported actions, UI states and validation evidence.
 
+Sprint 4 shared quality rules are maintained by UserA:
+
+- Keep the existing teal/mint/cream design and contextual creation buttons. Do not
+  add New request as another global navigation item.
+- Use one h1, a bounded content container and card headers for related content.
+  Show each count once; distinguish primary actions from secondary navigation.
+- Every signed-in shell exposes Skip to main content before navigation. The
+  shared accessibility script focuses `#main-content` without adding it to Tab order.
+- Keep visible keyboard focus, linked labels/errors and text labels for statuses.
+  Respect reduced-motion preferences; mobile navigation remains usable without JavaScript.
+- Community POST forms announce Saving, prevent a second submit while pending,
+  and clear busy state on back/forward restoration. Server validation and business
+  idempotency remain authoritative; this is only a user-interface safeguard.
+- Success feedback uses status announcements and errors use alerts. Do not mark
+  every character-count keystroke as a live alert.
+- Each module owner adapts their own pages; shared CSS changes are coordinated
+  through UserA. Physical-device and screen-reader evidence is recorded separately
+  from browser viewport simulation.
+
+See [Sprint 4 release acceptance](sprint4/UserA_Release_Acceptance_CN.md) for this
+iteration's evidence and remaining release gates.
+
 How the web pages are built, and how to add one without inventing a second style.
 Everything here is Thymeleaf, CSS and a small amount of plain JavaScript — no frontend
 build step, no framework, no external font or icon service. Community forms, lists and moderation actions work without JavaScript. Progressive
