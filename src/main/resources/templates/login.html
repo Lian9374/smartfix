@@ -3,16 +3,9 @@
   Sign-in page: the product's front door, composed as one page rather than as a
   white card dropped onto a coloured background.
 
-  Desktop is a 54:46 split. The brand side holds the mark, the statement and the
-  campus drawing; the form side is a warm off-white panel the form sits directly
-  on, with no card, no border and no shadow around it - the split itself is the
-  structure, and boxing the form as well would draw a second, competing edge next
-  to the one that is already there.
-
-  On phones the brand side collapses to a short band: the mark, the statement and
-  the sentence, with the drawing dropped. The form is the only thing a visitor
-  came for, so it stays within the first screen rather than below a full-height
-  illustration.
+  Desktop uses a 48:52 split with a campus PNG and optional feature explorer.
+  On phones the brand becomes a compact band with a small decorative image.
+  Login-only CSS is loaded by the shared head; registration is unaffected.
 
   The form posts to Spring Security's own /login with the field names it expects,
   and th:action is what makes Thymeleaf inject the CSRF token - POST /login is
@@ -28,7 +21,7 @@
   <title>Sign in · SmartFix</title>
 </head>
 <body>
-<div class="auth">
+<div class="auth auth--refresh" data-login-page>
 
   <!--
     Brand side. The mark is pinned to the top with the panel's own padding, the
@@ -42,6 +35,7 @@
     </p>
 
     <div class="auth__intro-body">
+      <span class="login-eyebrow">A LITTLE CARE. A BETTER CAMPUS.</span>
       <!--
         One sentence, broken by the measure and not by a <br>: a forced break
         has to be right at every width, and it is not - it survives into the
@@ -53,7 +47,7 @@
         A better campus, one fix at a time.
       </p>
       <p class="auth__text">
-        Keep track of facility issues and your maintenance requests.
+        Report a problem. We’ll help take it from there.
       </p>
     </div>
 
@@ -61,16 +55,29 @@
       Decorative. The drawing is aria-hidden inside the fragment, and the
       statement above it carries the meaning, so nothing here is announced.
     -->
-    <div class="auth__art" th:insert="~{fragments/illustrations :: campusHero}">
-      <span class="visually-hidden">Campus illustration</span>
+    <div class="login-scene" aria-hidden="true">
+      <div class="login-scene__halo"></div>
+      <img class="login-scene__image" th:src="@{/images/campus-maintenance.png}" width="1312" height="1200" alt="" fetchpriority="high" draggable="false">
+      <span class="login-scene__label login-scene__label--top"><span>✦</span> Made for campus life</span>
+      <span class="login-scene__label login-scene__label--bottom"><span>✓</span> Every small fix matters</span>
+    </div>
+
+    <div class="login-explorer" aria-label="Discover SmartFix">
+      <div class="login-explorer__options" data-login-explorer hidden>
+        <button type="button" class="login-feature" data-login-feature="report" aria-pressed="true" aria-controls="login-feature-copy"><span aria-hidden="true">↗</span> Report</button>
+        <button type="button" class="login-feature" data-login-feature="track" aria-pressed="false" aria-controls="login-feature-copy"><span aria-hidden="true">◷</span> Track</button>
+        <button type="button" class="login-feature" data-login-feature="connect" aria-pressed="false" aria-controls="login-feature-copy"><span aria-hidden="true">✧</span> Connect</button>
+      </div>
+      <p id="login-feature-copy" aria-live="polite" aria-atomic="true">A clear location and a photo help tell the story.</p>
     </div>
   </section>
 
   <div class="auth__panel">
     <main class="auth__form" id="main-content">
       <div class="alert alert--success" role="status" th:if="${param.passwordChanged}">Password changed. Sign in with your new password.</div>
-      <h1 class="auth__form-title">Welcome back</h1>
-      <p class="auth__form-subtitle">Sign in to your SmartFix account.</p>
+      <span class="login-eyebrow login-eyebrow--form">YOUR CAMPUS STARTS HERE</span>
+      <h1 class="auth__form-title">Welcome back<span class="login-title-dot" aria-hidden="true">.</span></h1>
+      <p class="auth__form-subtitle">Good to see you. Let’s get you signed in.</p>
 
       <!--
         Query-parameter feedback from Spring Security's redirects. The condition
@@ -192,9 +199,11 @@
             <button type="button" class="password-toggle" id="password-toggle"
                     data-password-toggle aria-controls="password" hidden>Show</button>
           </div>
+          <p class="login-caps-lock" id="login-caps-lock" role="status" hidden>Caps Lock is on.</p>
         </div>
 
-        <button type="submit" class="btn btn--primary btn--block">Sign in</button>
+        <button type="submit" class="btn btn--primary btn--block login-submit"><span data-login-submit-label>Sign in</span><span aria-hidden="true">↗</span></button>
+        <p class="visually-hidden" role="status" data-login-submit-status></p>
       </form>
 
       <!--
@@ -205,24 +214,18 @@
         to that option rather than as the page's registration entry, and where it was
         reachable only after the choice had already been made.
 
-        Only a requester can register, so the link says so and the line under it says
-        who creates the other two, which is the question the other two options raise.
+        Only a requester can register, so the link names that account type.
       -->
       <p class="auth__register">
         New to SmartFix?
         <a th:href="@{/register}">Create a requester account</a>
       </p>
-      <p class="auth__register-note">
-        Technician and administrator accounts are created by an administrator.
-      </p>
-
-      <p class="auth__footnote">
-        Trouble signing in? Contact your administrator.
-      </p>
+      <div class="login-signoff" aria-label="SmartFix campus services"><span class="login-signoff__mark" aria-hidden="true"><svg th:replace="~{fragments/layout :: mark}"></svg></span><span>Small fixes. Better days.</span><span class="login-signoff__spark" aria-hidden="true">✦</span></div>
     </main>
   </div>
 </div>
 
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/js/login.js(v='20261015')}" defer></script>
 </body>
 </html>

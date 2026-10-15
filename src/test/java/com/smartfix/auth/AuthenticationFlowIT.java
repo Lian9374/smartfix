@@ -487,7 +487,8 @@ class AuthenticationFlowIT {
         assertThat(checkedValue(page)).as("the default selection").isEqualTo(Role.REQUESTER.name());
 
         // The way to get an account is one link, under the button rather than inside the
-        // bar, and one muted line saying who creates the other two kinds of account.
+        // bar. Managed-account onboarding stays a backend rule, not a paragraph
+        // of sign-in page copy; the visual refresh intentionally removes that line.
         assertThat(occurrences(page, "href=\"/register\"")).isEqualTo(1);
         assertThat(page.indexOf("href=\"/register\""))
                 .as("the register entry sits below the sign-in button")
@@ -495,8 +496,9 @@ class AuthenticationFlowIT {
         assertThat(page.indexOf("href=\"/register\""))
                 .as("and outside the account-type bar")
                 .isGreaterThan(page.indexOf("</fieldset>"));
-        assertThat(occurrences(page,
-                "Technician and administrator accounts are created by an administrator.")).isEqualTo(1);
+        assertThat(page).doesNotContain(
+                "Technician and administrator accounts are created by an administrator.",
+                "Contact your administrator.");
     }
 
     /**

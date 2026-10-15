@@ -23,6 +23,37 @@
   <img class="dashboard-hero__art" th:src="@{/images/campus-maintenance.png}" width="320" height="296" alt="" fetchpriority="high">
 </section>
 
+      <section class="card announcement-carousel" aria-labelledby="campus-updates-title" data-announcement-carousel>
+        <div class="module-header">
+          <div class="module-heading"><span class="module-symbol" aria-hidden="true">✦</span><h2 id="campus-updates-title">Campus updates</h2></div>
+          <a class="card__link" th:href="@{/announcements}">All announcements <span aria-hidden="true">↗</span></a>
+        </div>
+        <div class="announcement-empty" th:if="${#lists.isEmpty(announcements)}">
+          <span class="announcement-empty__mark" aria-hidden="true">✓</span>
+          <div><strong>You’re all caught up</strong><p>New campus notices will appear here.</p></div>
+        </div>
+        <div th:unless="${#lists.isEmpty(announcements)}">
+          <div class="announcement-track" id="home-announcement-track" tabindex="0" aria-label="Campus announcements. Scroll to read more." data-announcement-track>
+            <article class="announcement-slide" th:each="announcement, item : ${announcements}" th:attr="aria-label=|Announcement ${item.count} of ${item.size}|">
+              <div class="announcement-slide__art" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none"><rect x="22" y="17" width="58" height="70" rx="12" fill="#fffdf4"/><path d="M36 36h30M36 48h30M36 60h18" stroke="#49766b" stroke-width="5" stroke-linecap="round"/><circle cx="24" cy="74" r="18" fill="#efd18c"/><path d="m17 74 5 5 10-11" stroke="#345b51" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <div class="announcement-slide__copy">
+                <span class="section-kicker">CAMPUS NOTICE</span>
+                <h3 th:text="${announcement.title}">Campus notice</h3>
+                <p th:text="${announcement.content}">Announcement details</p>
+                <a th:href="@{/announcements} + |#announcement-${announcement.id}|">Read announcement <span aria-hidden="true">→</span></a>
+              </div>
+            </article>
+          </div>
+          <div class="announcement-controls" th:if="${#lists.size(announcements) > 1}" data-announcement-controls hidden>
+            <span class="announcement-position" role="status" aria-live="polite" aria-atomic="true" data-announcement-position></span>
+            <div class="announcement-buttons">
+              <button type="button" aria-label="Previous announcement" aria-controls="home-announcement-track" data-announcement-prev><span aria-hidden="true">←</span></button>
+              <button type="button" aria-label="Next announcement" aria-controls="home-announcement-track" data-announcement-next><span aria-hidden="true">→</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="card campus-map-promo" aria-labelledby="campus-map-title">
         <span class="campus-map-promo__icon"><svg th:replace="~{fragments/ui-icons :: map}"></svg></span>
         <div><h2 id="campus-map-title">Explore campus</h2><p>Find buildings and check facility availability.</p></div>
@@ -195,5 +226,6 @@
 </div>
 
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/js/announcement-carousel.js}" defer></script>
 </body>
 </html>
