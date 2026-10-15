@@ -32,6 +32,26 @@ class AnnouncementControllerTest {
     private AnnouncementService announcements;
 
     @Test
+    void announcementDetailFormatsSingaporeDatesAndPreservesSafeContent() throws Exception {
+        var from = Instant.parse("2026-10-14T01:00:00Z");
+        when(announcements.listVisible()).thenReturn(List.of(new AnnouncementResponse(42L,
+                "Library maintenance", "Entrance A is closed.\nPlease use Entrance B. <script>unsafe</script>",
+                com.smartfix.announcement.domain.AnnouncementStatus.PUBLISHED,
+                from, from.plusSeconds(3600), from, from, null)));
+        var rendered = mvc.perform(get("/announcements").with(user(account(Role.REQUESTER))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("14 Oct 2026 · 09:00")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"announcement-42\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("&lt;script&gt;unsafe&lt;/script&gt;")))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        if (System.getProperty("smartfix.ui.captureDir") != null) {
+            var capture = java.nio.file.Path.of(System.getProperty("smartfix.ui.captureDir"));
+            java.nio.file.Files.createDirectories(capture);
+            java.nio.file.Files.writeString(capture.resolve("announcements.html"), rendered);
+        }
+    }
+
+    @Test
     void publicPageShowsVisibleAnnouncements() throws Exception {
         when(announcements.listVisible()).thenReturn(List.of());
 

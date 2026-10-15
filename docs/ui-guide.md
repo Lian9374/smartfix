@@ -26,12 +26,30 @@ Sprint 4 shared quality rules are maintained by UserA:
 See [Sprint 4 release acceptance](sprint4/UserA_Release_Acceptance_CN.md) for this
 iteration's evidence and remaining release gates.
 
+The requester home page now shows up to six current published announcements using
+the existing announcement service. Notices support native horizontal scrolling,
+previous/next buttons and Arrow keys/Home/End when the track is focused. Adjacent
+slides animate; first/last jumps and reduced-motion navigation are immediate.
+There is no autoplay. JavaScript is optional: native scrolling and detail links
+remain usable; empty/single notices do not expose unnecessary navigation controls.
+Full announcement dates use Singapore time, and content stays escaped plain text.
+See [the October UI refinement record](sprint4/Home_Announcement_UI_Refinement_CN.md)
+for actual verification scope and commands.
+
 Engineer profile groups reference error descriptions only when those errors are
 rendered; invalid groups are programmatically focusable with tabindex=-1. The
 UserB browser negative case verifies the real 400 response and first-error focus.
 See [UserB handoff](sprint4/UserB_Access_Dispatch_Handoff_CN.md).
 
 How the web pages are built, and how to add one without inventing a second style.
+
+The refreshed login at `/login` uses `.auth--refresh` and login-only
+`static/css/login.css`, loaded conditionally by the shared head. It has a 48:52
+desktop split, a 480px form, the existing campus PNG, and an optional feature
+explorer. On phones the artwork becomes a small header decoration. Registration
+keeps the base auth layout. Motion respects reduced-motion preferences; server
+authentication, CSRF and native role radios remain unchanged. The login script
+does not store credentials. See [login refinement notes](sprint4/Login_Visual_Refresh_CN.md).
 Everything here is Thymeleaf, CSS and a small amount of plain JavaScript — no frontend
 build step, no framework, no external font or icon service. Community forms, lists and moderation actions work without JavaScript. Progressive
 enhancements include mobile navigation, password reveal, form counters/error focus and

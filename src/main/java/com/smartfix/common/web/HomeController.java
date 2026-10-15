@@ -1,6 +1,7 @@
 package com.smartfix.common.web;
 
 import com.smartfix.auth.security.SmartFixUserDetails;
+import com.smartfix.announcement.service.AnnouncementService;
 import com.smartfix.request.service.RequestAssignmentAccessService;
 import com.smartfix.request.service.RequestQueryService;
 import com.smartfix.user.domain.Role;
@@ -43,11 +44,14 @@ public class HomeController {
     private final RequestQueryService requestQueryService;
 
     private final RequestAssignmentAccessService assignments;
+    private final AnnouncementService announcements;
 
     public HomeController(
-            RequestQueryService requestQueryService, RequestAssignmentAccessService assignments) {
+            RequestQueryService requestQueryService, RequestAssignmentAccessService assignments,
+            AnnouncementService announcements) {
         this.requestQueryService = requestQueryService;
         this.assignments = assignments;
+        this.announcements = announcements;
     }
 
     @GetMapping({"/", "/home"})
@@ -58,6 +62,8 @@ public class HomeController {
         model.addAttribute("tagline", "Campus Facility Maintenance and Technician Dispatch System");
         model.addAttribute("username", principal.getUsername());
         model.addAttribute("role", principal.getRole().name());
+        // Reuse the public visibility rules: drafts, expired and future notices stay private.
+        model.addAttribute("announcements", announcements.listVisible().stream().limit(6).toList());
 
         if (principal.getRole() == Role.REQUESTER) {
             model.addAttribute("recentRequests", requestQueryService.listMyRequests(

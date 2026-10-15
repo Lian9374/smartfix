@@ -55,6 +55,56 @@ class HomeControllerTests {
 
     @MockitoBean
     private RequestQueryService requestQueryService;
+    @MockitoBean
+    private com.smartfix.announcement.service.AnnouncementService announcements;
+
+    @Test
+    void homeLimitsNoticePreviewAndProvidesMultipleSlideControls() throws Exception {
+        when(userService.getUserAccess(7L)).thenReturn(
+                new UserAccessResponse(7L, Role.REQUESTER, AccountStatus.ACTIVE, 0L));
+        when(requestQueryService.listMyRequests(7L, 0, 5)).thenReturn(List.of());
+        var now = java.time.Instant.parse("2026-10-14T00:00:00Z");
+        when(announcements.listVisible()).thenReturn(java.util.stream.LongStream.rangeClosed(1, 7)
+                .mapToObj(id -> new com.smartfix.announcement.dto.AnnouncementResponse(id,
+                        "Campus notice " + id, "Scheduled maintenance around campus. Please use the alternative entrance while work is underway.",
+                        com.smartfix.announcement.domain.AnnouncementStatus.PUBLISHED,
+                        now, null, now, now, null)).toList());
+        var principal = new SmartFixUserDetails(new UserAuthenticationData(
+                7L, "alice", "hash", Role.REQUESTER, AccountStatus.ACTIVE, 0L));
+        var rendered = mockMvc.perform(get("/").with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Announcement 6 of 6")))
+                .andExpect(content().string(not(containsString("Campus notice 7"))))
+                .andExpect(content().string(containsString("data-announcement-controls")))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        // Optional capture of the real rendered template for isolated visual verification.
+        if (System.getProperty("smartfix.ui.captureDir") != null) {
+            var capture = java.nio.file.Path.of(System.getProperty("smartfix.ui.captureDir"));
+            java.nio.file.Files.createDirectories(capture);
+            java.nio.file.Files.writeString(capture.resolve("home.html"), rendered);
+        }
+    }
+
+    @Test
+    void homeDisplaysEscapedVisibleAnnouncementAndFullDetailLink() throws Exception {
+        when(userService.getUserAccess(7L)).thenReturn(
+                new UserAccessResponse(7L, Role.REQUESTER, AccountStatus.ACTIVE, 0L));
+        when(requestQueryService.listMyRequests(7L, 0, 5)).thenReturn(List.of());
+        var now = java.time.Instant.parse("2026-10-14T00:00:00Z");
+        when(announcements.listVisible()).thenReturn(List.of(
+                new com.smartfix.announcement.dto.AnnouncementResponse(42L, "Library maintenance",
+                        "<script>alert(1)</script>", com.smartfix.announcement.domain.AnnouncementStatus.PUBLISHED,
+                        now, null, now, now, null)));
+        var principal = new SmartFixUserDetails(new UserAuthenticationData(
+                7L, "alice", "hash", Role.REQUESTER, AccountStatus.ACTIVE, 0L));
+        mockMvc.perform(get("/").with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Library maintenance")))
+                .andExpect(content().string(containsString("/announcements#announcement-42")))
+                .andExpect(content().string(containsString("&lt;script&gt;alert(1)&lt;/script&gt;")))
+                .andExpect(content().string(not(containsString("data-announcement-controls"))));
+        verify(announcements).listVisible();
+    }
 
     @Test
     @DisplayName("GET / renders the SmartFix home page")

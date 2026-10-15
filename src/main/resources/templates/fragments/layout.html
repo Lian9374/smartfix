@@ -45,6 +45,7 @@
   <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
   <link rel="stylesheet" th:href="@{/css/site.css}">
   <link rel="stylesheet" th:href="@{/css/visual-refresh.css}">
+  <link th:if="${pageTitle == 'Sign in'}" rel="stylesheet" th:href="@{/css/login.css(v='20261015')}">
   <!--
     Marks the document as script-enabled before first paint. The stylesheet only
     collapses navigation into a menu button for .js, so a browser that runs no

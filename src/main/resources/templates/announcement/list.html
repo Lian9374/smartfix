@@ -14,51 +14,47 @@
 
     <th:block th:replace="~{fragments/layout :: appbar('announcements')}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content announcements-page">
 
-      <div class="page-head-row">
+      <div class="card workspace-heading">
         <div class="page-head">
           <h1 class="page-head__title">Announcements</h1>
           <p class="page-head__subtitle">
-            Current campus maintenance announcements.
+            What’s happening around campus.
           </p>
         </div>
       </div>
 
-      <section class="card" aria-label="Current announcements">
-        <div class="card__body">
+      <section class="announcement-directory" aria-label="Current announcements">
 
-          <p th:if="${#lists.isEmpty(announcements)}">
-            No current announcements.
-          </p>
+          <div class="card announcement-empty" th:if="${#lists.isEmpty(announcements)}"><span class="announcement-empty__mark" aria-hidden="true">✓</span><div><h2>You’re all caught up</h2><p>No current announcements.</p></div></div>
 
-          <article th:each="announcement : ${announcements}">
-            <h2 th:text="${announcement.title}">
+          <article class="card announcement-detail" th:each="announcement : ${announcements}" th:id="|announcement-${announcement.id}|" th:attr="aria-labelledby=|announcement-title-${announcement.id}|">
+            <span class="section-kicker">CAMPUS NOTICE</span>
+            <h2 th:id="|announcement-title-${announcement.id}|" th:text="${announcement.title}">
               Announcement title
             </h2>
 
-            <p th:text="${announcement.content}">
+            <p class="announcement-detail__content" th:text="${announcement.content}">
               Announcement content
             </p>
 
-            <p>
-              <strong>Valid from:</strong>
-              <span th:text="${announcement.validFrom}">
+            <div class="announcement-dates"><p>
+              <span>From</span>
+              <time th:datetime="${announcement.validFrom}" th:text="${#temporals.format(announcement.validFrom.atZone(T(java.time.ZoneId).of('Asia/Singapore')), 'dd MMM yyyy · HH:mm')}">
                 Start time
-              </span>
+              </time>
             </p>
 
             <p th:if="${announcement.validTo != null}">
-              <strong>Valid until:</strong>
-              <span th:text="${announcement.validTo}">
+              <span>Until</span>
+              <time th:datetime="${announcement.validTo}" th:text="${#temporals.format(announcement.validTo.atZone(T(java.time.ZoneId).of('Asia/Singapore')), 'dd MMM yyyy · HH:mm')}">
                 End time
-              </span>
-            </p>
+              </time>
+            </p><span class="announcement-timezone">Singapore time</span></div>
 
-            <hr>
           </article>
 
-        </div>
       </section>
 
     </main>

@@ -53,9 +53,36 @@ class SecurityConfigTest {
     // collaborator is mocked like every other one here; the route matrix this test
     // exists for is unaffected by what the overview chooses to list.
     @MockitoBean private RequestQueryService requestQueryService;
+    @MockitoBean private com.smartfix.announcement.service.AnnouncementService announcements;
     // And its second one: the overview asks dispatch whether assigning is possible at all,
     // to decide what the technician's card says. Same reasoning as above.
     @MockitoBean private RequestAssignmentAccessService requestAssignmentAccessService;
+
+    @org.junit.jupiter.api.Test
+    void refreshedLoginRendersRealSecurityFormAndOptionalAssets() throws Exception {
+        var rendered = mvc.perform(get("/login"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("auth--refresh")))
+                .andExpect(content().string(containsString("/css/login.css?v=20261015")))
+                .andExpect(content().string(containsString("/images/campus-maintenance.png")))
+                .andExpect(content().string(containsString("name=\"_csrf\"")))
+                .andExpect(content().string(containsString("autocomplete=\"current-password\"")))
+                .andExpect(content().string(not(containsString("Contact your administrator"))))
+                .andExpect(content().string(not(containsString("Technician and administrator accounts are created"))))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        mvc.perform(get("/css/login.css")).andExpect(status().isOk());
+        mvc.perform(get("/js/login.js")).andExpect(status().isOk());
+        mvc.perform(get("/images/campus-maintenance.png")).andExpect(status().isOk());
+        if (System.getProperty("smartfix.login.captureDir") != null) {
+            var capture = java.nio.file.Path.of(System.getProperty("smartfix.login.captureDir"));
+            java.nio.file.Files.createDirectories(capture);
+            java.nio.file.Files.writeString(capture.resolve("login.html"), rendered);
+            var error = mvc.perform(get("/login?error=type&accountType=TECHNICIAN"))
+                    .andExpect(status().isOk()).andReturn().getResponse()
+                    .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+            java.nio.file.Files.writeString(capture.resolve("login-error.html"), error);
+        }
+    }
 
     private static final List<String> AUTHENTICATED_READS = List.of(
             "/community", "/community/mine", "/community/questions/new", "/community/questions/1",
