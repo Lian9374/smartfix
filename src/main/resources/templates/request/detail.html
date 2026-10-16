@@ -3,7 +3,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head(
     ${navRole == 'ADMINISTRATOR'}
-        ? |Request lookup / ${request.ticketNumber}|
+        ? |Requests / ${request.ticketNumber}|
         : (${navRole == 'TECHNICIAN'} ? |My work orders / ${request.ticketNumber}|
             : |My Requests / ${request.ticketNumber}|))}">
   <title>Request details · SmartFix</title>
@@ -11,19 +11,19 @@
 <body>
 <div class="app-shell">
   <th:block th:replace="~{fragments/layout :: sidebar(
-      ${navRole == 'ADMINISTRATOR'} ? 'request-lookup'
+      ${navRole == 'ADMINISTRATOR'} ? 'request-queue'
           : (${navRole == 'TECHNICIAN'} ? 'work-orders' : 'my-requests'))}"></th:block>
 
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar(
-        ${navRole == 'ADMINISTRATOR'} ? 'request-lookup'
+        ${navRole == 'ADMINISTRATOR'} ? 'request-queue'
             : (${navRole == 'TECHNICIAN'} ? 'work-orders' : 'my-requests'))}"></th:block>
 
-    <main id="main-content" class="content">
+    <main id="main-content" class="content request-workflow-detail workspace-page" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'admin-request-detail' : null">
       <div class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></div>
       <nav class="crumbs" aria-label="Breadcrumb">
         <a class="crumbs__link" th:if="${navRole == 'ADMINISTRATOR'}"
-           th:href="@{/admin/requests/lookup}">Request lookup</a><!--
+           th:href="@{/admin/requests}">Requests</a><!--
      --><a class="crumbs__link" th:unless="${navRole == 'ADMINISTRATOR'}"
            th:href="${navRole == 'TECHNICIAN'} ? @{/workorders/mine} : @{/requests/mine}"
            th:text="${navRole == 'TECHNICIAN'} ? 'My work orders' : 'My Requests'">My Requests</a><!--
@@ -32,7 +32,7 @@
               th:text="${request.ticketNumber}">SF-2026-000001</span>
       </nav>
 
-      <div class="page-head-row">
+      <div class="page-head-row request-detail-heading">
         <div class="page-head">
           <h1 class="page-head__title" th:text="${request.title}">Broken light</h1>
           <p class="page-head__subtitle">
@@ -50,13 +50,28 @@
           <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
 
           <a class="btn btn--secondary" th:if="${navRole == 'ADMINISTRATOR'}"
-             th:href="@{/admin/requests/lookup}">Back to request lookup</a>
+             th:href="@{/admin/requests}">Back to requests</a>
           <a class="btn btn--secondary" th:unless="${navRole == 'ADMINISTRATOR'}"
              th:href="${navRole == 'TECHNICIAN'} ? @{/workorders/mine} : @{/requests/mine}"
              th:text="${navRole == 'TECHNICIAN'} ? 'Back to my work orders' : 'Back to my requests'">Back to my requests</a>
         </div>
       </div>
 
+      <section class="request-next-step card" aria-label="Current repair stage">
+        <span class="section-kicker" th:text="${request.status.stage.label}"></span>
+        <p th:switch="${request.status.name()}">
+          <span th:case="'SUBMITTED'">Administrator reviews the request and assigns an engineer.</span>
+          <span th:case="'UNDER_REVIEW'">Administrator reviews the request and assigns an engineer.</span>
+          <span th:case="'ASSIGNED'">The assigned engineer can start the repair.</span>
+          <span th:case="'IN_PROGRESS'">The engineer is repairing the issue. User acceptance follows completion.</span>
+          <span th:case="'RESOLVED'">The requester must review the repair before the administrator can approve closure.</span>
+          <span th:case="'CONFIRMED'">The requester accepted the repair. The administrator must now approve or return it.</span>
+          <span th:case="'REOPENED'">Further repair is required. The assigned engineer can resume, or an administrator can reassign.</span>
+          <span th:case="'CLOSED'">The requester accepted the repair and the administrator approved closure.</span>
+          <span th:case="'REJECTED'">The administrator declined this request. See the reason in the history.</span>
+          <span th:case="*">This request was cancelled.</span>
+        </p>
+      </section>
       <div class="detail-layout">
         <!-- Summary. First in the markup so the phone layout reads it first. -->
         <aside class="detail-layout__aside" aria-labelledby="request-summary-title">
@@ -66,13 +81,13 @@
             </div>
             <div class="card__body">
               <dl class="detail-list">
-                <dt>Ticket number</dt>
+                <th:block th:unless="${navRole == 'ADMINISTRATOR'}"><dt>Ticket number</dt>
                 <dd class="data-table__id" th:text="${request.ticketNumber}">SF-2026-000001</dd>
 
                 <dt>Status</dt>
                 <dd>
                   <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
-                </dd>
+                </dd></th:block>
 
                 <dt>Location</dt>
                 <dd th:text="${request.locationDisplayName}">COM1 Level 1</dd>
@@ -80,7 +95,7 @@
                 <dt>Category</dt>
                 <dd th:text="${request.category}">ELECTRICAL</dd>
 
-                <dt>Urgency</dt>
+                <dt>Reported urgency</dt>
                 <dd>
                   <span th:replace="~{fragments/components :: urgencyBadge(${request.urgencyLevel})}">MEDIUM</span>
                 </dd>
@@ -103,7 +118,7 @@
         </aside>
 
         <div class="detail-layout__main">
-          <section class="card" aria-labelledby="description-title">
+          <section class="card request-description" aria-labelledby="description-title">
             <div class="card__header">
               <h2 class="card__title" id="description-title">Description</h2>
             </div>
@@ -115,12 +130,12 @@
           <!-- C3 presentation data is supplied by RequestPresentationService. -->
           <section class="card" th:if="${presentation != null}" aria-labelledby="request-actions-title">
             <div class="card__header">
-              <h2 class="card__title" id="request-actions-title">Request actions and details</h2>
+              <h2 class="card__title" id="request-actions-title" th:text="${navRole == 'ADMINISTRATOR'} ? 'Repair details &amp; next steps' : 'Request actions and details'">Request actions and details</h2>
             </div>
             <div class="card__body">
-              <h3>Photos</h3>
-              <p th:if="${#lists.isEmpty(presentation.attachments)}">No photos attached.</p>
-              <ul>
+              <h3 th:unless="${navRole == 'ADMINISTRATOR' and #lists.isEmpty(presentation.attachments)}">Photos</h3>
+              <p class="meta" th:if="${#lists.isEmpty(presentation.attachments) and navRole != 'ADMINISTRATOR'}">No photos attached.</p>
+              <ul th:unless="${#lists.isEmpty(presentation.attachments)}" class="request-attachments">
                 <li th:each="attachment : ${presentation.attachments}">
                   <a th:href="@{/requests/{ticket}/attachments/{id}(ticket=${request.ticketNumber},id=${attachment.id})}"
                      th:text="${attachment.originalFilename}">Download attachment</a>
@@ -128,8 +143,8 @@
               </ul>
 
               <th:block th:unless="${#lists.isEmpty(presentation.operationalDetails)}">
-                <h3>Operational details</h3>
-                <dl class="detail-list">
+                <h3 class="request-operational-heading" th:unless="${navRole == 'ADMINISTRATOR'}">Operational details</h3>
+                <dl class="detail-list request-operational-details">
                   <th:block th:each="item : ${presentation.operationalDetails}">
                     <dt th:text="${item.label}">Detail</dt>
                     <dd class="prose" th:text="${item.value}">Value</dd>
@@ -143,23 +158,34 @@
               <p class="prose" th:if="${presentation.feedbackComment != null}"
                  th:text="${presentation.feedbackComment}">Feedback</p>
 
+              <div class="request-detail-actions" th:if="${presentation.availableActions.contains('review') or presentation.availableActions.contains('dispatch')}">
+              <a class="btn btn--primary" th:if="${presentation.availableActions.contains('dispatch')}"
+                  th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Assign / manage engineer</a>
               <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('review')}"
                  th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}">Review request</a>
-              <a class="btn btn--secondary" th:if="${presentation.availableActions.contains('dispatch')}"
-                  th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}">Manage assignment</a>
+              </div>
 
               <form th:if="${presentation.availableActions.contains('cancel')}"
                     th:action="@{/requests/{ticket}/cancel(ticket=${request.ticketNumber})}" method="post">
                 <button class="btn btn--secondary" type="submit">Cancel request</button>
               </form>
               <form th:if="${presentation.availableActions.contains('confirm')}"
-                    th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post">
-                <button class="btn btn--primary" type="submit">Confirm solution</button>
+                    th:action="@{/requests/{ticket}/confirm(ticket=${request.ticketNumber})}" method="post" data-confirm="Accept this repair and send it for final administrator review?">
+                <p>Check the engineer’s solution above. Accept only if the issue is fixed; otherwise request further repair below.</p>
+                <button class="btn btn--primary" type="submit">Accept repair</button>
               </form>
-              <form th:if="${presentation.availableActions.contains('close')}"
-                    th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post">
-                <button class="btn btn--secondary" type="submit">Close request</button>
-              </form>
+              <section class="admin-final-review" id="final-review" th:if="${presentation.availableActions.contains('close')}">
+                <span class="section-kicker">Final administrator review</span><h3>Requester accepted the repair</h3><p>Review the solution and history before approving closure. Return it if further repair is needed.</p>
+                <form th:action="@{/requests/{ticket}/close(ticket=${request.ticketNumber})}" method="post" data-confirm="Approve the final review and close this request? Closed requests cannot be reopened.">
+                  <button class="btn btn--primary" type="submit">Approve &amp; close request</button>
+                </form>
+                <details th:open="${finalReviewInvalid == true}"><summary>Return for further repair</summary>
+                  <form th:action="@{/requests/{ticket}/return-for-repair(ticket=${request.ticketNumber})}" th:object="${finalReview}" method="post" data-confirm="Return this repair to the engineer? The requester must accept the repaired result again.">
+                    <div class="form-field"><label for="final-review-comment">What still needs fixing?</label><textarea id="final-review-comment" th:field="*{comment}" maxlength="500" rows="3" required th:attr="aria-invalid=${#fields.hasErrors('comment')} ? 'true' : null"></textarea><span class="form-field__error" th:errors="*{comment}"></span></div>
+                    <button class="btn btn--secondary" type="submit">Return for repair</button>
+                  </form>
+                </details>
+              </section>
               <form th:if="${presentation.availableActions.contains('reopen')}"
                     th:action="@{/requests/{ticket}/reopen(ticket=${request.ticketNumber})}"
                     th:object="${reopen}" method="post">

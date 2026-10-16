@@ -37,17 +37,41 @@ public class RequestConfirmationController {
         return new RequestLifecycleActionCommand();
     }
 
+    @ModelAttribute("finalReview")
+    public FinalReviewCommand finalReviewForm() { return new FinalReviewCommand(); }
+
     @PostMapping("/requests/{ticket}/confirm")
     public String confirm(
-            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p) {
+            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirect) {
         service.confirm(ticket, p.getUserId());
+        redirect.addFlashAttribute("successMessage", "Repair accepted. The request is now awaiting final administrator review.");
         return redirect(ticket);
     }
 
     @PostMapping("/requests/{ticket}/close")
     public String close(
-            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p) {
+            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirect) {
         service.close(ticket, p.getUserId());
+        redirect.addFlashAttribute("successMessage", "Final review approved. The request is closed.");
+        return redirect(ticket);
+    }
+
+    @PostMapping("/requests/{ticket}/return-for-repair")
+    public String returnForRepair(@PathVariable String ticket,
+            @Valid @ModelAttribute("finalReview") FinalReviewCommand command,
+            BindingResult errors, @AuthenticationPrincipal SmartFixUserDetails principal,
+            Model model, org.springframework.web.servlet.mvc.support.RedirectAttributes redirect,
+            jakarta.servlet.http.HttpServletResponse response) {
+        populateDetails(ticket, principal.getUserId(), model);
+        if (errors.hasErrors()) {
+            response.setStatus(400);
+            model.addAttribute("finalReviewInvalid", true);
+            return "request/detail";
+        }
+        service.returnForRepair(ticket, principal.getUserId(), command.getComment());
+        redirect.addFlashAttribute("successMessage", "Returned for repair. The engineer can resume work; the repaired result must be accepted again.");
         return redirect(ticket);
     }
 

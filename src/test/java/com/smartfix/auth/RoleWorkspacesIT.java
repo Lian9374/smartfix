@@ -29,6 +29,7 @@ class RoleWorkspacesIT {
     @Autowired UserService users;
     @Autowired AccountAdministrationService administration;
     @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+    @Autowired jakarta.persistence.EntityManager entityManager;
     @Autowired com.smartfix.request.service.RequestQueryService requests;
     Long admin, requester;
     final String password="TestPassword9";
@@ -54,8 +55,17 @@ class RoleWorkspacesIT {
     @Test void routesAndRealEmptyWorkspacesRender() throws Exception {
         mvc.perform(get("/").with(account("workspace.admin"))).andExpect(redirectedUrl("/admin"));
         mvc.perform(get("/").with(account("workspace.tech"))).andExpect(redirectedUrl("/technician"));
-        for(String route:new String[]{"/admin","/admin/users","/admin/technicians","/admin/requests"})
-            mvc.perform(get(route).with(account("workspace.admin"))).andExpect(status().isOk());
+        for(String route:new String[]{"/admin","/admin/users","/admin/technicians","/admin/requests"}) {
+            var rendered = mvc.perform(get(route).with(account("workspace.admin"))).andExpect(status().isOk()).andReturn();
+            if (route.equals("/admin/users") || route.equals("/admin/technicians")) {
+                String html = rendered.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+                var folder = java.nio.file.Path.of("target", "account-preview");
+                java.nio.file.Files.createDirectories(folder);
+                java.nio.file.Files.writeString(folder.resolve(route.endsWith("users") ? "accounts.html" : "engineers.html"), html);
+                if (route.endsWith("users")) assertThat(html).doesNotContain("href=\"/admin/users/new\"");
+                else assertThat(html).contains("/admin/users/new?role=TECHNICIAN");
+            }
+        }
         mvc.perform(get("/technician").with(account("workspace.tech"))).andExpect(status().isOk()).andExpect(content().string(not(containsString("href=\"/admin/users\""))));
     }
     @Test void managedEngineerMustChangePasswordBeforeUsingWorkspace() throws Exception {
@@ -72,6 +82,40 @@ class RoleWorkspacesIT {
                 .andExpect(redirectedUrl("/login?passwordChanged"));
         assertThat(users.getUserAccess(id).passwordChangeRequired()).isFalse();
         mvc.perform(get("/technician").with(account("managed.tech"))).andExpect(status().isOk());
+    }
+    @Test void facilityCreationUsesExistingLocationsAndAdministratorSecurity() throws Exception {
+        var folder = java.nio.file.Path.of("target", "steward-preview");
+        java.nio.file.Files.createDirectories(folder);
+        var empty = mvc.perform(get("/admin/facilities").with(account("workspace.admin")))
+                .andExpect(status().isOk()).andReturn();
+        java.nio.file.Files.writeString(folder.resolve("facilities-empty.html"), empty.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        jdbc.update("INSERT INTO locations(id,location_code,display_name,active) VALUES(60,'FACILITY-QA','Central Library Level 1',true)");
+        for (String actor : new String[]{"workspace.requester","workspace.tech"}) {
+            mvc.perform(post("/admin/facilities").with(account(actor)).with(csrf())
+                    .param("locationId","60").param("name","Water dispenser").param("status","OPERATIONAL"))
+                    .andExpect(status().isForbidden());
+        }
+        mvc.perform(post("/admin/facilities").with(account("workspace.admin")))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/admin/facilities").with(account("workspace.admin")).with(csrf())
+                .param("locationId","60").param("name"," ").param("status","OPERATIONAL"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/admin/facilities").with(account("workspace.admin")).with(csrf())
+                .param("locationId","999999").param("name","Missing location").param("status","OPERATIONAL"))
+                .andExpect(status().isBadRequest());
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM facilities",Long.class)).isZero();
+        mvc.perform(post("/admin/facilities").with(account("workspace.admin")).with(csrf())
+                .param("locationId","60").param("name"," Water dispenser ")
+                .param("description","Drinking water beside the reading room.").param("status","OPERATIONAL"))
+                .andExpect(redirectedUrl("/admin/facilities"));
+        Long facility = jdbc.queryForObject("SELECT id FROM facilities WHERE name='Water dispenser'",Long.class);
+        mvc.perform(post("/admin/facilities/"+facility+"/status").with(account("workspace.admin")).with(csrf())
+                .param("status","UNDER_MAINTENANCE")).andExpect(redirectedUrl("/admin/facilities"));
+        entityManager.flush(); // The test's outer transaction postpones the normal service commit.
+        assertThat(jdbc.queryForObject("SELECT status FROM facilities WHERE id=?",String.class,facility)).isEqualTo("UNDER_MAINTENANCE");
+        var populated = mvc.perform(get("/admin/facilities").with(account("workspace.admin")))
+                .andExpect(status().isOk()).andReturn();
+        java.nio.file.Files.writeString(folder.resolve("facilities.html"), populated.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
     }
     @Test void resetRequiresAdministratorPasswordAndForcesReplacement() throws Exception {
         Long target=users.findAuthenticationByUsername("workspace.tech").userId();

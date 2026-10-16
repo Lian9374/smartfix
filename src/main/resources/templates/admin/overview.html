@@ -2,21 +2,36 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Administration')}"><title>Administration · SmartFix</title></head>
 <body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('overview')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('overview')}"></th:block>
-<main id="main-content" class="content workspace-page">
-<section class="workspace-hero"><div><span class="section-kicker">Campus operations</span><h1>Administration</h1><p>Review requests, coordinate repairs and manage campus access.</p>
-<div class="form-actions"><a class="btn btn--primary" th:href="@{/admin/requests(status=SUBMITTED,sort=oldest)}">Review requests</a><a class="btn btn--secondary" th:href="@{/admin/users/new(role=TECHNICIAN)}">Create engineer account</a></div></div><img th:src="@{/images/campus-maintenance.png}" alt="" class="workspace-hero__art"></section>
-<div class="workspace-metrics" aria-label="Current request overview">
-<a class="workspace-metric" th:href="@{/admin/requests}"><span>All requests</span><strong th:text="${totalRequests}">0</strong><small>Across the campus</small></a>
-<a class="workspace-metric" th:href="@{/admin/requests(status=UNDER_REVIEW)}"><span>Awaiting review or dispatch</span><strong th:text="${reviewCount}">0</strong><small>Submitted + under review</small></a>
-<a class="workspace-metric" th:href="@{/admin/requests(status=IN_PROGRESS)}"><span>Repair pipeline</span><strong th:text="${repairCount}">0</strong><small>Assigned + in progress + reopened</small></a>
-<a class="workspace-metric" th:href="@{/admin/requests(status=CONFIRMED)}"><span>Ready for closure</span><strong th:text="${confirmationCount}">0</strong><small>Requester has confirmed</small></a></div>
-<div class="workspace-columns"><section class="card"><div class="card__header"><h2 class="card__title">Oldest submitted requests</h2><a th:href="@{/admin/requests(status=SUBMITTED,sort=oldest)}">View queue →</a></div><div class="card__body">
-<div th:if="${requests.empty}" class="workspace-empty"><h3>Queue is clear</h3><p>New submissions will appear here.</p></div>
-<div class="workspace-list" th:unless="${requests.empty}"><a class="workspace-list__item" th:each="request : ${requests.content}" th:href="@{/requests/{ticket}/review(ticket=${request.ticketNumber})}"><div><span class="meta" th:text="${request.ticketNumber}"></span><h3 th:text="${request.title}"></h3><p th:text="${request.locationDisplayName}"></p></div><span th:replace="~{fragments/components :: urgencyBadge(${request.priority})}"></span></a></div></div></section>
-<section class="card workspace-tools"><div class="card__header"><h2 class="card__title">Management</h2></div><div class="card__body">
-<a th:href="@{/admin/technicians}"><strong>Engineers</strong><span th:text="|${technicianCount} active accounts · skills and coverage|"></span></a>
-<a th:href="@{/admin/users}"><strong>Accounts &amp; access</strong><span>Create, change roles and reset passwords</span></a>
-<a th:href="@{/admin/facilities}"><strong>Facilities</strong><span>View facilities and update operational status</span></a>
-<a th:href="@{/admin/community/reports}"><strong>Community moderation</strong><span>Review reports and handled records</span></a>
-<a th:href="@{/admin/community/audit}"><strong>Audit trail</strong><span>Account and community operations</span></a></div></section></div></main>
-<th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>
+<main id="main-content" class="content workspace-page admin-workspace">
+  <section class="admin-hero">
+    <div class="admin-hero__copy"><span class="section-kicker">Campus operations</span><h1>Keep every repair moving.</h1><p>Assign engineers. Review completed repairs.</p>
+      <div class="admin-hero__actions">
+        <a class="btn btn--primary" th:href="@{/admin/requests(stage='TO_ASSIGN',sort='oldest')}">Assign requests <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
+        <a class="admin-hero__all" th:href="@{/admin/requests}">All requests <span th:text="${totalRequests}">0</span></a>
+      </div>
+    </div>
+    <div class="admin-hero__visual" aria-hidden="true"><img th:src="@{/images/admin-operations.png}" alt="" width="320" height="300" decoding="async"></div>
+  </section>
+  <nav class="admin-stages" aria-label="Request lifecycle">
+    <a th:each="stage, position : ${stages}" th:href="@{/admin/requests(stage=${stage},sort='oldest')}" th:attr="data-stage=${stage}">
+      <span class="admin-stages__icon" aria-hidden="true" th:switch="${stage.name()}">
+        <th:block th:case="'TO_ASSIGN'"><svg th:replace="~{fragments/ui-icons :: list}"></svg></th:block>
+        <svg th:case="'REPAIR'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4a5 5 0 0 0-5 7L3 17a2.5 2.5 0 0 0 4 4l6-6a5 5 0 0 0 7-6l-4 3-3-3 3-4Z"/></svg>
+        <svg th:case="'USER_REVIEW'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="9" cy="7" r="3"/><path d="M3 21v-3a6 6 0 0 1 11-3m2-2 2 2 4-5"/></svg>
+        <svg th:case="'ADMIN_REVIEW'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg>
+        <svg th:case="'FINISHED'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg>
+      </span><strong th:text="${stageCounts[stage.name()]}">0</strong><span th:text="${stage.label}"></span>
+    </a>
+  </nav>
+  <div class="admin-action-columns">
+    <section class="card admin-dispatch-card"><div class="card__header"><div><span class="section-kicker">Next up</span><h2 class="card__title">Ready to assign</h2></div><a th:href="@{/admin/requests(stage='TO_ASSIGN',sort='oldest')}">View all <span aria-hidden="true">↗</span></a></div>
+      <div th:if="${requests.empty}" class="workspace-empty"><span class="admin-empty-mark" aria-hidden="true">✓</span><h3>All assigned</h3><p>New requests will appear here.</p></div>
+      <div class="workspace-list" th:unless="${requests.empty}"><a class="workspace-list__item" th:each="request : ${requests.content}" th:href="@{/admin/requests/{ticket}/dispatch(ticket=${request.ticketNumber})}"><div><span class="meta" th:text="${request.ticketNumber}"></span><h3 th:text="${request.title}"></h3><p class="admin-request-location"><svg th:replace="~{fragments/ui-icons :: map}"></svg><span th:text="${request.locationDisplayName}"></span></p></div><span th:replace="~{fragments/components :: urgencyBadge(${request.priority})}"></span></a></div>
+    </section>
+    <section class="card admin-review-card"><div class="card__header"><div><span class="section-kicker">User accepted</span><h2 class="card__title">Final review</h2></div><a th:href="@{/admin/requests(stage='ADMIN_REVIEW',sort='oldest')}">View all <span aria-hidden="true">↗</span></a></div>
+      <div th:if="${finalReviews.empty}" class="workspace-empty"><span class="admin-empty-mark" aria-hidden="true">✓</span><h3>You’re all caught up</h3><p>Accepted repairs will appear here.</p></div>
+      <div class="workspace-list" th:unless="${finalReviews.empty}"><a class="workspace-list__item" th:each="request : ${finalReviews.content}" th:href="@{/requests/{ticket}(ticket=${request.ticketNumber})} + '#final-review'"><div><span class="meta" th:text="${request.ticketNumber}"></span><h3 th:text="${request.title}"></h3><p class="admin-request-location"><svg th:replace="~{fragments/ui-icons :: map}"></svg><span th:text="${request.locationDisplayName}"></span></p></div><span class="admin-row-arrow" aria-hidden="true">↗</span></a></div>
+    </section>
+  </div>
+  <details class="admin-records"><summary>Operational records</summary><div><a th:href="@{/admin/community/audit}">Account &amp; moderation audit</a><a th:href="@{/admin/sla}">Maintenance deadlines &amp; SLA</a></div></details>
+</main><th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

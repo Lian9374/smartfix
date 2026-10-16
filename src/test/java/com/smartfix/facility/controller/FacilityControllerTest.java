@@ -31,6 +31,8 @@ class FacilityControllerTest {
 
     @MockitoBean
     private FacilityService facilityService;
+    @MockitoBean
+    private com.smartfix.facility.service.LocationService locations;
 
     @Test
     void listFacilitiesShowsFacilityManagementPage() throws Exception {

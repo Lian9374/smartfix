@@ -36,6 +36,7 @@ public class AssignmentService {
     private final AssignmentReadService reads;
     private final RequestReadService requests;
     private final RequestLifecycleService lifecycle;
+    private final com.smartfix.request.service.RequestReviewService reviews;
     private final TechnicianDirectoryService directory;
     private final UserService users;
     private final Validator validator;
@@ -44,11 +45,13 @@ public class AssignmentService {
 
     public AssignmentService(AssignmentRepository assignments, AssignmentReadService reads,
             RequestReadService requests, RequestLifecycleService lifecycle, TechnicianDirectoryService directory,
-            UserService users, Validator validator, ApplicationEventPublisher events, Clock clock) {
+            UserService users, Validator validator, ApplicationEventPublisher events, Clock clock,
+            com.smartfix.request.service.RequestReviewService reviews) {
         this.assignments = assignments;
         this.reads = reads;
         this.requests = requests;
         this.lifecycle = lifecycle;
+        this.reviews = reviews;
         this.directory = directory;
         this.users = users;
         this.validator = validator;
@@ -60,14 +63,20 @@ public class AssignmentService {
         requireAdministrator(actorUserId);
         validate(command);
         var request = request(ticketNumber);
-        if (request.status() != RequestStatus.UNDER_REVIEW) {
-            throw new BusinessConflictException("Only a request under review can be assigned.");
+        if (request.status() != RequestStatus.SUBMITTED && request.status() != RequestStatus.UNDER_REVIEW) {
+            throw new BusinessConflictException("Only a request awaiting dispatch can be assigned.");
         }
         if (assignments.findByRequestIdAndActiveTrue(request.id()).isPresent()) {
             throw duplicateAssignment();
         }
         requireEligible(request, command.technicianId());
         try {
+            // Review and assignment commit together: failed dispatch never leaves a partial review.
+            if (command.finalUrgencyLevel() != null) {
+                reviews.review(ticketNumber, command.finalUrgencyLevel(), actorUserId, false, null);
+            } else if (request.status() == RequestStatus.SUBMITTED) {
+                throw new InputValidationException("Choose a reviewed priority before assigning an engineer.");
+            }
             return createAndTransition(request, command.technicianId(), actorUserId, null, null);
         } catch (OptimisticLockingFailureException ex) {
             throw staleAssignment();
@@ -157,10 +166,7 @@ public class AssignmentService {
     }
 
     private void requireEligible(RequestSnapshotResponse request, Long technicianId) {
-        if (directory.findCandidates(request.category(), request.locationId()).stream()
-                .noneMatch(candidate -> candidate.userId().equals(technicianId))) {
-            throw new BusinessConflictException("The selected technician is no longer eligible for this request.");
-        }
+        directory.requireManualAssignee(technicianId);
     }
 
     private RequestSnapshotResponse request(String ticketNumber) {

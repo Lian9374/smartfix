@@ -101,6 +101,11 @@ class CommunityModerationQueuePagingIT {
     @Order(1)
     void anEmptyQueueSaysItIsEmptyRatherThanBlamingSomethingElse() throws Exception {
         mvc.perform(get(QUEUE).session(login("root.admin")))
+                .andDo(result -> {
+                    var folder=java.nio.file.Path.of("target","steward-preview");
+                    java.nio.file.Files.createDirectories(folder);
+                    java.nio.file.Files.writeString(folder.resolve("reports-empty.html"),result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+                })
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No reports are waiting.")))
                 .andExpect(content().string(containsString(

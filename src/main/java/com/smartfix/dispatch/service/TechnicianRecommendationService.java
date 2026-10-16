@@ -33,7 +33,7 @@ public class TechnicianRecommendationService {
     /**
      * Returns only F1-F5 eligible candidates, with real workload and deterministic ordering.
      * This read-only recommendation does not reserve or assign a technician; the assignment
-     * transaction must recheck eligibility when the administrator submits their choice.
+     * Manual administrator dispatch is independent of this optional matching API.
      * A workload failure propagates instead of publishing a partial or zero-filled ranking.
      */
     public List<TechnicianRecommendationResponse> recommend(MaintenanceCategory category, Long locationId) {

@@ -168,8 +168,8 @@ class AssignmentIT {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"disabled", "wrongRole", "inactiveProfile", "wrongSkill", "wrongArea", "leave", "noProfile"})
-    void revalidatesEligibilityEvenIfAFormerRecommendationWasValid(String change) {
+    @ValueSource(strings = {"disabled", "wrongRole"})
+    void manualDispatchStillRefusesDisabledAndNonEngineerAccounts(String change) {
         assertThat(recommendations.recommend(MaintenanceCategory.ELECTRICAL, 5L))
                 .extracting(TechnicianRecommendationResponse::userId).contains(101L);
         makeIneligible(change, 101);
@@ -178,6 +178,26 @@ class AssignmentIT {
         assertThat(count("work_orders")).isZero();
         assertThat(requests.findById(1L).status()).isEqualTo(RequestStatus.UNDER_REVIEW);
         assertThat(committed.events).isEmpty();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"inactiveProfile", "wrongSkill", "wrongArea", "leave", "noProfile"})
+    void administratorMayAssignWithoutProfileMatchingOrAvailability(String change) {
+        makeIneligible(change, 101);
+        var result = assign(101);
+        assertThat(result.technicianId()).isEqualTo(101);
+        assertThat(requests.findById(1L).status()).isEqualTo(RequestStatus.ASSIGNED);
+        assertThat(workOrders.findByRequestId(1L).orElseThrow().technicianId()).isEqualTo(101);
+    }
+
+    @Test
+    void newManagedEngineerCanBeAssignedBeforeFirstLoginAndWithoutProfile() {
+        makeIneligible("noProfile", 101);
+        jdbc.update("UPDATE users SET password_change_required=true WHERE id=101");
+        assertThat(assign(101).technicianId()).isEqualTo(101);
+        // Assignment does not bypass password setup when the engineer starts working.
+        var order = workOrders.findByRequestId(1L).orElseThrow();
+        assertThatThrownBy(() -> workOrders.accept(order.id(),101L)).isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
@@ -326,6 +346,27 @@ class AssignmentIT {
     }
 
     @Test
+    void combinedInitialReviewRollsBackIfCreatingTheWorkOrderFails() {
+        jdbc.update("DELETE FROM request_status_history");
+        jdbc.update("UPDATE maintenance_requests SET status='SUBMITTED',final_urgency_level=null,reviewed_at=null,reviewed_by_user_id=null WHERE id=1");
+        doAnswer(call -> {
+            call.callRealMethod();
+            if (((RequestTransitionResponse) call.getArgument(0)).toStatus() == RequestStatus.ASSIGNED) {
+                throw new BusinessConflictException("Synthetic downstream failure after review");
+            }
+            return null;
+        }).when(workOrderParticipant).afterTransition(any());
+        assertThatThrownBy(() -> assignments.assign(TICKET, new AssignTechnicianCommand(101L, UrgencyLevel.LOW), 103L))
+                .isInstanceOf(BusinessConflictException.class);
+        assertThat(count("assignments")).isZero();
+        assertThat(count("work_orders")).isZero();
+        assertThat(count("request_status_history")).isZero();
+        assertThat(requests.findById(1L).status()).isEqualTo(RequestStatus.SUBMITTED);
+        assertThat(jdbc.queryForObject("SELECT final_urgency_level FROM maintenance_requests WHERE id=1", String.class)).isNull();
+        assertThat(committed.events).isEmpty();
+    }
+
+    @Test
     void failedReassignmentRestoresTheOldAssignmentAndOrder() {
         var original = assign(101);
         doAnswer(call -> {
@@ -388,10 +429,10 @@ class AssignmentIT {
     private void synchronizeEligibilityChecks() {
         var barrier = new CyclicBarrier(2);
         doAnswer(call -> {
-            var result = call.callRealMethod();
-            barrier.await(10, TimeUnit.SECONDS); // Both transactions have observed the pre-write state.
-            return result;
-        }).when(directory).findCandidates(MaintenanceCategory.ELECTRICAL, 5L);
+            call.callRealMethod();
+            barrier.await(10, TimeUnit.SECONDS);
+            return null;
+        }).when(directory).requireManualAssignee(anyLong());
     }
 
     private List<Object> race(Callable<AssignmentResponse> first, Callable<AssignmentResponse> second) throws Exception {

@@ -44,7 +44,13 @@ public class RequestConfirmationService {
 
     @Transactional
     public void close(String ticket, Long actorId) {
-        lifecycle.transition(ticket, RequestStatus.CLOSED, actorId, null);
+        lifecycle.transition(ticket, RequestStatus.CLOSED, actorId, "Final administrator review approved.");
+    }
+
+    @Transactional
+    public void returnForRepair(String ticket, Long actorId, String reason) {
+        access.requireRole(actorId, Role.ADMINISTRATOR);
+        lifecycle.transition(ticket, RequestStatus.REOPENED, actorId, reason);
     }
 
     @Transactional

@@ -4,4 +4,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 /** technicianId is the account id, never the profile id. Actor identity is a separate service argument. */
-public record AssignTechnicianCommand(@NotNull @Positive Long technicianId) { }
+public record AssignTechnicianCommand(@NotNull @Positive Long technicianId,
+        com.smartfix.request.domain.UrgencyLevel finalUrgencyLevel) {
+    public AssignTechnicianCommand(Long technicianId) { this(technicianId, null); }
+}

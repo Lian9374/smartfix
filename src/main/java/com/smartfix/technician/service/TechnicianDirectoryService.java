@@ -62,6 +62,24 @@ public class TechnicianDirectoryService {
         return profiles.findAll().stream().map(TechnicianDirectoryService::toResponse).toList();
     }
 
+    /** Manual dispatch does not depend on a profile, skill, area or availability preference. */
+    public List<UserSummaryResponse> listManualAssignees() {
+        return users.listUsers().stream()
+                .filter(user -> user.role() == Role.TECHNICIAN && user.accountStatus() == AccountStatus.ACTIVE)
+                .sorted(java.util.Comparator.comparing(UserSummaryResponse::id))
+                .toList();
+    }
+
+    public void requireManualAssignee(Long userId) {
+        try {
+            var account = users.getUserAccess(userId);
+            if (account.role() == Role.TECHNICIAN && account.accountStatus() == AccountStatus.ACTIVE) return;
+        } catch (com.smartfix.common.exception.ResourceNotFoundException missing) {
+            // Missing and disabled targets produce the same safe conflict response.
+        }
+        throw new BusinessConflictException("Select an active engineer account eligible for manual assignment.");
+    }
+
     @Transactional
     public TechnicianProfileResponse updateProfile(Long actorUserId, UpdateTechnicianProfileCommand command) {
         requireActiveTechnician(actorUserId);

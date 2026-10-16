@@ -47,7 +47,7 @@
 -->
 <span class="badge" th:fragment="statusBadge(status)"
       th:classappend="${status != null and status.name() == 'SUBMITTED'} ? 'badge--info' : 'badge--neutral'"
-      th:text="${status} ?: 'Unknown'">SUBMITTED</span>
+      th:attr="data-request-status=${status}" th:text="${status instanceof T(com.smartfix.request.domain.RequestStatus) ? status.displayLabel : (status != null ? status : 'Unknown')}">To assign</span>
 
 <!-- UrgencyLevel: LOW reads as background, HIGH as attention. -->
 <span class="badge" th:fragment="urgencyBadge(urgency)"

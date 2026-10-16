@@ -124,6 +124,11 @@ class CommunityModerationPagesIT {
                 CommunityReportReason.OFF_TOPIC, null, BASE.plusSeconds(180)));
 
         mvc.perform(queuePage(login("root.admin")))
+                .andDo(result -> {
+                    var folder=java.nio.file.Path.of("target","steward-preview");
+                    java.nio.file.Files.createDirectories(folder);
+                    java.nio.file.Files.writeString(folder.resolve("reports.html"),result.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+                })
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Reported content")))
                 // The report's own facts, each one a value the backend holds.

@@ -30,7 +30,7 @@ public class DispatchController {
 
     @InitBinder({"assignCommand", "reassignCommand", "withdrawCommand"})
     void bindCommandOnly(WebDataBinder binder) {
-        binder.setAllowedFields("technicianId", "expectedAssignmentId", "reason");
+        binder.setAllowedFields("technicianId", "expectedAssignmentId", "reason", "finalUrgencyLevel");
     }
 
     @GetMapping("/dispatch")
@@ -66,17 +66,17 @@ public class DispatchController {
     private ModelAndView submit(String ticket, Long actorId, BindingResult errors, Model model,
             RedirectAttributes redirect, Runnable action, String success) {
         if (errors.hasErrors()) {
-            model.addAttribute("errorMessage", "Check the selected technician and current assignment. A reason of 1–500 characters is required for reassignment or withdrawal.");
+            model.addAttribute("errorMessage", "Check the reviewed priority, selected engineer and current assignment. A reason of 1–500 characters is required for reassignment or withdrawal.");
             return render(ticket, actorId, model, HttpStatus.BAD_REQUEST);
         }
         try {
             action.run();
         } catch (InputValidationException ex) {
-            model.addAttribute("errorMessage", "Check your selections and reason, then reload if the request or location has changed.");
+            model.addAttribute("errorMessage", "Choose a reviewed priority and an active engineer. Check your reason, then reload if the request has changed.");
             return render(ticket, actorId, model, HttpStatus.BAD_REQUEST);
         } catch (BusinessConflictException ex) {
             // Never expose SQL/exception details or silently replace a stale form's assignment id.
-            model.addAttribute("errorMessage", "The request, assignment or technician availability has changed. Reload the page, review the current details and try again.");
+            model.addAttribute("errorMessage", "The request, assignment or engineer account has changed. Reload the page, review the current details and try again.");
             model.addAttribute("conflict", true);
             return render(ticket, actorId, model, HttpStatus.CONFLICT);
         }
@@ -92,6 +92,13 @@ public class DispatchController {
         if (!model.containsAttribute("assignCommand")) model.addAttribute("assignCommand", new AssignTechnicianCommand(null));
         if (!model.containsAttribute("reassignCommand")) model.addAttribute("reassignCommand", new ReassignTechnicianCommand(null, expectedId, ""));
         if (!model.containsAttribute("withdrawCommand")) model.addAttribute("withdrawCommand", new WithdrawAssignmentCommand(expectedId, ""));
+        Long selectedTechnicianId = null;
+        if (page.canReassign() && model.getAttribute("reassignCommand") instanceof ReassignTechnicianCommand selected) {
+            selectedTechnicianId = selected.technicianId();
+        } else if (!page.canReassign() && model.getAttribute("assignCommand") instanceof AssignTechnicianCommand selected) {
+            selectedTechnicianId = selected.technicianId();
+        }
+        model.addAttribute("selectedTechnicianId", selectedTechnicianId);
         var result = new ModelAndView("dispatch/assign", model.asMap());
         result.setStatus(status);
         return result;
