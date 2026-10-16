@@ -1,231 +1,92 @@
 <!DOCTYPE html>
-
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Overview')}">
   <title>Overview · SmartFix</title>
 </head>
 <body>
-<div class="app-shell">
+<div class="app-shell requester-shell">
   <th:block th:replace="~{fragments/layout :: sidebar('overview')}"></th:block>
-
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('overview')}"></th:block>
-
-    <main id="main-content" class="content dashboard-page">
-
-      <section class="dashboard-hero">
-  <div class="dashboard-hero__copy">
-    <span class="section-kicker">YOUR CAMPUS, CARED FOR</span>
-    <h1 th:text="|Welcome back, ${navUsername}.|">Welcome back.</h1>
-    <p th:text="${navRole == 'REQUESTER'} ? 'A better campus starts with one small fix.' : 'Everything you need to keep campus running.'"></p>
-    <div class="hero-actions" th:if="${navRole == 'REQUESTER'}"><a class="btn btn--primary" th:href="@{/requests/new}"><svg th:replace="~{fragments/ui-icons :: plus}"></svg> New request</a></div>
-  </div>
-  <img class="dashboard-hero__art" th:src="@{/images/campus-maintenance.png}" width="320" height="296" alt="" fetchpriority="high">
-</section>
-
-      <section class="card announcement-carousel" aria-labelledby="campus-updates-title" data-announcement-carousel>
-        <div class="module-header">
-          <div class="module-heading"><span class="module-symbol" aria-hidden="true">✦</span><h2 id="campus-updates-title">Campus updates</h2></div>
-          <a class="card__link" th:href="@{/announcements}">All announcements <span aria-hidden="true">↗</span></a>
-        </div>
-        <div class="announcement-empty" th:if="${#lists.isEmpty(announcements)}">
-          <span class="announcement-empty__mark" aria-hidden="true">✓</span>
-          <div><strong>You’re all caught up</strong><p>New campus notices will appear here.</p></div>
-        </div>
-        <div th:unless="${#lists.isEmpty(announcements)}">
-          <div class="announcement-track" id="home-announcement-track" tabindex="0" aria-label="Campus announcements. Scroll to read more." data-announcement-track>
-            <article class="announcement-slide" th:each="announcement, item : ${announcements}" th:attr="aria-label=|Announcement ${item.count} of ${item.size}|">
-              <div class="announcement-slide__art" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none"><rect x="22" y="17" width="58" height="70" rx="12" fill="#fffdf4"/><path d="M36 36h30M36 48h30M36 60h18" stroke="#49766b" stroke-width="5" stroke-linecap="round"/><circle cx="24" cy="74" r="18" fill="#efd18c"/><path d="m17 74 5 5 10-11" stroke="#345b51" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-              <div class="announcement-slide__copy">
-                <span class="section-kicker">CAMPUS NOTICE</span>
-                <h3 th:text="${announcement.title}">Campus notice</h3>
-                <p th:text="${announcement.content}">Announcement details</p>
-                <a th:href="@{/announcements} + |#announcement-${announcement.id}|">Read announcement <span aria-hidden="true">→</span></a>
-              </div>
-            </article>
-          </div>
-          <div class="announcement-controls" th:if="${#lists.size(announcements) > 1}" data-announcement-controls hidden>
-            <span class="announcement-position" role="status" aria-live="polite" aria-atomic="true" data-announcement-position></span>
-            <div class="announcement-buttons">
-              <button type="button" aria-label="Previous announcement" aria-controls="home-announcement-track" data-announcement-prev><span aria-hidden="true">←</span></button>
-              <button type="button" aria-label="Next announcement" aria-controls="home-announcement-track" data-announcement-next><span aria-hidden="true">→</span></button>
+    <main id="main-content" class="content requester-home">
+      <section class="home-feature" aria-label="Campus highlights" data-home-carousel>
+        <div class="home-feature__track" id="home-feature-track" tabindex="0" aria-label="Welcome and campus announcements. Drag, swipe, or use arrow keys to switch." data-home-track>
+          <article class="home-slide home-slide--welcome" aria-label="Welcome" data-home-slide>
+            <div class="home-slide__copy">
+              <span class="section-kicker">YOUR CAMPUS, CARED FOR</span>
+              <h1 th:text="|Welcome back, ${navUsername}.|">Welcome back.</h1>
+              <p>A better campus starts with one small fix.</p>
+              <div class="home-slide__actions"><a class="btn btn--primary" th:href="@{/requests/new}"><svg th:replace="~{fragments/ui-icons :: plus}"></svg> New request</a></div>
             </div>
+            <img class="home-slide__art" th:src="@{/images/campus-maintenance.png}" width="1312" height="1200" alt="" fetchpriority="high" draggable="false">
+          </article>
+          <article class="home-slide home-slide--notice" th:if="${#lists.isEmpty(announcements)}" aria-label="Campus announcements" data-home-slide>
+            <div class="home-slide__copy"><span class="section-kicker">CAMPUS UPDATES</span><h2>You’re all caught up.</h2><p>No current announcements. Campus maintenance notices will appear here when published.</p><div class="home-slide__actions"><a class="btn btn--primary" th:href="@{/announcements}">View announcements <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></div></div>
+            <img class="home-slide__art home-slide__art--notice" th:src="@{/images/campus-notice.png}" width="1359" height="1157" alt="" loading="lazy" draggable="false">
+          </article>
+          <article class="home-slide home-slide--notice" th:each="announcement, item : ${announcements}" th:attr="aria-label=|Announcement ${item.count} of ${item.size}|" data-home-slide>
+            <div class="home-slide__copy">
+              <span class="section-kicker">CAMPUS NOTICE <span class="home-slide__date" th:text="${#temporals.format(announcement.validFrom.atZone(T(java.time.ZoneId).of('Asia/Singapore')), 'dd MMM')}">15 Oct</span></span>
+              <h2 th:text="${announcement.title}">Campus announcement</h2>
+              <p th:text="${announcement.content}">Announcement details</p>
+              <div class="home-slide__actions"><a class="btn btn--primary" th:href="@{/announcements} + |#announcement-${announcement.id}|">Read announcement <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></div>
+            </div>
+            <img class="home-slide__art home-slide__art--notice" th:src="@{/images/campus-notice.png}" width="1359" height="1157" alt="" loading="lazy" draggable="false">
+          </article>
+        </div>
+        <div class="home-feature__footer">
+          <a class="home-announcements-link" th:href="@{/announcements}">Announcements <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
+          <div class="home-feature__navigation" data-home-controls hidden>
+            <div class="home-feature__dots" aria-label="Choose a highlight">
+              <button type="button" class="home-feature__dot" aria-label="Show welcome" aria-controls="home-feature-track" aria-pressed="true" data-home-go="0"></button>
+              <button type="button" class="home-feature__dot" th:if="${#lists.isEmpty(announcements)}" aria-label="Show campus announcements" aria-controls="home-feature-track" aria-pressed="false" data-home-go="1"></button>
+              <button type="button" class="home-feature__dot" th:each="announcement, item : ${announcements}" th:attr="aria-label=|Show announcement: ${announcement.title}|,data-home-go=${item.count}" aria-controls="home-feature-track" aria-pressed="false"></button>
+            </div>
+            <span class="home-feature__position" role="status" aria-live="polite" aria-atomic="true" data-home-position></span>
+            <div class="home-feature__arrows"><button type="button" aria-label="Previous highlight" aria-controls="home-feature-track" data-home-prev><span aria-hidden="true">←</span></button><button type="button" aria-label="Next highlight" aria-controls="home-feature-track" data-home-next><span aria-hidden="true">→</span></button></div>
           </div>
         </div>
       </section>
 
-      <section class="card campus-map-promo" aria-labelledby="campus-map-title">
-        <span class="campus-map-promo__icon"><svg th:replace="~{fragments/ui-icons :: map}"></svg></span>
-        <div><h2 id="campus-map-title">Explore campus</h2><p>Find buildings and check facility availability.</p></div>
-        <a class="btn btn--secondary" th:href="@{/campus-map}">Open campus map <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
-      </section>
-
-      <div class="overview-grid" th:if="${navRole == 'REQUESTER'}">
-        <section class="card" aria-labelledby="recent-requests-title">
-          <div class="card__header">
-            <h2 class="card__title" id="recent-requests-title">Recent requests</h2>
-            <a class="card__link" th:href="@{/requests/mine}">View all requests</a>
+      <div class="home-workspace">
+        <section class="card home-requests" aria-labelledby="recent-requests-title">
+          <div class="home-module-header"><h2 id="recent-requests-title">Recent requests</h2><a th:href="@{/requests/mine}">View all <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></div>
+          <div class="home-requests__empty" th:if="${#lists.isEmpty(recentRequests)}">
+            <span class="home-requests__illustration" aria-hidden="true" th:insert="~{fragments/illustrations :: requestEmpty}"></span>
+            <h3>No requests yet</h3><p>Your next small fix starts here.</p>
+            <a class="btn btn--secondary" th:href="@{/requests/new}">Report an issue <svg th:replace="~{fragments/ui-icons :: plus}"></svg></a>
           </div>
-
-          <div class="card__body card__body--flush">
-            <div th:if="${#lists.isEmpty(recentRequests)}">
-              <div th:replace="~{fragments/components :: requestEmptyState(
-                       'No requests yet',
-                       'Your maintenance requests will appear here.')}"></div>
-            </div>
-
-
-            <div class="table-scroll" th:unless="${#lists.isEmpty(recentRequests)}">
-              <table class="data-table data-table--stack">
-                <caption class="visually-hidden">
-                  Your most recent maintenance requests. Open a ticket number to see the
-                  full request.
-                </caption>
-                <thead>
-                <tr>
-                  <th scope="col">Request</th>
-                  <th scope="col">Location</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Submitted</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="request : ${recentRequests}">
-
-                  <th scope="row" class="cell-request">
-                    <a class="cell-request__link"
-                       th:href="@{/requests/{ticketNumber}(ticketNumber=${request.ticketNumber})}">
-                      <span class="cell-request__ticket" th:text="${request.ticketNumber}">SF-2026-000001</span>
-                      <span class="cell-request__title" th:text="${request.title}">Flickering ceiling light</span>
-                    </a>
-                  </th>
-
-                  <td class="data-table__wrap" data-label="Location"
-                      th:text="${request.locationDisplayName}">Location</td>
-
-                  <td data-label="Status">
-                    <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
-                  </td>
-
-                  <td class="data-table__nowrap" data-label="Submitted"
-                      th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">
-                    2026-09-19 08:00
-                  </td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <ul class="home-request-list" th:unless="${#lists.isEmpty(recentRequests)}">
+            <li th:each="request : ${recentRequests}">
+              <a class="home-request" th:href="@{/requests/{ticketNumber}(ticketNumber=${request.ticketNumber})}">
+                <span class="home-request__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: list}"></svg></span>
+                <span class="home-request__main"><span class="home-request__ticket" th:text="${request.ticketNumber}">SF-2026-000001</span><strong th:text="${request.title}">Flickering light</strong><span class="home-request__location" th:text="${request.locationDisplayName}">Location</span></span>
+                <span class="home-request__meta"><span th:replace="~{fragments/components :: statusBadge(${request.status})}"></span><time th:datetime="${request.createdAt}" th:text="${#temporals.format(request.createdAt.atZone(T(java.time.ZoneId).of('Asia/Singapore')), 'dd MMM · HH:mm')}">15 Oct · 09:00</time></span>
+                <span class="home-request__arrow" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></span>
+              </a>
+            </li>
+          </ul>
         </section>
-
-
-        <aside class="dashboard-how">
-  <h2>From report to repair</h2>
-  <ol class="mini-steps"><li><span>01</span><div><strong>Report it</strong><p>Choose a location. Share the issue.</p></div></li><li><span>02</span><div><strong>We review it</strong><p>The team assesses your request.</p></div></li><li><span>03</span><div><strong>Follow the progress</strong><p>Check your ticket for updates.</p></div></li></ol>
-
-</aside>
+        <a class="home-map card" th:href="@{/campus-map}" aria-labelledby="home-map-title">
+          <div class="home-map__visual" aria-hidden="true">
+            <svg viewBox="0 0 360 150" fill="none"><path d="M-15 112 94 48l94 56L293 40l87 42M94-10v58m94 56v70M293 40V-10" stroke="#fffdf4" stroke-width="23"/><path d="m11 43 60-35 48 27-60 35zm123 9 47-27 55 32-47 27zm64 67 57-33 51 30-57 33z" fill="#aac6ad"/><path d="m64 128 40-24 37 22-41 24zm251-24 51-30v61l-27 15z" fill="#c6d5b6"/><path d="m96 48 92 56 70-43" stroke="#6b9381" stroke-width="3" stroke-dasharray="4 7"/><path d="M272 46c0 14-18 30-18 30s-18-16-18-30a18 18 0 1 1 36 0Z" fill="#356e59"/><circle cx="254" cy="46" r="6" fill="#f0d18a"/></svg>
+          </div>
+          <div class="home-map__copy"><span class="home-map__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: map}"></svg></span><h2 id="home-map-title">Explore campus</h2><p>Find NUS buildings and check facility updates.</p><span class="home-map__action">Open campus map <svg th:replace="~{fragments/ui-icons :: arrow}"></svg></span></div>
+        </a>
       </div>
 
-
-      <section class="card" th:if="${navRole == 'ADMINISTRATOR'}"
-               aria-labelledby="admin-tasks-title">
-        <div class="card__header">
-          <h2 class="card__title" id="admin-tasks-title">Administration</h2>
-        </div>
-
-        <div class="card__body card__body--flush">
-          <ul class="action-list">
-            <li>
-              <a class="action-list__link" th:href="@{/admin/requests}">
-                <span class="action-list__label">Request queue</span>
-                <span class="action-list__desc">
-                  Work through the requests waiting for a decision, newest first,
-                  and filter the queue by status.
-                </span>
-              </a>
-            </li>
-            <li>
-              <a class="action-list__link" th:href="@{/admin/users}">
-                <span class="action-list__label">User management</span>
-                <span class="action-list__desc">
-                  Create accounts, set what each one may do, and disable an account
-                  that should no longer be able to sign in.
-                </span>
-              </a>
-            </li>
-            <li>
-              <a class="action-list__link" th:href="@{/admin/requests/lookup}">
-                <span class="action-list__label">Request lookup</span>
-                <span class="action-list__desc">
-                  Open any maintenance request by its ticket number, whoever
-                  submitted it.
-                </span>
-              </a>
-            </li>
-          </ul>
+      <section class="card home-community" aria-labelledby="community-tasks-title">
+        <div class="home-module-header"><h2 id="community-tasks-title">Your campus community</h2><div class="home-community__activity"><a th:href="@{/community/mine}">My questions</a><a th:href="@{/community/mine(tab='ANSWERS')}">My answers</a></div></div>
+        <div class="home-community__links">
+          <a class="home-community-link home-community-link--browse" th:href="@{/community}"><span class="home-community-link__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: chat}"></svg></span><span><strong>Browse discussions</strong><span>Find answers from around campus.</span></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
+          <a class="home-community-link home-community-link--ask" th:href="@{/community/questions/new}"><span class="home-community-link__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: plus}"></svg></span><span><strong>Ask a question</strong><span>Get a little help from the community.</span></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a>
         </div>
       </section>
-
-
-      <section class="card" th:if="${navRole == 'TECHNICIAN'}"
-               aria-labelledby="technician-tasks-title">
-        <div class="card__header">
-          <h2 class="card__title" id="technician-tasks-title">Your work</h2>
-        </div>
-
-        <div class="card__body card__body--flush">
-          <ul class="action-list">
-            <li>
-              <a class="action-list__link" th:href="@{/workorders/mine}">
-                <span class="action-list__label">My work orders</span>
-                <span class="action-list__desc">
-                  Accept a job, record what you did, and mark it complete.
-                </span>
-              </a>
-            </li>
-          </ul>
-        </div>
-
-
-        <div class="card__footer" th:unless="${assignmentWired}">
-          <div class="notice">
-            <svg class="notice__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true" focusable="false">
-              <circle cx="12" cy="12" r="9"/>
-              <path d="M12 8h.01"/>
-              <path d="M11 12h1v4h1"/>
-            </svg>
-            <div>
-              <p class="notice__title">No work orders can appear yet</p>
-              <p>
-                A request becomes a work order when an administrator assigns it,
-                and the dispatch module that performs the assignment is not
-                connected in this build. My work orders is ready and holds
-                exactly what has been assigned to you - which is nothing so far.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-
-      <section class="card dashboard-community" aria-labelledby="community-tasks-title">
-<div class="module-header"><h2 id="community-tasks-title">Explore the community</h2></div>
-<div class="quick-links">
-<a class="quick-link quick-link--mint" th:href="@{/community}"><span class="quick-link__icon"><svg th:replace="~{fragments/ui-icons :: chat}"></svg></span><strong>Browse discussions</strong><span>Find answers around campus</span><i><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></i></a>
-<a class="quick-link quick-link--amber" th:href="@{/community/questions/new}"><span class="quick-link__icon"><svg th:replace="~{fragments/ui-icons :: plus}"></svg></span><strong>Ask a question</strong><span>Start a conversation</span><i><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></i></a>
-<a class="quick-link quick-link--lavender" th:href="@{/community/mine}"><span class="quick-link__icon"><svg th:replace="~{fragments/ui-icons :: list}"></svg></span><strong>My questions</strong><span>Continue your conversations</span><i><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></i></a>
-<a class="quick-link quick-link--blue" th:href="@{/community/mine(tab='ANSWERS')}"><span class="quick-link__icon"><svg th:replace="~{fragments/ui-icons :: reply}"></svg></span><strong>My answers</strong><span>See where you helped</span><i><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></i></a>
-</div></section>
     </main>
-
     <footer th:replace="~{fragments/layout :: footer}"></footer>
   </div>
 </div>
-
 <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
-<script th:src="@{/js/announcement-carousel.js}" defer></script>
+<script th:src="@{/js/requester-home.js(v='20261015b')}" defer></script>
 </body>
 </html>

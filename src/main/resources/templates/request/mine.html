@@ -11,38 +11,17 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('my-requests')}"></th:block>
 
-    <main id="main-content" class="content requests-page">
-      <div class="card page-head-row page-context">
+    <main id="main-content" class="content requests-page request-experience">
+      <section class="card page-head-row page-context request-list-hero" aria-labelledby="my-requests-title">
         <div class="page-head">
-          <h1 class="page-head__title">My Requests</h1>
-          <p class="page-head__subtitle">
-            Track your maintenance requests and their status.
-          </p>
-
-
-        </div>
-
-        <div class="page-head-row__actions">
-          <a class="btn btn--primary" th:href="@{/requests/new}">New request</a>
-        </div>
-
-
-      </div>
-
-      <form class="card request-list-filter" th:action="@{/requests/mine}" method="get">
-        <div class="card__body">
-          <div class="form-field">
-          <label class="form-field__label" for="request-status">Status</label>
-          <select id="request-status" name="status">
-            <option value="">All statuses</option>
-            <option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"
-                    th:selected="${status == selectedStatus}">SUBMITTED</option>
-          </select>
+          <h1 class="page-head__title" id="my-requests-title">My Requests</h1>
+          <p class="page-head__subtitle">Track your maintenance requests and their status.</p>
+          <div class="page-head-row__actions">
+            <a class="btn btn--primary" th:href="@{/requests/new}"><svg th:replace="~{fragments/ui-icons :: plus}"></svg>New request</a>
           </div>
-          <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
-          <button class="btn btn--secondary" type="submit">Filter</button>
         </div>
-      </form>
+        <img class="request-list-hero__art" th:src="@{/images/request-camera.png}" width="260" height="205" alt="" aria-hidden="true">
+      </section>
 
       <!--
         The history header owns the result total. Pagination only appears when
@@ -50,6 +29,20 @@
       -->
       <section class="card request-history" aria-label="Your maintenance requests">
 <header class="module-header"><h2>Request history</h2><span class="result-count" th:if="${pagination != null}" th:text="${pagination.totalElements + (pagination.totalElements == 1 ? ' request' : ' requests')}"></span></header>
+      <form class="request-list-filter" data-request-list-form th:action="@{/requests/mine}" method="get">
+        <div class="card__body">
+          <div class="form-field">
+          <label class="form-field__label" for="request-status">Status</label>
+          <select id="request-status" name="status">
+            <option value="">All statuses</option>
+            <option th:each="status : ${statuses}" th:value="${status}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(status.name(), '_', ' ')))}"
+                    th:selected="${status == selectedStatus}">SUBMITTED</option>
+          </select>
+          </div>
+          <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
+          <button class="btn btn--secondary" type="submit">Apply filter</button><a class="request-clear-filter" th:if="${selectedStatus != null}" th:href="@{/requests/mine}">Clear filter</a>
+        </div>
+      </form>
         <div class="card__body card__body--flush">
           <div th:if="${#lists.isEmpty(requests) and selectedStatus == null and page == 0}">
             <div th:replace="~{fragments/components :: requestEmptyState(
@@ -111,7 +104,7 @@
                 <td class="data-table__wrap" data-label="Location"
                     th:text="${request.locationDisplayName}">Location</td>
 
-                <td data-label="Category" th:text="${request.category}">Category</td>
+                <td data-label="Category" th:text="${request.category.name() == 'HVAC' ? 'HVAC' : #strings.capitalize(#strings.toLowerCase(request.category.name()))}">Category</td>
 
                 <td data-label="Status">
                   <span th:replace="~{fragments/components :: statusBadge(${request.status})}">SUBMITTED</span>
@@ -122,7 +115,7 @@
                 </td>
 
                 <td class="data-table__nowrap" data-label="Submitted"
-                    th:text="${#temporals.format(request.createdAt, 'yyyy-MM-dd HH:mm')}">
+                    th:text="${#temporals.format(request.createdAt.atZone(T(java.time.ZoneId).of('Asia/Singapore')), 'dd/MM/yyyy · HH:mm')}">
                   2026-09-19 08:00
                 </td>
               </tr>

@@ -45,20 +45,22 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
 
-    <main id="main-content" class="content community-detail-page">
+    <main id="main-content" class="content community-detail-page community-experience community-thread-page">
       <nav class="crumbs" aria-label="Breadcrumb">
-        <a class="crumbs__link" th:href="@{/community}">Community</a><!--
+        <a class="crumbs__link" th:href="@{/community}">← Community</a><!--
      --><span class="crumbs__sep" aria-hidden="true"> / </span><!--
      --><span class="crumbs__here" aria-current="page"
               th:text="|Question #${question.id}|">Question #1</span>
       </nav>
 
-      <div class="page-head-row card page-context">
+      <article class="card community-thread-shell" aria-labelledby="thread-title">
+      <header class="page-head-row page-context thread-heading">
         <div class="page-head">
-          <h1 class="page-head__title" th:text="${question.title}">
+          <h1 class="page-head__title" id="thread-title" th:text="${question.title}">
             Projector will not power on
           </h1>
-          <p class="page-head__subtitle">
+          <p class="page-head__subtitle thread-author">
+            <span class="thread-avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(question.authorDisplayName,0,1))}">U</span>
             <span th:text="${question.authorDisplayName}">Asked by Account #10</span>
             <span aria-hidden="true"> &middot; </span>
             <span th:text="|posted ${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}|">
@@ -74,7 +76,8 @@
           </p>
         </div>
 
-        <div class="page-head-row__actions">
+        <div class="page-head-row__actions thread-question-actions">
+          <span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}">Hardware</span>
           <span class="badge"
                 th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
                 th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
@@ -99,9 +102,8 @@
             </form>
           </th:block>
 
-          <a class="btn btn--secondary" th:href="@{/community}">Back to community</a>
         </div>
-      </div>
+      </header>
 
       <!--
         Shown only to the author, and only while the question is not public. It
@@ -151,49 +153,11 @@
              ${reportRefused})}"></div>
       </div>
 
-      <div class="detail-layout">
-        <aside class="detail-layout__aside" aria-labelledby="question-summary-title">
-          <section class="card">
+      <div class="thread-content">
+        <div class="thread-content__main">
+          <section class="thread-question" aria-labelledby="question-body-title">
             <div class="card__header">
-              <h2 class="card__title" id="question-summary-title">Question summary</h2>
-            </div>
-            <div class="card__body">
-              <dl class="detail-list">
-                <dt>Topic</dt>
-                <dd>
-                  <span th:replace="~{fragments/components :: badge(${question.category}, 'neutral')}">
-                    HARDWARE
-                  </span>
-                </dd>
-
-                <dt>Status</dt>
-                <dd>
-                  <span class="badge"
-                        th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'"
-                        th:text="${question.solved} ? 'Solved' : 'Open'">Open</span>
-                </dd>
-
-                <dt>Asked by</dt>
-                <dd th:text="${question.authorDisplayName}">Campus member</dd>
-
-                <dt>Posted</dt>
-                <dd th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}">
-                  2026-09-19 08:00
-                </dd>
-
-                <dt>Last updated</dt>
-                <dd th:text="${#temporals.format(question.updatedAt, 'yyyy-MM-dd HH:mm')}">
-                  2026-09-19 08:00
-                </dd>
-              </dl>
-            </div>
-          </section>
-        </aside>
-
-        <div class="detail-layout__main">
-          <section class="card" aria-labelledby="question-body-title">
-            <div class="card__header">
-              <h2 class="card__title" id="question-body-title">Details</h2>
+              <h2 class="visually-hidden" id="question-body-title">Details</h2>
             </div>
             <div class="card__body">
               <!-- .prose carries white-space: pre-wrap, so the author's line breaks
@@ -255,12 +219,13 @@
             </div>
           </section>
 
-          <section class="card" aria-labelledby="question-answers-title">
+          <section class="thread-answers" aria-labelledby="question-answers-title">
             <div class="card__header">
               <h2 class="card__title" id="question-answers-title"
                   th:text="${#lists.isEmpty(question.answers)
                               ? 'Answers'
                               : 'Answers (' + question.visibleAnswerCount + ')'}">Answers</h2>
+              <a class="thread-reply-link" th:if="${question.status.name() == 'VISIBLE'}" href="#answer-form-title">Write an answer <span aria-hidden="true">↘</span></a>
             </div>
             <!--
               Flush body, with each answer re-applying the body padding itself:
@@ -274,8 +239,9 @@
                          'Answers posted by the community will appear here.')}"></div>
               </div>
 
-              <article th:each="answer : ${question.answers}" class="card__body">
-                <p class="page-head__eyebrow">
+              <article th:each="answer : ${question.answers}" class="card__body thread-answer" th:classappend="${answer.accepted} ? 'thread-answer--accepted'" th:id="|answer-${answer.id}|">
+                <p class="page-head__eyebrow thread-answer__author">
+                  <span class="thread-avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(answer.authorDisplayName,0,1))}">U</span>
                   <span th:text="${answer.authorDisplayName}">Account #20</span>
                   <span aria-hidden="true"> &middot; </span>
                   <span th:text="${#temporals.format(answer.createdAt, 'yyyy-MM-dd HH:mm')}">
@@ -415,11 +381,11 @@
               th:object is in scope, and outside it the page would fail to render
               rather than merely lose the message.
             -->
-            <div class="card__footer" th:if="${question.status.name() == 'VISIBLE'}">
+            <div class="card__footer thread-composer" th:if="${question.status.name() == 'VISIBLE'}">
               <form method="post" th:action="@{/community/questions/{id}/answers(id=${question.id})}"
                     th:object="${answerCommand}">
 
-                <h3 class="card__title" id="answer-form-title">Your answer</h3>
+                <h3 class="card__title" id="answer-form-title" tabindex="-1">Your answer</h3>
 
                 <div th:if="${#fields.hasGlobalErrors()}">
                   <div th:replace="~{fragments/components :: alert('error',
@@ -430,7 +396,7 @@
                 <div class="form-field"
                      th:classappend="${#fields.hasErrors('body')} ? 'form-field--invalid'">
                   <label class="form-field__label" for="answer-body">Answer</label>
-                  <textarea id="answer-body" th:field="*{body}" rows="6" maxlength="4000" minlength="10" required data-character-count
+                  <textarea id="answer-body" th:field="*{body}" rows="4" maxlength="4000" minlength="10" required data-character-count
                             placeholder="What the person asking should try, and why."
                             aria-describedby="answer-body-hint answer-body-error"
                             th:attr="aria-invalid=${#fields.hasErrors('body')} ? 'true' : null, aria-describedby=${#fields.hasErrors('body')} ? 'answer-body-hint answer-body-error' : 'answer-body-hint'"></textarea>
@@ -474,6 +440,7 @@
           </section>
         </div>
       </div>
+      </article>
     </main>
 
     <footer th:replace="~{fragments/layout :: footer}"></footer>

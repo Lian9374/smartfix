@@ -26,15 +26,21 @@ Sprint 4 shared quality rules are maintained by UserA:
 See [Sprint 4 release acceptance](sprint4/UserA_Release_Acceptance_CN.md) for this
 iteration's evidence and remaining release gates.
 
-The requester home page now shows up to six current published announcements using
-the existing announcement service. Notices support native horizontal scrolling,
-previous/next buttons and Arrow keys/Home/End when the track is focused. Adjacent
-slides animate; first/last jumps and reduced-motion navigation are immediate.
-There is no autoplay. JavaScript is optional: native scrolling and detail links
-remain usable; empty/single notices do not expose unnecessary navigation controls.
-Full announcement dates use Singapore time, and content stays escaped plain text.
-See [the October UI refinement record](sprint4/Home_Announcement_UI_Refinement_CN.md)
-for actual verification scope and commands.
+The requester home uses one highlights carousel: the existing welcome slide first,
+then up to six current published announcements from the existing service. With no
+notices, the second slide honestly shows the empty announcement state, so the
+carousel always works. A single notice gives welcome plus that notice. Controls support native horizontal scrolling,
+previous/next, pagination dots and Arrow keys/Home/End when the track is focused.
+There is no autoplay; reduced-motion navigation and first/last jumps are immediate.
+Without JavaScript, native scrolling and detail links remain usable. The home shows
+the requester's three latest requests beside a real campus-map link; community
+activity links stay in the section header rather than separate oversized tiles.
+Desktop pointer dragging also works. Requester navigation uses a shared scoped
+stylesheet across signed-in requester pages, with grouped icon links, a current-page
+marker, keyboard focus, scroll separation and a two-column mobile menu. The menu
+retains Escape handling and also closes on outside pointer interaction.
+See [the requester experience record](sprint4/Requester_Experience_Home_CN.md) for
+the long-lived branch, component boundaries and actual verification evidence.
 
 Engineer profile groups reference error descriptions only when those errors are
 rendered; invalid groups are programmatically focusable with tabindex=-1. The
@@ -42,6 +48,13 @@ UserB browser negative case verifies the real 400 response and first-error focus
 See [UserB handoff](sprint4/UserB_Access_Dispatch_Handoff_CN.md).
 
 How the web pages are built, and how to add one without inventing a second style.
+
+Requester request creation and My Requests use `request-experience.css`, scoped to
+`.request-experience`. The new form has three aligned fieldsets, optional jump links
+and completion progress, contextual urgency help and local photo previews/drop.
+The list combines its real status filter with the history card. No new backend
+fields, statuses or upload limits were introduced. See the
+[request form/list refinement record](sprint4/Request_Experience_Refinement_CN.md).
 
 The refreshed login at `/login` uses `.auth--refresh` and login-only
 `static/css/login.css`, loaded conditionally by the shared head. It has a 48:52
@@ -727,3 +740,16 @@ period errors identify the end-time field. Publish/withdraw POSTs use existing c
 and pending-submit feedback. Map basemap failures survive unrelated campus/search actions;
 building names and statuses remain readable without Leaflet. See
 `sprint4/UserD_Map_Reporting_Quality_CN.md` for measured query behavior and browser evidence.
+
+### Community experience refinement (2026-10-16)
+Community pages use scoped community-experience.css and the dedicated community-conversation.png illustration. Search remains a server GET; community-experience.js adds input clearing, slash focus and pending feedback with native no-JS fallback. See [the refinement record](sprint4/Community_Experience_Refinement_CN.md) for scope and validation.
+
+Community feed and detail now each own a single outer surface: `community-feed-shell` contains search/list/pagination; `community-thread-shell` contains the question, replies and composer. The redundant detail summary was removed. Reply counts and composer shortcuts use native anchors; all write forms keep their existing server authorization and CSRF behavior.
+
+The latest flat treatment supersedes the nested feed design: `community-feed-shell` is a layout wrapper only (no card class), filters are unboxed, discussion rows share one white feed surface, and the side rail has no cards. Thread answers use plain prose, not speech bubbles. See the third-round section of the refinement record.
+
+### Home-aligned requester sections (2026-10-16)
+`requester-sections.css` is loaded last only for REQUESTER. The Community, My Requests and Campus Map main pages share Home's width tokens and gutters. Their hero surfaces reuse Home's forest green and cream/gold palette. Community restores soft answer bubbles and individual functional cards without nested post frames. Narrow editor/detail reading widths remain deliberate. The [validation record](sprint4/Requester_Sections_Consistency_CN.md) supersedes the previous flat/no-bubble community visual direction.
+
+### Campus map workspace polish
+`campus-map-experience.css` loads on Campus Map only. Segmented campus controls, map labels, legend and maintenance summary share the requester palette. A shared height token keeps the desktop map and summary aligned; mobile stacks them. See [map refinement and verification](sprint4/Campus_Map_Visual_Refinement_CN.md).

@@ -12,6 +12,33 @@
   var error = document.getElementById('files-error');
   var list = document.querySelector('[data-photo-list]');
   var urls = [];
+  var progress = document.querySelector('[data-request-progress]');
+  var submit = form.querySelector('button[type=submit]');
+  var submitLabel = form.querySelector('[data-request-submit-label]');
+  var submitStatus = form.querySelector('[data-request-submit-status]');
+  var initiallyDisabled = submit.disabled;
+  function updateProgress() {
+    if (!progress) { return; }
+    var required = Array.from(form.querySelectorAll('[required]'));
+    var ready = function (input) { return input.value.trim().length > 0 && input.validity.valid; };
+    var completed = required.filter(ready).length;
+    progress.querySelector('progress').max = required.length;
+    progress.querySelector('progress').value = completed;
+    progress.querySelector('[data-required-progress]').textContent = completed + ' / ' + required.length + ' required fields';
+    [['problem', ['locationId', 'title', 'description'], 'Problem details'], ['priority', ['category', 'urgencyLevel'], 'Category and urgency'], ['photos', [], 'Photos (optional)']].forEach(function (section, index) {
+      var done = section[0] === 'photos' ? files.files.length > 0 && files.validity.valid : section[1].every(function (id) { return ready(document.getElementById(id)); });
+      var link = progress.querySelector('[data-progress-step="' + section[0] + '"]');
+      link.dataset.complete = String(done);
+      link.querySelector('span').textContent = done ? '✓' : String(index + 1);
+      link.setAttribute('aria-label', section[2] + (done ? ': complete' : ''));
+    });
+  }
+  if (progress) {
+    progress.hidden = false;
+    form.addEventListener('input', updateProgress);
+    form.addEventListener('change', updateProgress);
+    updateProgress();
+  }
   function releasePreviews() {
     urls.forEach(function (url) { URL.revokeObjectURL(url); });
     urls = [];
@@ -59,19 +86,50 @@
           if (photoIndex !== index) { transfer.items.add(photo); }
         });
         files.files = transfer.files;
-        files.dispatchEvent(new Event('change'));
+        files.dispatchEvent(new Event('change', { bubbles: true }));
       });
       item.append(img, name, remove);
       list.append(item);
     });
   });
+  var dropzone = form.querySelector('[data-photo-dropzone]');
+  if (dropzone) {
+    dropzone.addEventListener('dragover', function (event) {
+      if (!Array.from(event.dataTransfer.types).includes('Files')) { return; }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'copy';
+      dropzone.classList.add('is-drag-over');
+    });
+    dropzone.addEventListener('dragleave', function (event) {
+      if (!dropzone.contains(event.relatedTarget)) { dropzone.classList.remove('is-drag-over'); }
+    });
+    dropzone.addEventListener('drop', function (event) {
+      if (!event.dataTransfer.files.length) { return; }
+      event.preventDefault();
+      dropzone.classList.remove('is-drag-over');
+      files.files = event.dataTransfer.files;
+      files.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
   form.addEventListener('submit', function (event) {
-    if (!validatePhotos()) { event.preventDefault(); files.reportValidity(); }
+    if (!validatePhotos()) { event.preventDefault(); files.reportValidity(); return; }
+    if (form.dataset.pending === 'true') { event.preventDefault(); return; }
+    form.dataset.pending = 'true';
+    form.setAttribute('aria-busy', 'true');
+    submit.disabled = true;
+    if (submitLabel) { submitLabel.textContent = 'Submitting…'; }
+    if (submitStatus) { submitStatus.textContent = 'Submitting your request. Please wait.'; }
   });
   var summary = document.querySelector('[data-error-summary]');
   if (summary) { summary.focus(); }
   window.addEventListener('pagehide', releasePreviews);
   window.addEventListener('pageshow', function (event) {
+    delete form.dataset.pending;
+    form.removeAttribute('aria-busy');
+    submit.disabled = initiallyDisabled;
+    if (submitLabel) { submitLabel.textContent = 'Submit request'; }
+    if (submitStatus) { submitStatus.textContent = ''; }
     if (event.persisted) { files.dispatchEvent(new Event('change')); }
+    updateProgress();
   });
 }());

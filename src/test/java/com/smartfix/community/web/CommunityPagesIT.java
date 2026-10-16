@@ -226,7 +226,7 @@ class CommunityPagesIT {
 
         mvc.perform(get("/community/questions/" + question.getId()).session(login("alice")))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Question summary")))
+                .andExpect(content().string(containsString("community-thread-shell")))
                 .andExpect(content().string(containsString("Routing precedence sample")));
     }
 
@@ -1184,6 +1184,40 @@ class CommunityPagesIT {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("11 answers")))
                 .andExpect(content().string(containsString("tab=ANSWERS")));
+    }
+
+    @Test
+    void refreshedCommunityPagesRetainRealNavigationAndCanBeCaptured() throws Exception {
+        CommunityQuestion question = seed(aliceId, "Campus projector connection help",
+                "The projector shows no signal when connected to a laptop. Which cable should I use?",
+                CommunityCategory.HARDWARE);
+        CommunityAnswer answer = answers.saveAndFlush(CommunityAnswer.post(question.getId(), bobId,
+                "Check the HDMI input selected on the projector and try the labelled cable.", BASE.plusSeconds(9999)));
+        MockHttpSession session = login("bob");
+        String board = mvc.perform(get("/community").session(session)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(board).contains("community-experience.css", "community-experience.js",
+                "community-conversation.png", "data-community-search", "1 answer", "aria-current=\"true\"",
+                "community-feed-shell", "#question-answers-title")
+                .doesNotContain("rail-module--maintenance", "conversation-art__bubble");
+        String directory = System.getProperty("smartfix.community.captureDir");
+        if (directory == null || directory.isBlank()) return;
+        java.nio.file.Path output = java.nio.file.Path.of(directory);
+        java.nio.file.Files.createDirectories(output);
+        String[][] pages = {
+                {"community.html", "/community"},
+                {"filtered.html", "/community?category=HARDWARE&filter=UNANSWERED&q=projector"},
+                {"empty.html", "/community?q=zzzzrefreshnomatch"},
+                {"question-form.html", "/community/questions/new"},
+                {"question.html", "/community/questions/" + question.getId()},
+                {"answer-form.html", "/community/answers/" + answer.getId() + "/edit"},
+                {"mine.html", "/community/mine"},
+                {"answers.html", "/community/mine?tab=ANSWERS"}};
+        for (String[] page : pages) {
+            String html = mvc.perform(get(page[1]).session(session)).andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString();
+            java.nio.file.Files.writeString(output.resolve(page[0]), html);
+        }
     }
 
     // ------------------------------------------------------------- helpers

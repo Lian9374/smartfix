@@ -39,7 +39,7 @@ public class HomeController {
     private static final String VIEW_HOME = "home";
 
     /** Enough to show a pattern of recent activity without becoming a second list page. */
-    private static final int RECENT_REQUEST_LIMIT = 5;
+    private static final int RECENT_REQUEST_LIMIT = 3;
 
     private final RequestQueryService requestQueryService;
 
