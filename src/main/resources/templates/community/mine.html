@@ -32,7 +32,7 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('my-questions')}"></th:block>
 
-    <main id="main-content" class="content community-detail-page">
+    <main id="main-content" class="content community-detail-page community-experience">
       <div class="page-head-row card page-context">
         <!--
           The heading follows the tab. Each is a th:if on a wrapper with the
@@ -61,9 +61,7 @@
           <a class="btn btn--secondary" th:href="@{/community}">Community</a>
         </div>
 
-<p class="page-head-row__meta" th:if="${tab.name() == 'ANSWERS'}"
-           th:unless="${#lists.isEmpty(answers)}"
-           th:text="|${#lists.size(answers)} shown|">10 shown</p>
+
       </div>
 
       <!--

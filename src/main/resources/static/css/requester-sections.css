@@ -1,0 +1,222 @@
+/* Match the approved home page. Loaded only for requester navigation.
+   Keep Home untouched; derive section widths from its existing shared tokens. */
+/* Reserve the same gutter on short and long pages so their centred edges match. */
+html { scrollbar-gutter:stable; }
+.content:is(.community-page,.requests-page,.campus-map-page) {
+  width:100%;max-width:calc(var(--content-max) + 2 * var(--content-pad));
+  margin-inline:auto;padding-inline:var(--content-pad);padding-top:32px;
+  --section-green:#204f47;--section-gold:#efd18b;--section-cream:#fffef4;
+}
+/* One deliberate colour surface per page, with the same palette as Home. */
+.community-experience .community-hero,
+.requests-page.request-experience>.page-context,
+.campus-map-page .campus-map-hero {
+  position:relative;isolation:isolate;overflow:hidden;border:0;border-radius:24px;
+  background:#204f47;color:#fffef4;padding:32px 40px;margin-bottom:24px;
+  box-shadow:0 10px 26px #214b3c0e;min-height:245px;
+}
+.community-experience .community-hero::before,
+.requests-page.request-experience>.page-context::before,
+.campus-map-page .campus-map-hero::before {
+  content:"";position:absolute;z-index:-1;inset:0 0 0 auto;width:35%;
+  border-radius:50% 0 0 50%;background:#a1c4ab1a;pointer-events:none;
+}
+.community-experience .community-hero h1,
+.requests-page.request-experience>.page-context h1,
+.campus-map-page .campus-map-hero h1 {
+  color:#fffef4;font-size:clamp(30px,3vw,44px);line-height:1.2;letter-spacing:-.04em;
+}
+.community-experience .community-hero p,
+.requests-page.request-experience>.page-context .page-head__subtitle,
+.campus-map-page .campus-map-hero p { color:#e1eae2;font-size:18px;line-height:1.6; }
+.community-experience .community-hero .btn--primary,
+.requests-page.request-experience>.page-context .btn--primary { background:#efd18b;border-color:#efd18b;color:#25463a;min-height:48px;border-radius:12px; }
+.community-experience .community-hero .btn--primary:hover,
+.requests-page.request-experience>.page-context .btn--primary:hover { background:#f8dea5;border-color:#f8dea5; }
+.community-experience .community-hero__art { position:static;width:235px;height:190px;flex-shrink:0;filter:drop-shadow(0 10px 12px #0b322b20); }
+.community-experience .community-hero__copy { max-width:65ch; }
+.community-experience .hero-actions { margin-top:22px; }
+.requests-page.request-experience>.page-context { display:flex;align-items:center;justify-content:space-between;gap:28px; }
+.requests-page.request-experience>.page-context .page-head { padding-left:0; }
+.requests-page .request-list-heading-icon { position:static;display:inline-grid;place-items:center;margin-bottom:14px;background:#ffffff16;color:#efd18b;border:1px solid #ffffff1c; }
+.campus-map-page .campus-map-hero .section-kicker { color:#efd18b; }
+.campus-map-page .campus-map-totals,.campus-map-page .campus-map-totals strong { color:#e1eae2; }
+.campus-map-page .campus-map-totals strong { color:#efd18b; }
+.campus-map-page .campus-map-art { background:#efd18b;color:#28554a;border-radius:28px;transform:rotate(-5deg); }
+/* Separate functional cards, never an outer frame around more cards. */
+.community-experience .community-workspace { grid-template-columns:minmax(0,1fr) 280px;gap:24px; }
+.community-experience .community-feed-shell { gap:20px; }
+.community-experience .community-feed-shell .community-filters { border:1px solid #e1e8df;border-radius:18px;background:#fff;box-shadow:0 3px 12px #214b3c05; }
+.community-experience .community-feed-shell .community-filters .card__body { padding:22px 24px; }
+.community-experience .community-feed-shell .discussion-feed { border-radius:18px;border-color:#e1e8df; }
+.community-experience .community-feed-shell .module-header { background:#fbfcf8; }
+.community-experience .community-feed-shell .discussion { padding:26px; }
+.community-experience .community-feed-shell .discussion__excerpt { color:#536b5e;line-height:1.75; }
+.community-experience .community-feed-shell .discussion__icon { border-radius:12px;background:#e8f1e8;color:#48755b; }
+.community-experience .community-workspace .topic-label { background:#f3efdf;padding:4px 9px;border-radius:7px;color:#6c6140; }
+.community-experience .community-rail { border:0;padding:0;gap:20px; }
+.community-experience .community-rail .rail-module { border:1px solid #e1e8df;border-radius:18px;background:#fff;padding:24px;box-shadow:0 3px 12px #214b3c05; }
+.community-experience .rail-module h2 { font-size:18px;margin-bottom:14px; }
+.community-experience .rail-link,.community-experience .community-topic { font-size:15px; }
+.community-experience .community-topic.is-selected { border-radius:10px;background:#e8f1e5;color:#315b43; }
+/* Restore soft answer bubbles, with no additional nested answer cards. */
+.community-thread-page .thread-answer>.prose {
+  padding:16px 20px;background:#eef4e9;border:1px solid #e4ecdf;
+  border-radius:4px 17px 17px 17px;box-shadow:0 2px 6px #274a3904;
+}
+.community-thread-page .thread-answer--accepted>.prose { background:#e9f2e0;border-color:#d9e8cd; }
+.community-thread-page .thread-answers>.card__header { background:#f8faf5;padding-block:18px;border-bottom:1px solid #e8ede3; }
+.community-thread-page .thread-composer { background:#f8faf5; }
+.community-thread-page .thread-composer textarea { background:#fff; }
+.requests-page.request-experience .request-history { margin-top:0;border-radius:18px;overflow:hidden; }
+.requests-page.request-experience .request-history>.module-header { background:#fbfcf8; }
+.requests-page.request-experience .request-list-filter { background:#f8faf5; }
+.requests-page.request-experience .cell-request__title { font-size:17px;line-height:1.6; }
+.campus-map-page .campus-atlas { border-radius:18px;overflow:hidden;border-color:#e1e8df; }
+@media(max-width:1100px) and (min-width:1025px) {
+ .community-experience .community-workspace { grid-template-columns:minmax(0,1fr) 240px;gap:20px; }
+ .community-experience .community-rail .rail-module { padding:20px; }
+}
+@media(max-width:1024px) {
+ .community-experience .community-workspace { grid-template-columns:minmax(0,1fr); }
+ .community-experience .community-rail .rail-module:first-child { gap:10px 20px; }
+ .community-experience .community-rail .rail-module:first-child h2 { margin-bottom:0; }
+}
+@media(max-width:900px) {
+ .content:is(.community-page,.requests-page,.campus-map-page) { padding-top:24px; }
+}
+@media(max-width:650px) {
+ .community-experience .community-hero,
+ .requests-page.request-experience>.page-context,
+ .campus-map-page .campus-map-hero { min-height:0;padding:26px 22px;border-radius:20px;gap:16px; }
+ .community-experience .community-hero { align-items:center; }
+ .community-experience .community-hero h1 { padding-right:0; }
+ .community-experience .community-hero p { padding-right:0; }
+ .community-experience .community-hero__art { width:85px;height:90px;max-width:24%; }
+ .community-experience .community-hero p,
+ .requests-page.request-experience>.page-context .page-head__subtitle,
+ .campus-map-page .campus-map-hero p { font-size:16px; }
+ .community-experience .community-feed-shell .community-filters .card__body { padding:18px; }
+ .community-experience .community-feed-shell .discussion { padding:22px 18px; }
+ .community-experience .community-rail .rail-module { padding:20px; }
+ .requests-page.request-experience>.page-context { flex-wrap:wrap; }
+ .requests-page .request-list-heading-icon { display:none; }
+ .community-thread-page .thread-answer>.prose { padding:15px 16px; }
+ .campus-map-page .campus-map-art { width:72px;height:80px;flex-basis:72px;border-radius:18px; }
+ .campus-map-page .campus-map-art svg { width:44px;height:44px; }
+}
+@media(prefers-reduced-motion:reduce) { .community-thread-page .thread-answer>.prose { transition:none; } }
+@media(max-width:650px) {
+ .requests-page.request-experience>.page-context { align-items:flex-start; }
+ .requests-page.request-experience>.page-context .page-head { width:100%; }
+ .requests-page.request-experience>.page-context .page-head-row__actions { align-self:flex-start; }
+}
+/* Discussion rows: separate identity, reading and footer metadata. */
+.community-experience .community-feed-shell .discussion { padding:28px;gap:18px; }
+.community-experience .community-feed-shell .discussion__meta { min-height:30px;margin-bottom:16px;gap:8px 12px;font-size:13px; }
+.community-experience .community-feed-shell .discussion__meta time { margin-left:auto;color:#7b887f;font-size:12px; }
+.community-experience .community-feed-shell .discussion h3 { font-size:22px;line-height:1.45; }
+.community-experience .discussion__title-link>svg { display:none; }
+.community-experience .community-feed-shell .discussion__excerpt { margin-top:12px;max-width:68ch;font-size:17px;line-height:1.75; }
+.community-experience .community-feed-shell .discussion__tags { margin-top:24px;padding-top:16px;border-top:1px solid #edf1e9;gap:16px; }
+.community-experience .community-workspace .discussion__tags .topic-label { margin-left:auto;background:transparent;padding:0;border-radius:0;font-size:12px;color:#77816e;font-weight:400; }
+.community-experience .discussion__tags .badge { padding:0;min-height:0;background:transparent;border:0;color:#5c7264;font-size:12px; }
+.community-experience .discussion__tags .badge::before { content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:currentColor;margin-right:6px;vertical-align:middle; }
+.community-experience .discussion__tags .badge--success { color:#37794d; }
+.community-experience .discussion__tags .discussion__answer-count { font-size:13px;font-weight:500; }
+@media(max-width:650px) {
+ .community-experience .community-feed-shell .discussion { padding:22px 18px;gap:12px; }
+ .community-experience .community-feed-shell .discussion__meta { margin-bottom:14px;gap:5px 8px;font-size:12px; }
+ .community-experience .community-feed-shell .discussion__meta time { font-size:11px; }
+ .community-experience .community-feed-shell .discussion h3 { font-size:20px; }
+ .community-experience .community-feed-shell .discussion__excerpt { font-size:16px; }
+ .community-experience .community-feed-shell .discussion__tags { gap:12px;margin-top:20px;padding-top:14px; }
+}
+/* A soft reading bubble connects the post copy and its real discussion actions. */
+.community-experience .community-feed-shell .discussion__content {
+ background:linear-gradient(115deg,#f0f5ec,#f8faf5);border-left:3px solid #a8c1a5;
+ border-radius:3px 16px 16px 16px;padding:20px 22px 14px;
+}
+.community-experience .community-feed-shell .discussion__meta { margin-bottom:12px; }
+.community-experience .community-feed-shell .discussion__excerpt { margin-top:10px; }
+.community-experience .community-feed-shell .discussion__tags {
+ margin-top:18px;padding-top:14px;border-color:#dce6d7;gap:12px;
+}
+.community-experience .discussion__tags .discussion__answer-count {
+ padding:5px 10px;border-radius:8px;background:#fff;color:#3b6450;min-height:32px;
+ box-shadow:0 1px 3px #274a3906;
+}
+.community-experience .discussion__tags .discussion__answer-count:hover { background:#e5eedf;text-decoration:none; }
+.community-experience .community-workspace .discussion__tags .topic-label {
+ background:#eee9d9;padding:4px 9px;border-radius:7px;color:#6d6445;
+}
+.community-experience .discussion__tags .badge { color:#526d58; }
+@media(max-width:650px) {
+ .community-experience .community-feed-shell .discussion__content { padding:16px 15px 12px;border-radius:3px 13px 13px 13px; }
+ .community-experience .community-feed-shell .discussion__tags { margin-top:16px;padding-top:12px;gap:8px; }
+ .community-experience .community-workspace .discussion__tags .topic-label { margin-left:0; }
+}
+/* One grid defines both author and content alignment, without negative margins. */
+.community-experience .community-feed-shell .discussion { display:block;--discussion-avatar:38px;--discussion-gap:14px;--discussion-border:3px; }
+.community-experience .community-feed-shell .discussion__meta { display:grid;grid-template-columns:var(--discussion-avatar) minmax(0,1fr) auto;column-gap:var(--discussion-gap);align-items:center; }
+.community-experience .community-feed-shell .discussion__meta .discussion__icon { width:var(--discussion-avatar);height:var(--discussion-avatar); }
+.community-experience .community-feed-shell .discussion__meta>span:nth-child(2) { min-width:0;overflow-wrap:anywhere;font-weight:600;color:#4f6054; }
+.community-experience .community-feed-shell .discussion__meta time { margin:0; }
+.community-experience .community-feed-shell .discussion__content { margin:0;border-left-width:var(--discussion-border);padding-left:calc(var(--discussion-avatar) + var(--discussion-gap) - var(--discussion-border)); }
+@media(max-width:650px) {
+ .community-experience .community-feed-shell .discussion { --discussion-avatar:32px;--discussion-gap:12px; }
+}
+/* My Requests: quieter header, compact toolbar, readable aligned ticket rows. */
+.requests-page.request-experience>.page-context { min-height:200px;padding-block:30px; }
+.requests-page.request-experience>.page-context::before { width:29%;opacity:.65; }
+.requests-page.request-experience>.page-context .page-head__subtitle { max-width:56ch;margin-top:14px; }
+.requests-page.request-experience .request-history>.module-header { padding:22px 28px; }
+.requests-page.request-experience .request-list-filter .card__body { align-items:center;gap:14px;padding:18px 28px;flex-wrap:wrap; }
+.requests-page.request-experience .request-list-filter .form-field { display:flex;align-items:center;gap:14px;flex:0 1 auto;margin:0; }
+.requests-page.request-experience .request-list-filter .form-field__label { margin:0;font-size:14px;font-weight:600; }
+.requests-page.request-experience .request-list-filter select { width:230px;max-width:100%;min-height:44px;height:44px;border-radius:10px;background:#fff;font-size:15px; }
+.requests-page.request-experience .request-list-filter .btn { min-height:44px;font-size:14px;padding:10px 17px;background:#fff; }
+.requests-page.request-experience .data-table thead th { background:#f0f4ef;color:#68796d;padding-block:14px;font-size:12px;letter-spacing:.05em; }
+.requests-page.request-experience .data-table tbody th,.requests-page.request-experience .data-table tbody td { padding-block:24px;vertical-align:middle;border-bottom-color:#e8eee5; }
+.requests-page.request-experience .cell-request__ticket { font-size:12px;letter-spacing:.035em;color:#7c8b80;margin-bottom:7px;font-weight:400; }
+.requests-page.request-experience .cell-request__title { font-size:17px;font-weight:600;color:#2b5444;line-height:1.55; }
+.requests-page.request-experience .cell-request__link:hover { text-decoration:none; }
+.requests-page.request-experience .cell-request__link:hover .cell-request__title { text-decoration:underline;text-underline-offset:4px; }
+.requests-page.request-experience .data-table tbody tr { transition:background-color 150ms ease; }
+.requests-page.request-experience .data-table tbody tr:hover,.requests-page.request-experience .data-table tbody tr:focus-within { background:#f6faf2; }
+.requests-page.request-experience .data-table td[data-label=Location] { color:#526858;line-height:1.65; }
+.requests-page.request-experience .data-table td[data-label=Category],.requests-page.request-experience .data-table td[data-label=Submitted] { color:#7a877d;font-size:13px; }
+.requests-page.request-experience .data-table .badge { font-size:11px;letter-spacing:.015em;padding:5px 9px; }
+@media(min-width:901px) {
+ .requests-page.request-experience .data-table thead th:first-child { width:35%; }
+ .requests-page.request-experience .data-table thead th:nth-child(2) { width:21%; }
+}
+@media(max-width:650px) {
+ .requests-page.request-experience>.page-context { min-height:0;padding:26px 22px;gap:20px; }
+ .requests-page.request-experience .request-history>.module-header { padding:20px; }
+ .requests-page.request-experience .request-list-filter .card__body { padding:18px 20px;gap:12px; }
+ .requests-page.request-experience .request-list-filter .form-field { flex:1 1 100%; }
+ .requests-page.request-experience .request-list-filter select { flex:1;min-width:0;width:auto; }
+ .requests-page.request-experience .data-table tbody th,.requests-page.request-experience .data-table tbody td { padding-block:9px; }
+ .requests-page.request-experience .data-table tbody th { padding-top:20px;padding-bottom:16px; }
+ .requests-page.request-experience .data-table .cell-request__title { font-size:17px; }
+}
+.requests-page.request-experience .request-list-filter .form-field { flex-direction:row;justify-content:flex-start; }
+.requests-page.request-experience .request-list-filter .form-field__label { flex-shrink:0; }
+/* The personal list follows Home's copy + action + right-hand PNG composition. */
+.requests-page.request-experience>.request-list-hero { display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,30%);align-items:center;gap:28px;min-height:260px;padding:30px 40px; }
+.requests-page.request-experience>.request-list-hero .page-head { min-width:0;width:100%; }
+.requests-page.request-experience>.request-list-hero .page-head-row__actions { margin-top:22px;justify-content:flex-start; }
+.request-list-hero__art { width:260px;height:205px;max-width:100%;object-fit:contain;justify-self:center;filter:drop-shadow(0 10px 12px #0b322b20); }
+@media(max-width:650px) {
+ .requests-page.request-experience>.request-list-hero { grid-template-columns:minmax(0,1fr) 90px;gap:16px;min-height:0;padding:26px 22px; }
+ .request-list-hero__art { width:90px;height:105px; }
+ .requests-page.request-experience>.request-list-hero .page-head-row__actions { margin-top:20px; }
+ .requests-page.request-experience>.request-list-hero .btn { font-size:14px;padding:11px 13px;min-height:44px; }
+}
+@media(max-width:420px) {
+ .requests-page.request-experience>.request-list-hero { grid-template-columns:minmax(0,1fr) 64px;gap:12px; }
+ .request-list-hero__art { width:64px;height:85px; }
+ .requests-page.request-experience>.request-list-hero h1 { font-size:27px; }
+ .requests-page.request-experience>.request-list-hero .page-head__subtitle { font-size:15px; }
+}

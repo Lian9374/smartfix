@@ -46,6 +46,12 @@
   <link rel="stylesheet" th:href="@{/css/site.css}">
   <link rel="stylesheet" th:href="@{/css/visual-refresh.css}">
   <link th:if="${pageTitle == 'Sign in'}" rel="stylesheet" th:href="@{/css/login.css(v='20261015')}">
+  <link th:if="${pageTitle == 'Overview'}" rel="stylesheet" th:href="@{/css/requester-home.css(v='20261015c')}">
+  <link th:if="${navRole == 'REQUESTER'}" rel="stylesheet" th:href="@{/css/requester-navigation.css(v='20261015e')}">
+  <link th:if="${navRole == 'REQUESTER' and (pageTitle == 'New request' or pageTitle == 'My Requests')}" rel="stylesheet" th:href="@{/css/request-experience.css(v='20261015')}" >
+  <link rel="stylesheet" th:href="@{/css/community-experience.css(v='20261016c')}">
+  <link th:if="${navRole == 'REQUESTER'}" rel="stylesheet" th:href="@{/css/requester-sections.css(v='20261016g')}">
+  <link th:if="${pageTitle == 'Campus Map'}" rel="stylesheet" th:href="@{/css/campus-map-experience.css(v='20261016c')}">
   <!--
     Marks the document as script-enabled before first paint. The stylesheet only
     collapses navigation into a menu button for .js, so a browser that runs no
@@ -244,7 +250,7 @@
   script find it without knowing which layout it is on.
 -->
 <th:block th:fragment="appbar(active)">
-  <header class="appbar" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'appbar--rail' : null">
+  <header class="appbar" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'appbar--rail' : (${navRole == 'REQUESTER'} ? 'appbar--requester' : null)">
     <div class="appbar__inner">
       <a class="appbar__brand" th:href="@{/}">
         <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
@@ -315,7 +321,9 @@
 -->
 <th:block th:fragment="scripts">
   <script defer th:src="@{/js/accessibility.js}"></script>
-  <script defer th:src="@{/js/community-form.js}"></script>
+  <script defer th:src="@{/js/requester-navigation.js(v='20261015b')}"></script>
+  <script defer th:src="@{/js/community-experience.js(v='20261016')}"></script>
+  <script defer th:src="@{/js/community-form.js(v='20261016')}"></script>
   <script defer th:src="@{/js/workspace.js}"></script>
   <script>
     (function () {

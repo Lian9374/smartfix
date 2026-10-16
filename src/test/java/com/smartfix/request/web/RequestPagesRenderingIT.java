@@ -95,7 +95,7 @@ class RequestPagesRenderingIT {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("New maintenance request")))
                 .andExpect(content().string(containsString("href=\"/css/site.css\"")))
-                .andExpect(content().string(containsString("src=\"/js/request-form.js\"")))
+                .andExpect(content().string(containsString("src=\"/js/request-form.js")))
                 .andExpect(content().string(containsString("enctype=\"multipart/form-data\"")))
                 .andExpect(content().string(containsString("name=\"_csrf\"")))
                 .andExpect(content().string(containsString("name=\"locationId\"")))
@@ -106,6 +106,38 @@ class RequestPagesRenderingIT {
                 page.indexOf("</nav>", page.indexOf("<nav class=\"appbar__links\"")));
         org.junit.jupiter.api.Assertions.assertFalse(navigation.contains("/requests/new"));
         org.junit.jupiter.api.Assertions.assertTrue(navigation.contains("aria-current=\"page\""));
+    }
+
+    @Test
+    void requestExperienceRendersProgressAndRealFilteredLists() throws Exception {
+        seed("SF-2026-000901", requesterId, "Leaking tap beside the pantry entrance",
+                "A steady drip from the tap since this morning.", MaintenanceCategory.PLUMBING, UrgencyLevel.MEDIUM);
+        var session = login("alice");
+        var create = mvc.perform(get("/requests/new").session(session))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("data-request-progress")))
+                .andExpect(content().string(containsString("/images/request-camera.png")))
+                .andExpect(content().string(not(containsString("request-guidance"))));
+        capture("request-new.html", create.andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        capture("request-mine.html", mvc.perform(get("/requests/mine").session(session))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("/requests/SF-2026-000901")))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        capture("request-filtered.html", mvc.perform(get("/requests/mine?status=CLOSED").session(session))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Clear filter")))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        capture("request-empty.html", mvc.perform(get("/requests/mine").session(login("dave")))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        capture("request-errors.html", mvc.perform(post("/requests").session(session).with(csrf())
+                        .param("title", "Leaking pantry tap").param("description", "The tap drips constantly."))
+                .andExpect(status().isOk()).andExpect(content().string(containsString("Your request has not been submitted")))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    private void capture(String filename, String html) throws java.io.IOException {
+        if (System.getProperty("smartfix.request.captureDir") == null) return;
+        var directory = java.nio.file.Path.of(System.getProperty("smartfix.request.captureDir"));
+        java.nio.file.Files.createDirectories(directory);
+        java.nio.file.Files.writeString(directory.resolve(filename), html);
     }
 
     @Test
@@ -135,7 +167,7 @@ class RequestPagesRenderingIT {
                 // The greeting names the account the session actually carries.
                 .andExpect(content().string(containsString("Welcome back, carol.")))
                 .andExpect(content().string(containsString("Recent requests")))
-                .andExpect(content().string(containsString("View all requests")))
+                .andExpect(content().string(containsString("View all")))
                 .andExpect(content().string(containsString("SF-2026-000105")))
                 .andExpect(content().string(containsString("Broken blinds in the reading room")))
                 .andExpect(content().string(containsString("href=\"/requests/mine\"")))
@@ -155,7 +187,7 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("Welcome back, dave.")))
                 .andExpect(content().string(containsString("No requests yet")))
                 .andExpect(content().string(containsString(
-                        "Your maintenance requests will appear here.")))
+                        "Your next small fix starts here.")))
                 // Submission is implemented and authorised for a requester, so
                 // the overview offers the form instead of a note announcing that
                 // it is missing. The link is the real route the submission
@@ -201,7 +233,7 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("href=\"/requests/SF-2026-000101\"")))
                 .andExpect(content().string(containsString("Flickering ceiling light")))
                 .andExpect(content().string(containsString("COM1 Level 1 Lobby")))
-                .andExpect(content().string(containsString("ELECTRICAL")))
+                .andExpect(content().string(containsString("Electrical")))
                 .andExpect(content().string(containsString("HIGH")))
                 // Status and urgency are printed as words, not only coloured.
                 .andExpect(content().string(containsString("SUBMITTED")))

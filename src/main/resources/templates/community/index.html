@@ -6,22 +6,24 @@
   <th:block th:replace="~{fragments/layout :: sidebar('community')}"></th:block>
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('community')}"></th:block>
-    <main id="main-content" class="content community-page">
-      <section class="community-hero">
-        <div><h1>Community</h1><p>Questions and answers from across the campus.</p>
+    <main id="main-content" class="content community-page community-experience">
+      <section class="community-hero" aria-labelledby="community-title">
+        <div class="community-hero__copy">
+          <h1 id="community-title">Community</h1>
+          <p>Questions and answers from across the campus.</p>
           <div class="hero-actions"><a class="btn btn--primary" th:href="@{/community/questions/new}"><svg th:replace="~{fragments/ui-icons :: plus}"></svg> Ask a question</a></div>
         </div>
-        <div class="conversation-art" aria-hidden="true"><span class="conversation-art__bubble">···</span><span class="conversation-art__reply">✓</span><span class="conversation-art__spark">✦</span></div>
+        <img class="community-hero__art" th:src="@{/images/community-conversation.png}" width="210" height="190" alt="" aria-hidden="true">
       </section>
       <div class="community-workspace">
-        <div class="community-main-column">
-          <form class="card community-filters" method="get" th:action="@{/community}">
+        <div class="community-main-column community-feed-shell">
+          <form class="card community-filters" data-community-search method="get" th:action="@{/community}">
         <div class="card__body">
           <div class="community-filter-grid">
             <div class="form-field community-search-field">
               <label class="form-field__label" for="community-q">Search</label>
               <input id="community-q" name="q" type="search" th:value="${query}"
-                     maxlength="100" placeholder="Title or details"
+                     maxlength="100" placeholder="Search campus discussions"
                      aria-describedby="community-q-hint" autocomplete="off">
             </div>
 
@@ -49,13 +51,13 @@
           <input th:if="${pagination != null}" type="hidden" name="size" th:value="${pagination.size}">
 
           <div class="form-actions">
-            <button class="btn btn--primary search-submit" type="submit" aria-label="Search discussions"><svg th:replace="~{fragments/ui-icons :: search}"></svg></button>
-            <a class="btn btn--secondary" th:href="@{/community}">Reset</a>
+            <button class="btn btn--primary search-submit" type="submit" aria-label="Search discussions"><svg th:replace="~{fragments/ui-icons :: search}"></svg><span>Search</span></button>
+            <a class="btn btn--secondary" th:unless="${unfiltered and selectedFilter.name() == 'LATEST'}" th:href="@{/community}">Reset</a>
           </div>
         </div>
       </form>
           <span class="visually-hidden" id="community-q-hint">Search question titles and details.</span>
-          <section class="card discussion-feed" aria-labelledby="discussions-heading">
+          <section class="discussion-feed" aria-labelledby="discussions-heading">
             <header class="module-header">
               <h2 id="discussions-heading" th:text="${selectedFilter.name() == 'LATEST' ? 'Latest discussions' : (selectedFilter.name() == 'UNANSWERED' ? 'Unanswered' : 'Solved discussions')}">Latest discussions</h2>
               <span class="result-count" th:with="total=${pagination != null ? pagination.totalElements : #lists.size(questions)}" th:text="${total + (total == 1 ? ' discussion' : ' discussions')}"></span>
@@ -82,13 +84,14 @@
 
 
             <div class="discussion-list" th:unless="${#lists.isEmpty(questions)}">
-              <article class="discussion" th:each="question : ${questions}">
-                <span class="discussion__icon" aria-hidden="true"><svg th:replace="~{fragments/ui-icons :: chat}"></svg></span>
+              <article class="discussion" th:each="question : ${questions}" th:attr="aria-labelledby=|discussion-title-${question.id}|">
                 <div class="discussion__body">
-                  <div class="discussion__meta"><span th:text="${question.authorDisplayName}"></span><span aria-hidden="true">·</span><time th:datetime="${question.createdAt}" th:text="${#temporals.format(question.createdAt, 'yyyy-MM-dd HH:mm')}"></time></div>
-                  <h3><a class="discussion__title-link" th:href="@{/community/questions/{id}(id=${question.id})}"><span th:text="${question.title}"></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></h3>
+                  <div class="discussion__meta"><span class="discussion__icon" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(question.authorDisplayName,0,1))}">U</span><span th:text="${question.authorDisplayName}"></span><time th:datetime="${question.createdAt}" th:text="${#temporals.format(question.createdAt, 'dd/MM/yyyy · HH:mm', 'Asia/Singapore')}"></time></div>
+                  <div class="discussion__content">
+                  <h3 th:id="|discussion-title-${question.id}|"><a class="discussion__title-link" th:href="@{/community/questions/{id}(id=${question.id})}"><span th:text="${question.title}"></span><svg th:replace="~{fragments/ui-icons :: arrow}"></svg></a></h3>
                   <p class="discussion__excerpt" th:text="${question.excerpt}"></p>
-                  <div class="discussion__tags"><span class="discussion__answer-count" th:text="${question.answerCount + (question.answerCount == 1 ? ' answer' : ' answers')}">0 answers</span><span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}"></span><span class="badge" th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'" th:text="${question.solved} ? 'Solved' : 'Open'">Open</span></div>
+                  <div class="discussion__tags"><a class="discussion__answer-count" th:href="@{/community/questions/{id}(id=${question.id})} + '#question-answers-title'"><svg th:replace="~{fragments/ui-icons :: chat}"></svg><span th:text="${question.answerCount + (question.answerCount == 1 ? ' answer' : ' answers')}">0 answers</span></a><span class="topic-label" th:text="${#strings.capitalize(#strings.toLowerCase(question.category.name()))}"></span><span class="badge" th:classappend="${question.solved} ? 'badge--success' : 'badge--neutral'" th:text="${question.solved} ? 'Solved' : 'Open'">Open</span></div>
+                  </div>
                 </div>
               </article>
             </div>
@@ -115,16 +118,14 @@
             <a class="rail-link" th:href="@{/community/mine}"><svg th:replace="~{fragments/ui-icons :: list}"></svg><span>My questions</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
             <a class="rail-link" th:href="@{/community/mine(tab='ANSWERS')}"><svg th:replace="~{fragments/ui-icons :: reply}"></svg><span>My answers</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
           </section>
-          <section class="card rail-module">
+          <section class="card rail-module rail-module--topics">
             <h2>Browse topics</h2>
             <nav class="topic-directory" aria-label="Discussion topics">
-              <a class="community-topic" th:classappend="${selectedCategory == null} ? 'is-selected'" th:href="@{/community(q=${query},filter=${selectedFilter},size=${pagination.size})}"><span>All topics</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
-              <a class="community-topic" th:each="topic : ${categories}" th:classappend="${topic == selectedCategory} ? 'is-selected'" th:href="@{/community(category=${topic},q=${query},filter=${selectedFilter},size=${pagination.size})}"><span th:text="${#strings.capitalize(#strings.toLowerCase(topic.name()))}"></span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+              <a class="community-topic" th:classappend="${selectedCategory == null} ? 'is-selected'" th:attr="aria-current=${selectedCategory == null} ? 'true' : null" th:href="@{/community(q=${query},filter=${selectedFilter},size=${pagination.size})}"><span>All topics</span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
+              <a class="community-topic" th:each="topic : ${categories}" th:classappend="${topic == selectedCategory} ? 'is-selected'" th:attr="aria-current=${topic == selectedCategory} ? 'true' : null" th:href="@{/community(category=${topic},q=${query},filter=${selectedFilter},size=${pagination.size})}"><span th:text="${#strings.capitalize(#strings.toLowerCase(topic.name()))}"></span><svg th:replace="~{fragments/ui-icons :: chevron}"></svg></a>
             </nav>
           </section>
-          <section class="card rail-module rail-module--maintenance" th:if="${navRole == 'REQUESTER'}">
-            <span class="rail-module__mark" th:insert="~{fragments/layout :: mark}"></span><h2>Something needs fixing?</h2><p>Send a maintenance request to the facility team.</p><a class="btn btn--secondary" th:href="@{/requests/new}">Report an issue</a>
-          </section>
+
         </aside>
       </div>
     </main>

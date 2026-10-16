@@ -54,7 +54,7 @@
         label.append(text('strong', b.name));
         if (active) label.append(text('span', description(b)));
         marker.bindTooltip(label, {permanent:true, direction:'top', offset:[0, active ? -10 : -4],
-          className: active ? 'atlas-label atlas-label--active' : 'atlas-label', interactive:false});
+          className: active ? `atlas-label atlas-label--active atlas-label--${fault(b) ? 'fault' : 'repair'}` : 'atlas-label', interactive:false});
       }
     }
   }
