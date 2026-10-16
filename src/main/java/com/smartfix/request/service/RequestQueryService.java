@@ -134,6 +134,13 @@ public class RequestQueryService {
             Long actorId, String search, RequestStatus status,
             com.smartfix.request.domain.MaintenanceCategory category,
             com.smartfix.request.domain.UrgencyLevel priority, String order, int page, int size) {
+        return searchForAdministration(actorId, search, status, null, category, priority, order, page, size);
+    }
+
+    public Page<com.smartfix.request.dto.AdminRequestRow> searchForAdministration(
+            Long actorId, String search, RequestStatus status, com.smartfix.request.domain.RequestStage stage,
+            com.smartfix.request.domain.MaintenanceCategory category,
+            com.smartfix.request.domain.UrgencyLevel priority, String order, int page, int size) {
         requestAccessService.requireRole(actorId, Role.ADMINISTRATOR);
         String term = search == null ? "" : search.trim().toLowerCase(java.util.Locale.ROOT);
         if (term.length() > 120) throw new com.smartfix.common.exception.InputValidationException("Search is limited to 120 characters.");
@@ -155,6 +162,7 @@ public class RequestQueryService {
                         cb.like(cb.lower(root.get("description")), pattern, '\\')));
             }
             if (status != null) predicates.add(cb.equal(root.get("status"), status));
+            if (stage != null) predicates.add(root.get("status").in(stage.getStatuses()));
             if (category != null) predicates.add(cb.equal(root.get("category"), category));
             if (priority != null) predicates.add(cb.equal(cb.coalesce(root.get("finalUrgencyLevel"), root.get("urgencyLevel")), priority));
             return cb.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));

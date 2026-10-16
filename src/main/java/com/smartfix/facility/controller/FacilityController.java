@@ -16,13 +16,21 @@ import org.springframework.ui.Model;
 public class FacilityController {
 
     private final FacilityService facilityService;
+    private final com.smartfix.facility.service.LocationService locations;
 
-    public FacilityController(FacilityService facilityService) {
+    public FacilityController(FacilityService facilityService, com.smartfix.facility.service.LocationService locations) {
         this.facilityService = facilityService;
+        this.locations = locations;
     }
 
     @GetMapping
     public String listFacilities(Model model) {
+        model.addAttribute("createFacility", new com.smartfix.facility.dto.CreateFacilityCommand(null, "", "", FacilityStatus.OPERATIONAL));
+        return populate(model);
+    }
+
+    private String populate(Model model) {
+        model.addAttribute("locations", locations.listActiveLocations());
         model.addAttribute(
             "facilities",
             facilityService.listFacilities());
@@ -32,6 +40,26 @@ public class FacilityController {
             FacilityStatus.values());
 
         return "facility/list";
+    }
+
+    @PostMapping
+    public String createFacility(
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.ModelAttribute("createFacility")
+            com.smartfix.facility.dto.CreateFacilityCommand command,
+            org.springframework.validation.BindingResult errors, Model model,
+            jakarta.servlet.http.HttpServletResponse response, RedirectAttributes redirect) {
+        if (!errors.hasErrors()) {
+            try {
+                facilityService.createFacility(command);
+                redirect.addFlashAttribute("successMessage", "Facility added. Its status is now available on the campus map.");
+                return "redirect:/admin/facilities";
+            } catch (com.smartfix.common.exception.InputValidationException ex) {
+                errors.reject("facility.invalid", ex.getMessage());
+            }
+        }
+        model.addAttribute("facilityFormInvalid", true);
+        response.setStatus(400);
+        return populate(model);
     }
 
     @PostMapping("/{facilityId}/status")

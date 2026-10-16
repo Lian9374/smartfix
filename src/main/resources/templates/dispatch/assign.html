@@ -1,131 +1,43 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments/layout :: head('Dispatch / ' + ${page.request.ticketNumber})}">
-  <title>Dispatch · SmartFix</title>
-</head>
-<body>
-<div class="app-shell">
-  <th:block th:replace="~{fragments/layout :: sidebar('request-lookup')}"></th:block>
-  <div class="app-main">
-    <th:block th:replace="~{fragments/layout :: appbar('request-lookup')}"></th:block>
-    <main id="main-content" class="content workspace-page">
-      <nav class="crumbs" aria-label="Breadcrumb">
-        <a class="crumbs__link" th:href="@{/admin/requests}">Request queue</a>
-        <span class="crumbs__sep" aria-hidden="true"> / </span>
-        <a class="crumbs__link" th:href="@{/requests/{ticket}(ticket=${page.request.ticketNumber})}"
-           th:text="${page.request.ticketNumber}">SF-2026-000001</a>
-        <span class="crumbs__sep" aria-hidden="true"> / </span>
-        <span class="crumbs__here" aria-current="page">Dispatch</span>
-      </nav>
-      <div class="page-head-row card page-context workspace-heading">
-        <div class="page-head">
-          <h1 class="page-head__title">Manage assignment</h1>
-          <p class="page-head__subtitle" th:text="${page.request.title}">Broken light</p>
-        </div>
-        <div class="page-head-row__actions">
-          <a class="btn btn--secondary" th:href="@{/requests/{ticket}(ticket=${page.request.ticketNumber})}">View request</a>
-        </div>
-      </div>
-      <output class="alert alert--success" th:if="${successMessage}" th:text="${successMessage}"></output>
-      <div class="alert alert--error" role="alert" th:if="${errorMessage}">
-        <div class="alert__body">
-          <p th:text="${errorMessage}"></p>
-          <a th:href="@{/admin/requests/{ticket}/dispatch(ticket=${page.request.ticketNumber})}">Reload current details</a>
-        </div>
-      </div>
-      <div class="detail-layout">
-        <aside class="detail-layout__aside" aria-labelledby="summary-title">
-          <section class="card">
-            <div class="card__header"><h2 class="card__title" id="summary-title">Request summary</h2></div>
-            <div class="card__body">
-              <dl class="detail-list">
-                <dt>Ticket</dt><dd class="data-table__id" th:text="${page.request.ticketNumber}"></dd>
-                <dt>Status</dt><dd><span th:replace="~{fragments/components :: statusBadge(${page.request.status})}"></span></dd>
-                <dt>Location</dt><dd th:text="${page.request.locationDisplayName}"></dd>
-                <dt>Category</dt><dd th:text="${page.request.category}"></dd>
-                <dt>Priority</dt><dd><span th:replace="~{fragments/components :: urgencyBadge(${page.priority})}"></span></dd>
-                <dt>Current technician</dt>
-                <dd th:text="${page.currentAssignment != null} ? ${page.currentTechnicianName} : 'Not assigned'"></dd>
-                <th:block th:if="${page.currentAssignment != null}">
-                  <dt>Assigned at</dt><dd th:text="${#temporals.format(page.currentAssignment.assignedAt, 'yyyy-MM-dd HH:mm')}"></dd>
-                  <th:block th:if="${page.currentAssignment.reason != null}">
-                    <dt>Assignment reason</dt><dd class="prose" th:text="${page.currentAssignment.reason}"></dd>
-                  </th:block>
-                </th:block>
-              </dl>
-            </div>
-          </section>
-        </aside>
-        <div class="detail-layout__main">
-          <section class="card" aria-labelledby="candidates-title">
-            <div class="card__header"><h2 class="card__title" id="candidates-title">Recommended technicians</h2></div>
-            <div class="card__body">
-              <p class="meta">Eligible technicians are ranked by availability, then open work orders. Your selection is checked again when submitted.</p>
-              <p th:if="${page.recommendationNotice}"><output th:text="${page.recommendationNotice}"></output></p>
-              <p th:if="${page.recommendationNotice == null and #lists.isEmpty(page.candidates)}">
-                <output>No eligible technicians match this category and location. Check technician skills, service areas and availability before trying again.</output>
-              </p>
-            </div>
-            <form th:unless="${#lists.isEmpty(page.candidates)}" method="post" th:object="${reassignCommand}"
-                  th:attr="data-confirm=${page.canReassign} ? 'Reassign this repair? The previous engineer will lose access immediately.' : null" th:action="${page.canReassign} ? @{/admin/requests/{ticket}/reassign(ticket=${page.request.ticketNumber})} : @{/admin/requests/{ticket}/assign(ticket=${page.request.ticketNumber})}">
-              <div class="card__body" th:if="${page.canReassign}">
-                <input type="hidden" th:field="*{expectedAssignmentId}">
-                <div class="form-field">
-                  <label class="form-field__label" for="reassign-reason">Reason for reassignment</label>
-                  <textarea id="reassign-reason" th:field="*{reason}" rows="3" required maxlength="500"
-                            th:disabled="${conflict}" aria-describedby="reassign-hint reassign-error"
-                            th:attr="aria-invalid=${#fields.hasErrors('reason')}"></textarea>
-                  <p class="form-field__hint" id="reassign-hint">Enter 1–500 characters, then choose a technician below. The reason is saved with the assignment.</p>
-                  <p class="form-field__error" id="reassign-error" th:text="${#fields.hasErrors('reason')} ? 'Enter a reason of 1–500 characters.' : ''"></p>
-                </div>
-              </div>
-              <div class="table-scroll" tabindex="0" role="region" aria-label="Recommended technicians">
-                <table class="data-table data-table--stack">
-                  <caption class="visually-hidden">Eligible technicians in recommendation order</caption>
-                  <thead><tr><th scope="col">Technician</th><th scope="col">Skills</th><th scope="col">Areas</th><th scope="col">Availability</th><th scope="col">Open jobs</th><th scope="col">Action</th></tr></thead>
-                  <tbody>
-                    <tr th:each="candidate : ${page.candidates}">
-                      <th scope="row" class="data-table__wrap" th:text="${candidate.displayName}"></th>
-                      <td data-label="Skills" th:text="${candidate.skills}"></td>
-                      <td data-label="Service areas" class="data-table__wrap" th:text="${candidate.serviceAreas}"></td>
-                      <td data-label="Availability"><span class="badge" th:classappend="${candidate.availability == 'AVAILABLE'} ? 'badge--success' : 'badge--warning'"
-                          th:text="${candidate.availability == 'AVAILABLE'} ? 'Available' : 'Busy'"></span></td>
-                      <td data-label="Open work orders" th:text="${candidate.openWorkOrders}"></td>
-                      <td data-label="Action">
-                        <button class="btn btn--primary" type="submit" name="technicianId" th:value="${candidate.userId}"
-                                th:disabled="${conflict or !candidate.selectable}"
-                                th:attr="aria-label=|${page.canReassign ? 'Reassign to' : 'Assign'} ${candidate.displayName}|"
-                                th:text="${!candidate.selectable} ? 'Current' : (${page.canReassign} ? 'Reassign' : 'Assign')">Assign</button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </form>
-          </section>
-          <section class="card" th:if="${page.canWithdraw}" aria-labelledby="withdraw-title">
-            <div class="card__header"><h2 class="card__title" id="withdraw-title">Withdraw assignment</h2></div>
-            <form class="card__body" method="post" th:object="${withdrawCommand}" data-confirm="Withdraw this assignment? The engineer will lose access immediately."
-                  th:action="@{/admin/requests/{ticket}/withdraw(ticket=${page.request.ticketNumber})}">
-              <p class="meta">Withdraw before work starts. The request returns to review and the technician loses access to this work order.</p>
-              <input type="hidden" th:field="*{expectedAssignmentId}" id="withdraw-assignment-id">
-              <div class="form-field">
-                <label class="form-field__label" for="withdraw-reason">Reason for withdrawal</label>
-                <textarea id="withdraw-reason" th:field="*{reason}" rows="3" required maxlength="500"
-                          th:disabled="${conflict}" aria-describedby="withdraw-hint withdraw-error"
-                          th:attr="aria-invalid=${#fields.hasErrors('reason')}"></textarea>
-                <p class="form-field__hint" id="withdraw-hint">Enter 1–500 characters explaining why this assignment should be withdrawn.</p>
-                <p class="form-field__error" id="withdraw-error" th:text="${#fields.hasErrors('reason')} ? 'Enter a reason of 1–500 characters.' : ''"></p>
-              </div>
-              <div class="form-actions"><button class="btn btn--secondary" type="submit" th:disabled="${conflict}">Withdraw assignment</button></div>
-            </form>
-          </section>
-        </div>
-      </div>
-    </main>
-    <th:block th:replace="~{fragments/layout :: footer}"></th:block>
-  </div>
-</div>
-<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
-</body>
-</html>
+<head th:replace="~{fragments/layout :: head('Dispatch / ' + ${page.request.ticketNumber})}"><title>Assign engineer · SmartFix</title></head>
+<body><div class="app-shell"><th:block th:replace="~{fragments/layout :: sidebar('request-queue')}"></th:block><div class="app-main"><th:block th:replace="~{fragments/layout :: appbar('request-queue')}"></th:block>
+<main id="main-content" class="content workspace-page admin-dispatch-page">
+  <nav class="crumbs" aria-label="Breadcrumb"><a th:href="@{/admin/requests}">Requests</a><span aria-hidden="true"> / </span><span th:text="${page.request.ticketNumber}"></span><span aria-hidden="true"> / </span><span aria-current="page">Assignment</span></nav>
+  <header class="request-admin-hero">
+    <div><span class="section-kicker">Repair coordination</span><h1>Assign &amp; manage repair</h1><p>Choose an engineer. Keep the repair moving.</p><div class="request-admin-hero__actions"><a class="btn btn--secondary" th:href="@{/requests/{ticket}(ticket=${page.request.ticketNumber})}">View request <span aria-hidden="true">↗</span></a><a class="admin-quiet-link" th:if="${page.canAssign}" th:href="@{/requests/{ticket}/review(ticket=${page.request.ticketNumber})}">Decline request</a></div></div>
+    <img th:src="@{/images/engineer-dispatch.png}" width="190" height="170" alt="" aria-hidden="true" decoding="async">
+  </header>
+  <output class="alert alert--success" role="status" th:if="${successMessage}" th:text="${successMessage}"></output>
+  <div class="alert alert--error" role="alert" th:if="${errorMessage}"><p th:text="${errorMessage}"></p><a th:href="@{/admin/requests/{ticket}/dispatch(ticket=${page.request.ticketNumber})}">Reload current details</a></div>
+  <section class="card dispatch-brief" aria-labelledby="issue-title">
+    <div class="dispatch-brief__heading"><span class="meta" th:text="${page.request.ticketNumber}"></span><span th:replace="~{fragments/components :: statusBadge(${page.request.status})}"></span></div>
+    <h2 id="issue-title" th:text="${page.request.title}"></h2><p class="prose dispatch-description" th:text="${page.request.description}"></p>
+    <dl class="dispatch-facts">
+      <div><dt>Location</dt><dd th:text="${page.request.locationDisplayName}"></dd></div>
+      <div><dt>Category</dt><dd th:text="${#strings.capitalize(#strings.toLowerCase(page.request.category.name()))}"></dd></div>
+      <div><dt>Priority</dt><dd><span th:replace="~{fragments/components :: urgencyBadge(${page.priority})}"></span></dd></div>
+      <div><dt>Current technician</dt><dd th:text="${page.currentAssignment != null ? page.currentTechnicianName : 'Not assigned'}"></dd></div>
+    </dl>
+    <p class="dispatch-assignment-note meta" th:if="${page.currentAssignment != null}">Assigned <time th:text="${#temporals.format(page.currentAssignment.assignedAt,'dd MMM yyyy, HH:mm','Asia/Singapore')}"></time><span th:if="${page.currentAssignment.reason != null}" th:text="| · ${page.currentAssignment.reason}|"></span></p>
+  </section>
+  <section class="card dispatch-picker" aria-labelledby="candidates-title">
+    <div class="dispatch-picker__heading"><div><span class="section-kicker">Assignment</span><h2 id="candidates-title">Choose an engineer</h2></div><span class="dispatch-roster-count" th:if="${page.canAssign or page.canReassign}" th:text="|${#lists.size(page.candidates)} engineers|"></span></div>
+    <div class="dispatch-notice" th:if="${page.recommendationNotice}" role="status" th:text="${page.recommendationNotice}"></div>
+    <div class="workspace-empty" th:if="${page.recommendationNotice == null and #lists.isEmpty(page.candidates)}"><h3>No active engineers yet</h3><p>Create an engineer account to assign this repair.</p><a class="btn btn--secondary" th:href="@{/admin/users/new(role='TECHNICIAN')}">Create engineer account</a></div>
+    <div class="dispatch-roster-search" th:if="${#lists.size(page.candidates) > 4}"><label for="engineer-search">Find an engineer</label><input id="engineer-search" type="search" placeholder="Name or username" data-engineer-search aria-controls="engineer-options"><output class="meta" data-engineer-search-result aria-live="polite"></output></div>
+    <form th:unless="${#lists.isEmpty(page.candidates)}" method="post" th:object="${reassignCommand}" th:action="${page.canReassign} ? @{/admin/requests/{ticket}/reassign(ticket=${page.request.ticketNumber})} : @{/admin/requests/{ticket}/assign(ticket=${page.request.ticketNumber})}" data-dispatch-form th:attr="data-confirm=${page.canReassign} ? 'Reassign this repair? The previous engineer will lose access immediately.' : 'Save the reviewed priority and assign this engineer?'">
+      <div class="dispatch-priority" th:if="${page.canAssign}"><div class="form-field"><label for="dispatch-priority">Reviewed priority</label><select id="dispatch-priority" name="finalUrgencyLevel" required><option value="LOW" th:selected="${page.priority.name() == 'LOW'}">Low</option><option value="MEDIUM" th:selected="${page.priority.name() == 'MEDIUM'}">Medium</option><option value="HIGH" th:selected="${page.priority.name() == 'HIGH'}">High</option></select></div><p>Saved together with your assignment.</p></div>
+      <div class="dispatch-reason form-field" th:if="${page.canReassign}"><input type="hidden" th:field="*{expectedAssignmentId}"><label for="reassign-reason">Reason for reassignment</label><textarea id="reassign-reason" th:field="*{reason}" required maxlength="500" rows="2" th:disabled="${conflict}" aria-describedby="reassign-error" th:attr="aria-invalid=${#fields.hasErrors('reason')}"></textarea><span class="form-field__error" id="reassign-error" th:text="${#fields.hasErrors('reason')} ? 'Enter a reason of 1–500 characters.' : ''"></span></div>
+      <fieldset class="dispatch-engineers" id="engineer-options"><legend class="visually-hidden">Select an engineer for this request</legend>
+        <label class="engineer-option" th:each="candidate : ${page.candidates}" th:classappend="${!candidate.selectable} ? 'engineer-option--current'" th:attr="data-engineer-name=${candidate.displayName},data-engineer-search-text=|${candidate.displayName} ${candidate.username}|">
+          <input type="radio" name="technicianId" th:value="${candidate.userId}" required th:disabled="${conflict or !candidate.selectable}" th:checked="${selectedTechnicianId == candidate.userId}">
+          <span class="engineer-option__avatar" aria-hidden="true" th:text="${#strings.substring(candidate.displayName,0,1)}"></span><span class="engineer-option__copy"><strong th:text="${candidate.displayName}"></strong><span class="engineer-option__username" th:text="|@${candidate.username}|"></span><span class="engineer-option__workload" th:text="${!candidate.selectable} ? 'Currently assigned' : |${candidate.openWorkOrders} active repairs|"></span></span>
+          <span class="engineer-option__check" aria-hidden="true">✓</span>
+        </label>
+      </fieldset>
+      <div class="dispatch-submit"><p data-dispatch-selection aria-live="polite">Select an engineer above.</p><button class="btn btn--primary" type="submit" data-dispatch-submit th:disabled="${conflict}" th:text="${page.canReassign} ? 'Reassign engineer' : 'Assign engineer'">Assign engineer</button></div>
+    </form>
+  </section>
+  <details class="dispatch-withdraw card" th:if="${page.canWithdraw}"><summary>Withdraw assignment</summary><form class="card__body" method="post" th:object="${withdrawCommand}" th:action="@{/admin/requests/{ticket}/withdraw(ticket=${page.request.ticketNumber})}" data-confirm="Withdraw this assignment? The engineer will lose access immediately."><p class="meta">Available before work starts.</p><input type="hidden" th:field="*{expectedAssignmentId}" id="withdraw-assignment-id"><div class="form-field"><label for="withdraw-reason">Reason for withdrawal</label><textarea id="withdraw-reason" th:field="*{reason}" required maxlength="500" rows="2" th:disabled="${conflict}" aria-describedby="withdraw-error" th:attr="aria-invalid=${#fields.hasErrors('reason')}"></textarea><span class="form-field__error" id="withdraw-error" th:text="${#fields.hasErrors('reason')} ? 'Enter a reason of 1–500 characters.' : ''"></span></div><button class="btn btn--secondary" type="submit" th:disabled="${conflict}">Withdraw assignment</button></form></details>
+</main><th:block th:replace="~{fragments/layout :: footer}"></th:block></div></div><th:block th:replace="~{fragments/layout :: scripts}"></th:block></body></html>

@@ -36,7 +36,7 @@ class FacilityServiceTest {
 
         facilityService = new FacilityService(
             facilityRepository,
-            clock);
+            clock, mock(LocationService.class));
     }
 
     @Test

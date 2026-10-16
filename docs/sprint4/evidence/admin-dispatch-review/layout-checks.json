@@ -1,0 +1,99 @@
+{
+  "source": "Server-rendered HTML captured from isolated H2 integration tests; read-only static browser preview, not a live authenticated production session.",
+  "checks": [
+    {
+      "page": "overview",
+      "width": 1425,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 1425
+    },
+    {
+      "page": "overview",
+      "width": 985,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 985
+    },
+    {
+      "page": "overview",
+      "width": 375,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 375
+    },
+    {
+      "route": "/admin/requests",
+      "viewport": 1440,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 1425,
+      "width": 1425
+    },
+    {
+      "route": "/admin/requests",
+      "viewport": 1000,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 985,
+      "width": 985
+    },
+    {
+      "route": "/admin/requests",
+      "viewport": 390,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "route": "/admin/requests/SF-2026-000001/dispatch",
+      "viewport": 1440,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 1440,
+      "width": 1440
+    },
+    {
+      "route": "/admin/requests/SF-2026-000001/dispatch",
+      "viewport": 1000,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 985,
+      "width": 985
+    },
+    {
+      "route": "/admin/requests/SF-2026-000001/dispatch",
+      "viewport": 390,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 375,
+      "width": 375
+    },
+    {
+      "route": "/requests/SF-2026-000001",
+      "viewport": 1440,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 1425,
+      "width": 1425
+    },
+    {
+      "route": "/requests/SF-2026-000001",
+      "viewport": 1000,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 985,
+      "width": 985
+    },
+    {
+      "route": "/requests/SF-2026-000001",
+      "viewport": 390,
+      "duplicateIds": [],
+      "h1": 1,
+      "scrollWidth": 375,
+      "width": 375
+    }
+  ],
+  "keyboardReturnForm": true
+}

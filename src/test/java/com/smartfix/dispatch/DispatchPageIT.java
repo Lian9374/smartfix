@@ -96,7 +96,7 @@ class DispatchPageIT {
         assertThat(page.canAssign()).isTrue();
         assertThat(page.candidates()).extracting(DispatchPageResponse.Candidate::userId).containsExactly(101L, 102L);
         assertThat(page.candidates()).allSatisfy(candidate -> {
-            assertThat(candidate.serviceAreas()).isEqualTo("Central Library");
+            assertThat(candidate.username()).startsWith("dispatch.user");
             assertThat(candidate.openWorkOrders()).isZero();
         });
         snapshot("assign", result.getResponse().getContentAsString());
@@ -188,23 +188,184 @@ class DispatchPageIT {
     }
 
     @Test
-    void emptyCandidatesAndInactiveLocationsAreReadableWithoutAssignButtons() throws Exception {
-        jdbc.update("UPDATE technician_profiles SET availability_status='ON_LEAVE'");
+    void emptyEngineerRosterOffersRealAccountCreation() throws Exception {
+        jdbc.update("UPDATE users SET account_status='DISABLED' WHERE role='TECHNICIAN'");
         var empty = mvc.perform(get(BASE + "/dispatch").with(account(103))).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        assertThat(empty).contains("No eligible technicians").doesNotContain("name=\"technicianId\"");
+        assertThat(empty).contains("No active engineers yet", "Create engineer account").doesNotContain("name=\"technicianId\"");
         snapshot("empty", empty);
         jdbc.update("UPDATE locations SET active=false WHERE id=5");
         mvc.perform(get(BASE + "/dispatch").with(account(103))).andExpect(status().isOk())
-                .andExpect(content().string(containsString("This location is inactive")));
+                .andExpect(content().string(containsString("No active engineers yet")));
     }
 
     @Test
-    void unreviewedRequestHasNoAssignmentForm() throws Exception {
+    void rosterIncludesUnconfiguredEngineerAndIgnoresSkillAreaAndLeavePreferences() throws Exception {
+        jdbc.update("DELETE FROM technician_skills");
+        jdbc.update("DELETE FROM technician_service_areas");
+        jdbc.update("DELETE FROM technician_profiles");
+        jdbc.update("UPDATE users SET password_change_required=true WHERE id=102");
+        jdbc.update("UPDATE locations SET active=false WHERE id=5");
+        var result = mvc.perform(get(BASE + "/dispatch").with(account(103))).andExpect(status().isOk()).andReturn();
+        var page = (DispatchPageResponse) result.getModelAndView().getModel().get("page");
+        assertThat(page.candidates()).extracting(DispatchPageResponse.Candidate::userId).containsExactly(101L,102L);
+        mvc.perform(post(BASE + "/assign").with(account(103)).with(csrf()).param("technicianId","102"))
+                .andExpect(status().isFound());
+        assertThat(assignments.findActiveAssignment(1L).orElseThrow().technicianId()).isEqualTo(102);
+    }
+
+    @Test
+    void unreviewedRequestOffersPriorityAndAssignmentTogether() throws Exception {
         jdbc.update("UPDATE maintenance_requests SET final_urgency_level=null WHERE id=1");
         var html = mvc.perform(get(BASE + "/dispatch").with(account(103))).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        assertThat(html).contains("Complete the request review").doesNotContain("name=\"technicianId\"");
+        assertThat(html).contains("name=\"finalUrgencyLevel\"", "name=\"technicianId\"");
+    }
+
+    @Test
+    void initialDispatchReviewsAndAssignsAtomicallyUsingTheAuthenticatedAdministrator() throws Exception {
+        resetToSubmitted();
+        var html = mvc.perform(get(BASE + "/dispatch").with(account(103)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(html).contains("Reviewed priority", "Reading room lights not working", "name=\"technicianId\"");
+        snapshot("initial-dispatch", html);
+        mvc.perform(post(BASE + "/assign").with(account(103)).with(csrf())
+                .param("technicianId", "101").param("finalUrgencyLevel", "LOW")
+                .param("actorUserId", "104")).andExpect(status().isFound());
+        assertThat(requestState()).isEqualTo("ASSIGNED");
+        assertThat(jdbc.queryForObject("SELECT final_urgency_level FROM maintenance_requests WHERE id=1", String.class)).isEqualTo("LOW");
+        assertThat(jdbc.queryForObject("SELECT reviewed_by_user_id FROM maintenance_requests WHERE id=1", Long.class)).isEqualTo(103L);
+        assertThat(assignments.findActiveAssignment(1L).orElseThrow().assignedByUserId()).isEqualTo(103L);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM work_orders", Long.class)).isEqualTo(1L);
+    }
+
+    @Test
+    void initialDispatchFailureDoesNotLeavePartialReviewAssignmentOrWorkOrder() throws Exception {
+        resetToSubmitted();
+        mvc.perform(post(BASE + "/assign").with(account(103)).with(csrf())
+                .param("technicianId", "101")).andExpect(status().isBadRequest());
+        jdbc.update("UPDATE users SET account_status='DISABLED' WHERE role='TECHNICIAN'");
+        mvc.perform(post(BASE + "/assign").with(account(103)).with(csrf())
+                .param("technicianId", "101").param("finalUrgencyLevel", "HIGH"))
+                .andExpect(status().isConflict());
+        assertThat(requestState()).isEqualTo("SUBMITTED");
+        assertThat(jdbc.queryForObject("SELECT final_urgency_level FROM maintenance_requests WHERE id=1", String.class)).isNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM request_status_history", Long.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM work_orders", Long.class)).isZero();
+        assertThat(assignments.findActiveAssignment(1L)).isEmpty();
+    }
+
+    @Test
+    void completedRepairRequiresUserAcceptanceBeforeFinalAdministratorApproval() throws Exception {
+        var orderId = assignedOrder();
+        // Resources are enforced even if a different engineer calls the endpoints directly.
+        mvc.perform(post("/workorders/" + orderId + "/accept").with(account(102)).with(csrf()))
+                .andExpect(status().isNotFound());
+        completeRepair(orderId);
+        assertThat(requestState()).isEqualTo("RESOLVED");
+        mvc.perform(post("/requests/" + TICKET + "/close").with(account(103)).with(csrf()))
+                .andExpect(status().isConflict());
+        mvc.perform(post("/requests/" + TICKET + "/confirm").with(account(103)).with(csrf()))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/requests/" + TICKET + "/confirm").with(account(100)).with(csrf()))
+                .andExpect(status().isFound());
+        assertThat(requestState()).isEqualTo("CONFIRMED");
+        var finalHtml = mvc.perform(get("/requests/" + TICKET).with(account(103)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        assertThat(finalHtml).contains("Requester accepted the repair", "Approve &amp; close request", "Return for further repair", "name=\"_csrf\"");
+        snapshot("final-review", finalHtml);
+        mvc.perform(post("/requests/" + TICKET + "/close").with(account(100)).with(csrf()))
+                .andExpect(status().isForbidden());
+        mvc.perform(post("/requests/" + TICKET + "/close").with(account(103)).with(csrf()))
+                .andExpect(status().isFound());
+        assertThat(requestState()).isEqualTo("CLOSED");
+        assertThat(jdbc.queryForObject("SELECT status FROM work_orders WHERE id=?", String.class, orderId)).isEqualTo("CLOSED");
+    }
+
+    @Test
+    void finalReviewCanReturnWithReasonAndMustRepeatUserAcceptance() throws Exception {
+        var orderId = assignedOrder();
+        completeRepair(orderId);
+        String endpoint = "/requests/" + TICKET;
+        mvc.perform(post(endpoint + "/return-for-repair").with(account(103)).with(csrf()).param("comment", "Too soon"))
+                .andExpect(status().isConflict());
+        mvc.perform(post(endpoint + "/confirm").with(account(100)).with(csrf())).andExpect(status().isFound());
+        mvc.perform(post(endpoint + "/return-for-repair").with(account(103)).with(csrf()).param("comment", " "))
+                .andExpect(model().attributeHasFieldErrors("finalReview", "comment"));
+        assertThat(requestState()).isEqualTo("CONFIRMED");
+        for (long actor : List.of(100L, 101L)) {
+            mvc.perform(post(endpoint + "/return-for-repair").with(account(actor)).with(csrf()).param("comment", "Forged review"))
+                    .andExpect(status().isForbidden());
+        }
+        mvc.perform(post(endpoint + "/return-for-repair").with(account(103)).param("comment", "Missing CSRF"))
+                .andExpect(status().isForbidden());
+        mvc.perform(post(endpoint + "/return-for-repair").with(account(103)).with(csrf()).param("comment", "Check the second light as well."))
+                .andExpect(status().isFound());
+        assertThat(requestState()).isEqualTo("REOPENED");
+        assertThat(jdbc.queryForObject("SELECT confirmed_at FROM maintenance_requests WHERE id=1", Timestamp.class)).isNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM request_status_history WHERE to_status='REOPENED' AND changed_by_user_id=103 AND comment='Check the second light as well.'", Long.class)).isEqualTo(1L);
+        mvc.perform(post(endpoint + "/close").with(account(103)).with(csrf())).andExpect(status().isConflict());
+        completeRepair(orderId);
+        mvc.perform(post(endpoint + "/close").with(account(103)).with(csrf())).andExpect(status().isConflict());
+        mvc.perform(post(endpoint + "/confirm").with(account(100)).with(csrf())).andExpect(status().isFound());
+        mvc.perform(post(endpoint + "/close").with(account(103)).with(csrf())).andExpect(status().isFound());
+        assertThat(requestState()).isEqualTo("CLOSED");
+    }
+
+    @Test
+    void stageQueuesCoverAllPersistedStatesWithoutOverlapsAndKeepFiltersAcrossPages() throws Exception {
+        var now = Timestamp.from(Instant.now());
+        int id = 10;
+        for (var state : RequestStatus.values()) {
+            jdbc.update("INSERT INTO maintenance_requests(id,ticket_number,requester_id,location_id,title,description,category,urgency_level,status,version,created_at,updated_at) VALUES(?,?,100,5,'Stage fixture','Synthetic issue','ELECTRICAL','LOW',?,0,?,?)",
+                    id, "SF-2026-%06d".formatted(id++), state.name(), now, now);
+        }
+        long total = 0;
+        for (var stage : RequestStage.values()) {
+            var response = mvc.perform(get("/admin/requests").with(account(103)).param("stage", stage.name()).param("size", "1"))
+                    .andExpect(status().isOk()).andReturn();
+            var page = (org.springframework.data.domain.Page<com.smartfix.request.dto.AdminRequestRow>) response.getModelAndView().getModel().get("pagination");
+            assertThat(page.getContent()).allSatisfy(row -> assertThat(row.status().getStage()).isEqualTo(stage));
+            assertThat(page.getTotalElements()).isEqualTo(stage.getStatuses().size() + (stage == RequestStage.TO_ASSIGN ? 1 : 0));
+            total += page.getTotalElements();
+            if (page.hasNext()) assertThat(response.getResponse().getContentAsString()).contains("stage=" + stage.name());
+        }
+        assertThat(total).isEqualTo(11);
+        String html = mvc.perform(get("/admin").with(account(103))).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        int navigationStart = html.indexOf("<nav class=\"nav\"");
+        var navigation = html.substring(navigationStart, html.indexOf("</nav>", navigationStart));
+        var links = java.util.regex.Pattern.compile("<a\\b[^>]*href=\"([^\"]+)\"").matcher(navigation)
+                .results().map(match -> match.group(1)).toList();
+        assertThat(links).containsExactly(
+                "/admin", "/admin/requests", "/admin/users", "/admin/facilities", "/admin/community/reports");
+        snapshot("admin-overview", html);
+        snapshot("request-queue", mvc.perform(get("/admin/requests").with(account(103)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+    }
+
+    private void resetToSubmitted() {
+        jdbc.update("DELETE FROM request_status_history");
+        jdbc.update("UPDATE maintenance_requests SET status='SUBMITTED',final_urgency_level=null,reviewed_by_user_id=null,reviewed_at=null WHERE id=1");
+    }
+
+    private String requestState() {
+        return jdbc.queryForObject("SELECT status FROM maintenance_requests WHERE id=1", String.class);
+    }
+
+    private Long assignedOrder() throws Exception {
+        mvc.perform(post(BASE + "/assign").with(account(103)).with(csrf()).param("technicianId", "101"))
+                .andExpect(status().isFound());
+        return jdbc.queryForObject("SELECT id FROM work_orders WHERE request_id=1", Long.class);
+    }
+
+    private void completeRepair(Long id) throws Exception {
+        mvc.perform(post("/workorders/" + id + "/accept").with(account(101)).with(csrf())).andExpect(status().isFound());
+        mvc.perform(post("/workorders/" + id + "/records").with(account(101)).with(csrf())
+                .param("diagnosis", "Synthetic fault").param("actionTaken", "Replaced the faulty light")
+                .param("minutesSpent", "20")).andExpect(status().isFound());
+        mvc.perform(post("/workorders/" + id + "/complete").with(account(101)).with(csrf())
+                .param("resolutionNote", "Both lights tested and working.")).andExpect(status().isFound());
     }
 
     @ParameterizedTest

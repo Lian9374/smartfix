@@ -66,6 +66,10 @@ public class RequestLifecycleService {
                     "This action is not available in the current request state.");
         }
         String note = normalizeComment(comment);
+        if (target == RequestStatus.REOPENED && actor.role() == Role.ADMINISTRATOR
+                && note == null) {
+            throw new InputValidationException("Explain why the repair needs further work.");
+        }
         if ((target == RequestStatus.REJECTED || target == RequestStatus.RESOLVED)
                 && (note == null || note.isBlank())) {
             throw new InputValidationException("A reason or solution is required.");
@@ -83,7 +87,8 @@ public class RequestLifecycleService {
             throw new ResourceNotFoundException("Request not found");
         }
         Instant now = clock.instant();
-        if (target == RequestStatus.REOPENED && !properties.getReopenWindow().isZero()) {
+        if (target == RequestStatus.REOPENED && actor.role() == Role.REQUESTER
+                && !properties.getReopenWindow().isZero()) {
             Instant baseline =
                     request.getConfirmedAt() == null
                             ? request.getResolvedAt()

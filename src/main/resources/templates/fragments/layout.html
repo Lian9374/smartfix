@@ -45,6 +45,10 @@
   <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
   <link rel="stylesheet" th:href="@{/css/site.css}">
   <link rel="stylesheet" th:href="@{/css/visual-refresh.css}">
+  <link th:if="${navRole == 'ADMINISTRATOR'}" rel="stylesheet" th:href="@{/css/admin-workspace.css(v='20261016b')}">
+  <link th:if="${navRole == 'ADMINISTRATOR' and (pageTitle == 'Facilities' or pageTitle == 'Reported content')}" rel="stylesheet" th:href="@{/css/admin-stewardship.css(v='20261016a')}">
+  <link th:if="${navRole == 'ADMINISTRATOR' and (pageTitle == 'User management' or pageTitle == 'Engineers')}" rel="stylesheet" th:href="@{/css/admin-accounts.css(v='20261016a')}">
+  <link th:if="${navRole == 'ADMINISTRATOR' and (pageTitle == 'Request queue' or #strings.startsWith(pageTitle,'Dispatch /') or #strings.startsWith(pageTitle,'Requests /'))}" rel="stylesheet" th:href="@{/css/admin-requests.css(v='20261016b')}">
   <link th:if="${pageTitle == 'Sign in'}" rel="stylesheet" th:href="@{/css/login.css(v='20261015')}">
   <link th:if="${pageTitle == 'Overview'}" rel="stylesheet" th:href="@{/css/requester-home.css(v='20261015c')}">
   <link th:if="${navRole == 'REQUESTER'}" rel="stylesheet" th:href="@{/css/requester-navigation.css(v='20261015e')}">
@@ -146,84 +150,20 @@
 
       <nav class="nav" aria-label="Sections">
         <span class="nav__group-label">Administration</span>
-
-        <a class="nav__link" th:href="@{/}"
-           th:attr="aria-current=${active == 'overview'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M3 10.5 12 3.2l9 7.3"/>
-            <path d="M5.5 9.4V20a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V9.4"/>
-          </svg>
-          <span>Overview</span>
+        <a class="nav__link" th:href="@{/admin}" th:attr="aria-current=${active == 'overview'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 10 9-7 9 7M6 9v12h12V9M10 21v-7h4v7"/></svg><span>Overview</span>
         </a>
-
-        <!-- No role condition is needed here: this rail only renders for an
-             administrator, and /community/** is open to every signed-in role. -->
-        <a class="nav__link" th:href="@{/community}"
-           th:attr="aria-current=${active == 'community'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M20.5 12a7.5 7.5 0 0 1-7.5 7.5H8.6L4 21.5l1.1-4.2A7.5 7.5 0 1 1 20.5 12Z"/>
-            <path d="M9 11.5h6"/>
-            <path d="M9 14.5h3.5"/>
-          </svg>
-          <span>Community</span>
+        <a class="nav__link" th:href="@{/admin/requests}" th:attr="aria-current=${active == 'request-queue' or active == 'request-lookup' or active == 'sla'} ? 'page' : null">
+          <svg th:replace="~{fragments/ui-icons :: list}"></svg><span>Requests</span>
         </a>
-
-        <!-- Moderation. Only an administrator reaches this rail, and the route
-             it points at is /admin/community/**, which SecurityConfig restricts
-             to that role - so no role condition is needed on the link either. -->
-        <a class="nav__link" th:href="@{/admin/community/reports}"
-           th:attr="aria-current=${active == 'community-reports'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M6.5 21V3.8"/>
-            <path d="M6.5 4.6h10.9l-2.3 3.7 2.3 3.7H6.5"/>
-          </svg>
-          <span>Reported Content</span>
+        <a class="nav__link" th:href="@{/admin/users}" th:attr="aria-current=${active == 'user-management' or active == 'technicians'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-4a6 6 0 0 1 12 0v4M17 4a3 3 0 0 1 0 6m1 5a5 5 0 0 1 3 5"/></svg><span>Accounts &amp; engineers</span>
         </a>
-
-        <a class="nav__link" th:href="@{/admin/requests}"
-           th:attr="aria-current=${active == 'request-queue'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M4 6.5h16"/>
-            <path d="M4 12h16"/>
-            <path d="M4 17.5h10"/>
-          </svg>
-          <span>Request Queue</span>
+        <a class="nav__link" th:href="@{/admin/facilities}" th:attr="aria-current=${active == 'facilities'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 21V3h12v18M16 9h4v12M8 7h4M8 11h4M8 15h4M2 21h20"/></svg><span>Facilities</span>
         </a>
-
-        <a class="nav__link" th:href="@{/admin/technicians}" th:attr="aria-current=${active == 'technicians'} ? 'page' : null"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M3 21v-4a6 6 0 0 1 12 0v4M17 4a3 3 0 0 1 0 6m1 5a5 5 0 0 1 3 5"/></svg><span>Engineers</span></a>
-        <a class="nav__link" th:href="@{/admin/facilities}" th:attr="aria-current=${active == 'facilities'} ? 'page' : null"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 21V3h12v18M16 9h4v12M8 7h4M8 11h4M8 15h4M2 21h20"/></svg><span>Facilities</span></a>
-        <a class="nav__link" th:href="@{/admin/community/audit}" th:attr="aria-current=${active == 'audit'} ? 'page' : null"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 3h12v18H6zM9 7h6M9 11h6M9 15h4"/></svg><span>Audit trail</span></a>
-        <a class="nav__link" th:href="@{/admin/delivery}" th:attr="aria-current=${active == 'delivery'} ? 'page' : null"><span>Notification delivery</span></a>
-        <a class="nav__link" th:href="@{/admin/sla}" th:attr="aria-current=${active == 'sla'} ? 'page' : null"><span>Maintenance SLA</span></a>
-        <a class="nav__link" th:href="@{/admin/users}"
-           th:attr="aria-current=${active == 'user-management'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <path d="M15.5 20v-1.6a4 4 0 0 0-4-4h-5a4 4 0 0 0-4 4V20"/>
-            <circle cx="9" cy="7.5" r="3.6"/>
-            <path d="M17.5 4.6a3.6 3.6 0 0 1 0 6.8"/>
-            <path d="M19.5 20v-1.6a4 4 0 0 0-2.8-3.8"/>
-          </svg>
-          <span>User Management</span>
-        </a>
-
-        <a class="nav__link" th:href="@{/admin/requests/lookup}"
-           th:attr="aria-current=${active == 'request-lookup'} ? 'page' : null">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
-            <circle cx="10.5" cy="10.5" r="6.5"/>
-            <path d="m15.6 15.6 5 5"/>
-          </svg>
-          <span>Request Lookup</span>
-        </a>
-        <a class="nav__link" th:href="@{/campus-map}"
-           th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">
-          <svg th:replace="~{fragments/ui-icons :: map}"></svg>
-          <span>Campus Map</span>
+        <a class="nav__link" th:href="@{/admin/community/reports}" th:attr="aria-current=${active == 'community-reports' or active == 'audit'} ? 'page' : null">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 21V4h12l-3 4 3 4H6"/></svg><span>Reported Content</span>
         </a>
       </nav>
 
@@ -325,6 +265,7 @@
   <script defer th:src="@{/js/community-experience.js(v='20261016')}"></script>
   <script defer th:src="@{/js/community-form.js(v='20261016')}"></script>
   <script defer th:src="@{/js/workspace.js}"></script>
+  <script th:if="${navRole == 'ADMINISTRATOR'}" defer th:src="@{/js/admin-dispatch.js(v='20261016a')}"></script>
   <script>
     (function () {
       'use strict';

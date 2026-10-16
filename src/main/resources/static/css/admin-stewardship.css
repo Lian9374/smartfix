@@ -1,0 +1,99 @@
+/* Facility records and community governance share the administrator's visual rhythm. */
+.admin-steward-page { display: grid; gap: 24px; }
+.admin-steward-page > * { min-width: 0; margin: 0 !important; }
+.steward-hero { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 30px 36px; min-height: 210px; border: 1px solid #dbe6d9; border-radius: 24px; background: linear-gradient(115deg,#e8f0e5,#f5f3e9); }
+.steward-hero > div { min-width: 0; }
+.steward-hero .section-kicker { color: #62806a; font-size: 11px; letter-spacing: .14em; }
+.steward-hero h1 { margin: 14px 0 16px; font-size: clamp(30px,3vw,40px); line-height: 1.25; letter-spacing: -.03em; color: #244e43; }
+.steward-hero p { font-size: 17px; line-height: 1.75; color: #617768; margin: 0; }
+.steward-hero img { flex: 0 0 auto; width: 165px; height: 150px; object-fit: contain; filter: drop-shadow(0 8px 12px #244b4210); transition: transform .25s; }
+.steward-hero img:hover { transform: translateY(-4px) rotate(2deg); }
+.admin-steward-page .card__header { padding: 26px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e6ede3; }
+.admin-steward-page .card__title { font-size: 24px; line-height: 1.4; letter-spacing: -.025em; }
+.steward-count,.admin-steward-page .card__hint { font-size: 12px; padding: 7px 11px; border-radius: 9px; background: #f0f4ed; color: #617768; white-space: nowrap; }
+.steward-empty { padding: 40px 30px; text-align: center; }
+.steward-empty__symbol { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; color: #54795e; background: #eaf1e5; margin: 0 auto 20px; font-size: 25px; }
+.steward-empty h3 { font-size: 21px; margin: 0 0 14px; }
+.steward-empty p { max-width: 52ch; margin: 0 auto; font-size: 15px; line-height: 1.8; color: #748878; }
+.facility-create > summary { display: flex; align-items: center; gap: 15px; cursor: pointer; list-style: none; padding: 22px 30px; font-size: 18px; font-weight: 600; color: #315e4c; }
+.facility-create > summary::-webkit-details-marker { display: none; }
+.steward-add { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #edf3e8; font-size: 23px; }
+.steward-chevron { margin-left: auto; transition: transform .18s; }
+.facility-create[open] .steward-chevron { transform: rotate(180deg); }
+.facility-create > form { padding: 26px 30px 30px; border-top: 1px solid #e6ede3; }
+.facility-create .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; }
+.facility-create .form-grid > .form-field { margin: 0 !important; min-width: 0; }
+.facility-create label { display: block; margin-bottom: 12px; font-size: 15px; }
+.facility-create input:not([type=hidden]),.facility-create textarea { width: 100%; min-width: 0; border: 1px solid #d8e2d4; border-radius: 12px; padding: 12px 14px; background: #fff; color: #355745; font: inherit; font-size: 15px; }
+.facility-create input:not([type=hidden]) { min-height: 48px; }
+.facility-create input:focus-visible,.facility-create textarea:focus-visible { outline: 3px solid #8eae91; outline-offset: 2px; }
+.facility-create .form-actions { margin-top: 26px; }
+.facility-directory { overflow: hidden; }
+.facility-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(190px,.35fr); gap: 30px; padding: 28px 30px; border-bottom: 1px solid #e6ede3; align-items: start; }
+.facility-row:last-child { border-bottom: 0; }
+.facility-row__copy .section-kicker { font-size: 11px; letter-spacing: .05em; color: #7a8f7b; }
+.facility-row h3 { font-size: 23px; line-height: 1.5; margin: 14px 0; color: #2e5749; overflow-wrap: anywhere; }
+.facility-row p { font-size: 16px; line-height: 1.8; color: #667e6c; max-width: 70ch; margin: 0; overflow-wrap: anywhere; }
+.facility-row__status { display: grid; justify-items: start; gap: 20px; }
+.facility-row__status details { width: 100%; }
+.facility-row__status summary { cursor: pointer; color: #557963; font-size: 13px; }
+.facility-row__status form { margin-top: 20px; padding: 18px; background: #f5f8f1; border-radius: 13px; }
+.facility-row__status label { display: block; font-size: 12px; margin-bottom: 10px; }
+.facility-row__status select { width: 100%; min-height: 44px; font: inherit; font-size: 14px; color: #355745; border: 1px solid #d8e2d4; border-radius: 10px; background: #fff; padding: 9px; margin-bottom: 14px; }
+.admin-steward-page .moderation-tabs { display: flex; align-items: center; gap: 8px; padding: 0; flex-wrap: wrap; }
+.admin-steward-page .moderation-tabs .btn { min-height: 45px; padding: 10px 22px; border: 1px solid transparent; background: transparent; color: #647e69; border-radius: 12px; }
+.admin-steward-page .moderation-tabs [aria-current=page] { background: #fff; border-color: #dce6d8; color: #315e4c; box-shadow: 0 2px 7px #264b4208; }
+.moderation-audit-link { margin-left: auto; color: #607d65; font-size: 14px; padding: 12px; }
+.admin-steward-page .empty-state { padding: 40px 30px; }
+.admin-steward-page .empty-state p { max-width: 62ch; margin-inline: auto; font-size: 15px; line-height: 1.8; }
+.admin-steward-page .report-item { padding: 30px; border-bottom: 1px solid #e6ede3; margin: 0; }
+.admin-steward-page .report-item:last-child { border-bottom: 0; }
+.report-item .page-head__eyebrow { font-size: 12px; line-height: 2; color: #7c8d80; margin: 0 0 22px; }
+.admin-steward-page .report-item > h3 { font-size: 25px; line-height: 1.45; margin: 0 0 20px; overflow-wrap: anywhere; color: #2b5345; }
+.report-item > .meta { font-size: 13px; line-height: 2; margin-bottom: 24px; }
+.admin-steward-page .report-quote { padding: 23px 26px; border: 0; border-left: 3px solid #9ab299; border-radius: 0 14px 14px 0; background: #f5f8f1; margin: 0 0 24px; }
+.admin-steward-page .report-quote .prose { font-size: 17px; line-height: 1.85; max-width: 75ch; }
+.report-quote .prose + .prose { border-top: 1px solid #e0e9db; padding-top: 18px; margin-top: 20px; font-size: 14px; color: #70836f; }
+.report-item > .form-actions { gap: 12px; margin-bottom: 24px; }
+.report-review { border-top: 1px solid #e6ede3; padding-top: 22px; }
+.report-review > summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: #416c50; font-size: 16px; font-weight: 600; list-style: none; }
+.report-review > summary::-webkit-details-marker { display: none; }
+.report-review > form { margin-top: 26px; }
+.report-review .form-section { border: 0; padding: 0; margin: 0; }
+.report-review legend { font-size: 16px; margin-bottom: 20px; }
+.report-review .form-field { margin-bottom: 24px; }
+.report-review .form-field > label:has(input[type=radio]) { display: inline-flex; align-items: center; gap: 10px; padding: 14px 18px; margin: 0 12px 12px 0; background: #f6f8f3; border: 1px solid #dce6d8; border-radius: 12px; font-size: 15px; cursor: pointer; }
+.report-review .form-field > label:has(input:checked) { background: #eaf2e4; border-color: #749676; }
+.report-review input[type=radio],.report-review input[type=checkbox] { accent-color: #426f53; }
+.report-review .form-field__hint { display: block; font-size: 12px; line-height: 1.8; max-width: 75ch; }
+.report-review .form-grid { max-width: 680px; }
+.admin-steward-page summary:focus-visible,.facility-row__status select:focus-visible { outline: 3px solid #8eae91; outline-offset: 4px; border-radius: 4px; }
+@media(max-width:760px) {
+  .admin-steward-page { gap: 20px; }
+  .steward-hero { padding: 26px; gap: 16px; }
+  .steward-hero img { width: 105px; height: 110px; }
+  .steward-hero p { font-size: 15px; }
+  .facility-row { grid-template-columns: minmax(0,1fr); gap: 24px; }
+  .facility-row__status { width: 100%; }
+  .facility-row__status form { max-width: 400px; }
+  .facility-create .form-grid { grid-template-columns: minmax(0,1fr); }
+}
+@media(max-width:480px) {
+  .steward-hero { padding: 24px; display: block; position: relative; min-height: 200px; }
+  .steward-hero h1 { font-size: 30px; max-width: 10ch; }
+  .steward-hero .section-kicker { font-size: 9px; }
+  .steward-hero p { max-width: 26ch; margin-top: 20px; }
+  .steward-hero img { position: absolute; right: 10px; top: 22px; width: 70px; height: 75px; }
+  .admin-steward-page .card__header { padding: 22px; }
+  .admin-steward-page .card__title { font-size: 22px; }
+  .facility-create > summary { padding: 20px 22px; }
+  .facility-create > form,.facility-row { padding: 24px 22px; }
+  .admin-steward-page .moderation-tabs { gap: 5px; }
+  .admin-steward-page .moderation-tabs .btn { padding: 10px 13px; font-size: 13px; }
+  .moderation-audit-link { margin-left: 0; width: 100%; padding: 10px 13px; font-size: 13px; }
+  .admin-steward-page .report-item { padding: 24px 22px; }
+  .admin-steward-page .report-quote { padding: 20px; }
+  .admin-steward-page .report-item > h3 { font-size: 23px; }
+  .report-review .form-field > label:has(input[type=radio]) { display: flex; margin-right: 0; }
+}
+@media(prefers-reduced-motion:reduce) { .steward-hero img,.steward-chevron { transition: none; } .steward-hero img:hover { transform: none; } }

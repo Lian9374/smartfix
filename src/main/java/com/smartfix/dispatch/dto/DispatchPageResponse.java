@@ -10,6 +10,6 @@ public record DispatchPageResponse(MaintenanceRequestDetailsResponse request, Ur
         AssignmentResponse currentAssignment, String currentTechnicianName,
         List<Candidate> candidates, boolean canAssign, boolean canReassign, boolean canWithdraw,
         String recommendationNotice) {
-    public record Candidate(Long userId, String displayName, String skills, String serviceAreas,
-            String availability, long openWorkOrders, boolean selectable) { }
+    public record Candidate(Long userId, String displayName, String username,
+            long openWorkOrders, boolean selectable) { }
 }

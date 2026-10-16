@@ -45,9 +45,12 @@ public class RequestPresentationService {
         if (role == Role.ADMINISTRATOR) {
             if (r.getStatus() == RequestStatus.SUBMITTED
                     || r.getStatus() == RequestStatus.UNDER_REVIEW) actions.add("review");
-            if (r.getStatus() == RequestStatus.CONFIRMED) actions.add("close");
+            if (r.getStatus() == RequestStatus.CONFIRMED) {
+                actions.add("close");
+                actions.add("return-for-repair");
+            }
+            if (assignments.isAvailable() && r.getStatus() == RequestStatus.SUBMITTED) actions.add("dispatch");
             if (assignments.isAvailable()
-                    && r.getFinalUrgencyLevel() != null
                     && (r.getStatus() == RequestStatus.UNDER_REVIEW
                             || r.getStatus() == RequestStatus.REOPENED
                             || r.getStatus() == RequestStatus.ASSIGNED
@@ -76,7 +79,8 @@ public class RequestPresentationService {
                                 items.add(
                                         new RequestDetailContributor.DetailItem(
                                                 "Assigned technician",
-                                                a.technicianId().toString())));
+                                                users.findDisplayNames(List.of(a.technicianId()))
+                                                        .getOrDefault(a.technicianId(), "Account #" + a.technicianId()))));
         contributors.orderedStream().forEach(c -> items.addAll(c.describe(r.getId())));
         var f = feedback.findByRequestId(r.getId());
         return new RequestPresentationResponse(

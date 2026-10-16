@@ -4,7 +4,7 @@ import com.smartfix.user.domain.Role;
 
 import java.util.List;
 
-/** Sprint 3 baseline (T01–T13). Ownership and prerequisites are checked by the service. */
+/** Existing lifecycle plus final-review return. Ownership and prerequisites are checked by the service. */
 public final class RequestTransition {
     public record Rule(RequestStatus from, RequestStatus to, Role role) {}
 
@@ -21,6 +21,7 @@ public final class RequestTransition {
                     rule(RequestStatus.IN_PROGRESS, RequestStatus.RESOLVED, Role.TECHNICIAN),
                     rule(RequestStatus.RESOLVED, RequestStatus.CONFIRMED, Role.REQUESTER),
                     rule(RequestStatus.CONFIRMED, RequestStatus.CLOSED, Role.ADMINISTRATOR),
+                    rule(RequestStatus.CONFIRMED, RequestStatus.REOPENED, Role.ADMINISTRATOR),
                     rule(RequestStatus.RESOLVED, RequestStatus.REOPENED, Role.REQUESTER),
                     rule(RequestStatus.CONFIRMED, RequestStatus.REOPENED, Role.REQUESTER),
                     rule(RequestStatus.REOPENED, RequestStatus.ASSIGNED, Role.ADMINISTRATOR),

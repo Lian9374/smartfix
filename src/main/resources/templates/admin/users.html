@@ -11,18 +11,16 @@
   <div class="app-main">
     <th:block th:replace="~{fragments/layout :: appbar('user-management')}"></th:block>
 
-    <main id="main-content" class="content workspace-page">
-      <div class="page-head-row card page-context workspace-heading">
-        <div th:replace="~{fragments/components :: pageHeading(
-             'User management',
-             'Create accounts, set what each one may do, and disable an account that should no longer be able to sign in.')}">
-          <h1 class="page-head__title">User management</h1>
-        </div>
-        <div class="page-head-row__actions" th:unless="${showCreateForm}">
-          <a class="btn btn--primary" th:href="@{/admin/users/new}">Create account</a>
-        </div>
-      </div>
+    <main id="main-content" class="content workspace-page admin-accounts-page">
+<nav class="admin-area-tabs" aria-label="Accounts and engineers">
+  <a th:href="@{/admin/users}" aria-current="page">Accounts &amp; access</a>
+  <a th:href="@{/admin/technicians}" >Engineer readiness</a>
+</nav>
 
+      <header class="account-hero">
+        <div><span class="section-kicker">Campus administration</span><h1 th:text="${showCreateForm} ? 'Create an account' : 'Accounts &amp; access'">Accounts &amp; access</h1><p th:text="${showCreateForm} ? 'Set up access. The new account changes its password at first sign-in.' : 'The right access, for every member of campus.'">The right access, for every member of campus.</p></div>
+        <img th:src="@{/images/account-access.png}" width="180" height="160" alt="" aria-hidden="true" decoding="async">
+      </header>
 
       <div th:if="${successMessage}">
         <div th:replace="~{fragments/components :: alert('success', null, ${successMessage})}"></div>
@@ -36,8 +34,8 @@
 
       <section class="card workspace-filters" th:unless="${showCreateForm}" aria-label="Filter accounts"><form method="get" th:action="@{/admin/users}">
         <div class="form-field workspace-search"><label for="account-search">Search accounts</label><input id="account-search" name="search" maxlength="120" placeholder="Username or display name" th:value="${search}"></div>
-        <div class="form-field"><label for="account-role-filter">Role</label><select id="account-role-filter" name="role"><option value="">All roles</option><option th:each="item : ${roles}" th:value="${item}" th:text="${item}" th:selected="${item == selectedRole}"></option></select></div>
-        <div class="form-field"><label for="account-status-filter">Status</label><select id="account-status-filter" name="status"><option value="">All statuses</option><option th:each="item : ${accountStatuses}" th:value="${item}" th:text="${item}" th:selected="${item == selectedAccountStatus}"></option></select></div>
+        <div class="form-field"><label for="account-role-filter">Role</label><select id="account-role-filter" name="role"><option value="">All roles</option><option th:each="item : ${roles}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(item.toString()))}" th:selected="${item == selectedRole}"></option></select></div>
+        <div class="form-field"><label for="account-status-filter">Status</label><select id="account-status-filter" name="status"><option value="">All statuses</option><option th:each="item : ${accountStatuses}" th:value="${item}" th:text="${#strings.capitalize(#strings.toLowerCase(item.toString()))}" th:selected="${item == selectedAccountStatus}"></option></select></div>
         <button type="submit" class="btn btn--primary">Apply</button><a th:href="@{/admin/users}">Clear</a>
       </form></section>
       <section class="card" th:if="${showCreateForm}" aria-labelledby="create-account-title">
@@ -130,131 +128,43 @@
       </section>
 
 
-      <section class="card" aria-labelledby="accounts-title">
-        <div class="card__header">
-          <h2 class="card__title" id="accounts-title">Accounts</h2>
-          <span class="card__hint" th:unless="${#lists.isEmpty(users)}"
-                th:text="|${#lists.size(users)} total|">3 total</span>
+      <section class="card account-directory" aria-labelledby="accounts-title" th:unless="${showCreateForm}">
+        <div class="card__header"><h2 class="card__title" id="accounts-title">Account directory</h2><span class="account-count" th:text="|${#lists.size(users)} accounts|">0 accounts</span></div>
+        <div th:if="${#lists.isEmpty(users)}" class="workspace-empty"><h3>No matching accounts</h3><p>Try another name or adjust the filters.</p><a class="btn btn--secondary" th:href="@{/admin/users}">Clear filters</a></div>
+        <div class="account-rows">
+          <article class="account-row" th:each="user : ${users}">
+            <div class="account-row__overview">
+              <div class="account-identity"><span class="account-avatar" aria-hidden="true" th:text="${#strings.toUpperCase(#strings.substring(user.displayName,0,1))}">A</span><div><h3 th:text="${user.displayName}">Alice Tan</h3><p><span th:text="|@${user.username}|"></span><span class="account-id" th:text="|#${user.id}|"></span></p></div></div>
+              <div class="account-role"><span class="account-field-label">Role</span><span th:replace="~{fragments/components :: roleBadge(${user.role})}"></span></div>
+              <div class="account-state"><span class="account-field-label">Access</span><span th:replace="~{fragments/components :: accountStatusBadge(${user.accountStatus})}"></span><span class="account-setup" th:if="${user.passwordChangeRequired}">Password setup required</span></div>
+              <div class="account-created"><span class="account-field-label">Joined · SGT</span><time th:text="${#temporals.format(user.createdAt,'dd MMM yyyy','Asia/Singapore')}"></time></div>
+            </div>
+            <details class="account-manage" th:open="${formError != null}">
+              <summary th:attr="aria-label=|Manage access for ${user.username}|"><span>Manage access</span><span aria-hidden="true" class="account-chevron">⌄</span></summary>
+              <div class="account-manage__body">
+                <form class="account-control" th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" data-confirm="Change this account’s role? Its existing sessions will be revoked.">
+                  <label th:for="|role-${user.id}|">Role</label><p>Choose the workspace this account can use.</p>
+                  <select th:id="|role-${user.id}|" name="role" th:attr="aria-label=|New role for ${user.username}|"><option th:each="candidate : ${roles}" th:value="${candidate}" th:text="${#strings.capitalize(#strings.toLowerCase(candidate.toString()))}" th:selected="${candidate == user.role}">Requester</option></select>
+                  <button class="btn btn--secondary" type="submit" th:attr="aria-label=|Save new role for ${user.username}|">Save role</button>
+                </form>
+                <form class="account-control" th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post" data-confirm="Change account access? Disabling an account signs it out and blocks login.">
+                  <label th:for="|account-status-${user.id}|">Account access</label><p>Disabled accounts cannot sign in.</p>
+                  <select th:id="|account-status-${user.id}|" name="accountStatus" aria-describedby="account-status-note" th:attr="aria-label=|New status for ${user.username}|"><option th:each="candidate : ${accountStatuses}" th:value="${candidate}" th:text="${candidate}" th:selected="${candidate == user.accountStatus}">ACTIVE</option></select>
+                  <button class="btn btn--secondary" type="submit" th:attr="aria-label=|Save new status for ${user.username}|">Save access</button>
+                </form>
+                <div class="account-control account-password-control"><h4>Password</h4><p>Issue a temporary password for the next sign-in.</p>
+                  <details class="account-password-reset"><summary>Reset temporary password</summary><form method="post" th:action="@{/admin/users/{id}/password(id=${user.id})}" data-confirm="Reset this account’s password? Existing sessions will be revoked.">
+                    <div class="form-field"><label th:for="|reset-admin-${user.id}|">Your administrator password</label><input th:id="|reset-admin-${user.id}|" type="password" name="adminPassword" autocomplete="current-password" required maxlength="72"></div>
+                    <div class="form-field"><label th:for="|reset-new-${user.id}|">Temporary password</label><input th:id="|reset-new-${user.id}|" type="password" name="newPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
+                    <div class="form-field"><label th:for="|reset-confirm-${user.id}|">Confirm temporary password</label><input th:id="|reset-confirm-${user.id}|" type="password" name="confirmPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
+                    <button class="btn btn--secondary" type="submit">Reset password</button>
+                  </form></details>
+                </div>
+              </div>
+            </details>
+          </article>
         </div>
-
-        <div class="card__body card__body--flush">
-          <div th:if="${#lists.isEmpty(users)}">
-            <div th:replace="~{fragments/components :: emptyState(
-                     'No accounts exist yet.',
-                     'Create the first account to get started.')}"></div>
-          </div>
-
-
-          <div class="table-scroll" th:unless="${#lists.isEmpty(users)}">
-            <table class="data-table data-table--stack">
-              <caption class="visually-hidden">
-                Accounts, with per-account controls to change role and account status.
-              </caption>
-              <thead>
-              <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Username</th>
-                <th scope="col">Display name</th>
-                <th scope="col">Role</th>
-                <th scope="col">Account status</th>
-                <th scope="col">Created (SGT)</th>
-                <th scope="col">Change role</th>
-                <th scope="col">Change status / password</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr th:each="user : ${users}">
-                <td class="data-table__id" data-label="Account" th:text="${user.id}">1</td>
-
-                <th scope="row" class="data-table__wrap" th:text="${user.username}">alice</th>
-
-                <td class="data-table__wrap" data-label="Display name" th:text="${user.displayName}">Alice</td>
-
-                <td data-label="Role">
-                  <span th:replace="~{fragments/components :: roleBadge(${user.role})}">REQUESTER</span>
-                </td>
-
-                <td data-label="Account status">
-                  <span th:replace="~{fragments/components :: accountStatusBadge(${user.accountStatus})}">ACTIVE</span>
-                </td>
-
-                <td class="data-table__stack" data-label="Created (SGT)">
-                  <span class="data-table__nowrap"
-                        th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd', 'Asia/Singapore')}">
-                    2026-01-01
-                  </span>
-                  <span class="data-table__nowrap meta"
-                        th:text="${#temporals.format(user.createdAt, 'HH:mm', 'Asia/Singapore')}">
-                    08:00
-                  </span>
-                </td>
-
-                <td data-label="Change role">
-                  <form class="inline-form" th:action="@{/admin/users/{id}/role(id=${user.id})}" method="post" data-confirm="Change this account’s role? Its existing sessions will be revoked.">
-
-                    <label class="visually-hidden"
-                           for="role-control"
-                           th:for="|role-${user.id}|"
-                           th:text="|New role for ${user.username}|">New role</label>
-                    <select id="role-control"
-                            th:id="|role-${user.id}|"
-                            name="role"
-                            th:attr="aria-label=|New role for ${user.username}|">
-
-                      <option th:each="candidate : ${roles}"
-                              th:value="${candidate}"
-                              th:text="${#strings.capitalize(#strings.toLowerCase(candidate.toString()))}"
-                              th:selected="${candidate == user.role}">Requester</option>
-                    </select>
-                    <button type="submit" class="btn btn--secondary btn--small"
-                            th:attr="aria-label=|Save new role for ${user.username}|">Save</button>
-                  </form>
-                </td>
-
-                <td data-label="Change status">
-                  <form class="inline-form" th:action="@{/admin/users/{id}/status(id=${user.id})}" method="post" data-confirm="Change account access? Disabling an account signs it out and blocks login.">
-                    <label class="visually-hidden"
-                           for="account-status-control"
-                           th:for="|account-status-${user.id}|"
-                           th:text="|New status for ${user.username}|">New account status</label>
-                    <select id="account-status-control"
-                            th:id="|account-status-${user.id}|"
-                            name="accountStatus"
-                            aria-describedby="account-status-note"
-                            th:attr="aria-label=|New status for ${user.username}|">
-
-                      <option th:each="candidate : ${accountStatuses}"
-                              th:value="${candidate}"
-                              th:text="${candidate}"
-                              th:selected="${candidate == user.accountStatus}">ACTIVE</option>
-                    </select>
-                    <button type="submit" class="btn btn--secondary btn--small"
-                            th:attr="aria-label=|Save new status for ${user.username}|">Save</button>
-                  </form>
-                  <p class="meta" th:if="${user.passwordChangeRequired}">Password setup required</p>
-                  <details class="account-password-reset"><summary>Reset temporary password</summary>
-                    <form method="post" th:action="@{/admin/users/{id}/password(id=${user.id})}" data-confirm="Reset this account’s password? Existing sessions will be revoked.">
-                      <div class="form-field"><label th:for="|reset-admin-${user.id}|">Your administrator password</label><input th:id="|reset-admin-${user.id}|" type="password" name="adminPassword" autocomplete="current-password" required maxlength="72"></div>
-                      <div class="form-field"><label th:for="|reset-new-${user.id}|">Temporary password</label><input th:id="|reset-new-${user.id}|" type="password" name="newPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
-                      <div class="form-field"><label th:for="|reset-confirm-${user.id}|">Confirm temporary password</label><input th:id="|reset-confirm-${user.id}|" type="password" name="confirmPassword" autocomplete="new-password" required minlength="12" maxlength="72"></div>
-                      <button class="btn btn--secondary btn--small" type="submit">Reset password</button>
-                    </form>
-                  </details>
-                </td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card__footer">
-          <p class="meta" id="account-status-note">
-            <strong>DISABLED</strong> signs the account out immediately and blocks it
-            from signing in again; the status column shows this in red. The last active
-            administrator cannot be disabled or moved to another role, so one
-            administrator can always sign in. Created times are Singapore time (SGT).
-          </p>
-        </div>
+        <div class="card__footer"><p class="meta" id="account-status-note">Disabling an account revokes its sessions. The last active administrator is protected.</p></div>
       </section>
     </main>
 

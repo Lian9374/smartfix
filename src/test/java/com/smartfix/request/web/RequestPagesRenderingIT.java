@@ -198,19 +198,16 @@ class RequestPagesRenderingIT {
     }
 
     @Test
-    void overviewGivesAnAdministratorTheirOwnEntriesAndNoRequestList() throws Exception {
+    void overviewGivesAnAdministratorTheUnifiedRequestAndAccountEntries() throws Exception {
         mvc.perform(get("/").session(login("root.admin")))
                 .andExpect(redirectedUrl("/admin"));
         mvc.perform(get("/admin").session(login("root.admin")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Administration")))
-                // The queue is a real, authorised administrator route, so the
-                // overview offers it beside the lookup rather than leaving the
-                // administrator to guess the path.
+                // Ticket search is now part of the unified request workspace.
                 .andExpect(content().string(containsString("href=\"/admin/requests\"")))
                 .andExpect(content().string(containsString("href=\"/admin/users\"")))
-                .andExpect(content().string(containsString("href=\"/admin/requests/lookup\"")))
-                // No service exposes "every request", so no list is invented here.
+                .andExpect(content().string(not(containsString("href=\"/admin/requests/lookup\""))))
                 .andExpect(content().string(not(containsString("Recent requests"))))
                 // An administrator never sees the requester-only entry points.
                 .andExpect(content().string(not(containsString("href=\"/requests/new\""))));
@@ -249,7 +246,8 @@ class RequestPagesRenderingIT {
 
     @Test
     void myRequestsExplainsItselfWhenTheRequesterHasSubmittedNothing() throws Exception {
-        mvc.perform(get("/requests/mine").session(login("bob")))
+        // Bob owns a request in the administrator-detail case; Dave stays empty in every order.
+        mvc.perform(get("/requests/mine").session(login("dave")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No requests yet")))
                 .andExpect(content().string(containsString(
@@ -290,7 +288,7 @@ class RequestPagesRenderingIT {
     }
 
     @Test
-    void requestDetailOffersTheAdministratorTheRequesterAndTheLookupRoute() throws Exception {
+    void requestDetailOffersTheAdministratorTheRequesterAndUnifiedQueue() throws Exception {
         seed("SF-2026-000103", otherRequesterId, "Projector will not power on",
                 "The projector in seminar room 3 does not power on.",
                 MaintenanceCategory.BUILDING, UrgencyLevel.LOW);
@@ -300,7 +298,7 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("Projector will not power on")))
                 .andExpect(content().string(containsString("<dt>Requester</dt>")))
                 .andExpect(content().string(containsString("Account #" + otherRequesterId)))
-                .andExpect(content().string(containsString("Back to request lookup")))
+                .andExpect(content().string(containsString("Back to requests")))
                 .andExpect(content().string(not(containsString("Back to my requests"))));
     }
 

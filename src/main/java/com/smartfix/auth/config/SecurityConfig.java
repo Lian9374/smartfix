@@ -80,7 +80,7 @@ public class SecurityConfig {
                             .hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.POST, "/requests").hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/requests/*/review").hasRole("ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.POST, "/requests/*/review", "/requests/*/close").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/requests/*/review", "/requests/*/close", "/requests/*/return-for-repair").hasRole("ADMINISTRATOR")
                         .requestMatchers(HttpMethod.POST, "/requests/*/confirm", "/requests/*/feedback", "/requests/*/reopen", "/requests/*/cancel")
                             .hasRole("REQUESTER")
                         .requestMatchers(HttpMethod.GET, "/workorders/mine", "/workorders/*").hasRole(TECHNICIAN)

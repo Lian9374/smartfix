@@ -39,6 +39,11 @@ public class RequestQueryController {
         return new RequestLifecycleActionCommand();
     }
 
+    @ModelAttribute("finalReview")
+    public com.smartfix.request.dto.FinalReviewCommand finalReviewForm() {
+        return new com.smartfix.request.dto.FinalReviewCommand();
+    }
+
     @GetMapping("/requests/mine")
     public String myRequests(
             @AuthenticationPrincipal SmartFixUserDetails principal,
@@ -79,15 +84,25 @@ public class RequestQueryController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) RequestStatus status,
             @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) com.smartfix.request.domain.RequestStage stage,
             @RequestParam(required = false) com.smartfix.request.domain.MaintenanceCategory category,
             @RequestParam(required = false) com.smartfix.request.domain.UrgencyLevel priority,
             @RequestParam(defaultValue = "newest") String sort,
             Model model) {
         model.addAttribute(
                 "pagination",
-                requestQueryService.searchForAdministration(principal.getUserId(), search, status, category, priority, sort, page, size));
+                requestQueryService.searchForAdministration(principal.getUserId(), search,
+                        stage == null ? status : null, stage, category, priority, sort, page, size));
+        model.addAttribute("stages", com.smartfix.request.domain.RequestStage.values());
+        model.addAttribute("selectedStage", stage);
+        var counts = requestQueryService.adminStatusCounts(principal.getUserId());
+        var stageCounts = new java.util.LinkedHashMap<String, Long>();
+        for (var item : com.smartfix.request.domain.RequestStage.values()) {
+            stageCounts.put(item.name(), item.getStatuses().stream().mapToLong(counts::get).sum());
+        }
+        model.addAttribute("stageCounts", stageCounts);
         model.addAttribute("statuses", RequestStatus.values());
-        model.addAttribute("selectedStatus", status);
+        model.addAttribute("selectedStatus", stage == null ? status : null);
         model.addAttribute("search", search);
         model.addAttribute("categories", com.smartfix.request.domain.MaintenanceCategory.values());
         model.addAttribute("priorities", com.smartfix.request.domain.UrgencyLevel.values());

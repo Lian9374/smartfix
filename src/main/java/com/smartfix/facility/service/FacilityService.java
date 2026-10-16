@@ -18,13 +18,28 @@ public class FacilityService {
 
     private final FacilityRepository facilityRepository;
     private final Clock clock;
+    private final LocationService locations;
 
     public FacilityService(
         FacilityRepository facilityRepository,
-        Clock clock) {
+        Clock clock, LocationService locations) {
 
         this.facilityRepository = facilityRepository;
         this.clock = clock;
+        this.locations = locations;
+    }
+
+    @Transactional
+    public FacilityResponse createFacility(com.smartfix.facility.dto.CreateFacilityCommand command) {
+        if (command == null || command.locationId() == null || command.locationId() <= 0
+                || command.name() == null || command.name().isBlank() || command.name().length() > 120
+                || command.description() != null && command.description().length() > 500
+                || command.status() == null) {
+            throw new com.smartfix.common.exception.InputValidationException("Enter a location, facility name and valid status.");
+        }
+        var location = locations.requireActiveLocation(command.locationId());
+        return toResponse(facilityRepository.saveAndFlush(new Facility(location, command.name(),
+                command.description(), command.status(), OffsetDateTime.now(clock))));
     }
 
     @Transactional(readOnly = true)
