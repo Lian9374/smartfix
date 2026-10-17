@@ -753,3 +753,17 @@ The latest flat treatment supersedes the nested feed design: `community-feed-she
 
 ### Campus map workspace polish
 `campus-map-experience.css` loads on Campus Map only. Segmented campus controls, map labels, legend and maintenance summary share the requester palette. A shared height token keeps the desktop map and summary aligned; mobile stacks them. See [map refinement and verification](sprint4/Campus_Map_Visual_Refinement_CN.md).
+
+
+### Engineer workspace refresh (2026-10-17)
+
+Engineer navigation now contains Workspace and Repair history; Community and Campus Map stay out of
+this role's primary navigation. Optional skills/availability remain reachable from
+Profile settings in the workspace header. Filters and assignments form one queue,
+with creation date under More filters and no invented summary counts. Existing
+server authorization and repair/acceptance transitions are unchanged. See
+[the visual update record](sprint4/Engineer_Workspace_Visual_Refinement_CN.md).
+
+Repair history is the existing work-order queue filtered before pagination to
+COMPLETED and CLOSED, preserving current assignment-based visibility. Completed
+repair does not imply requester acceptance or final administrator approval.

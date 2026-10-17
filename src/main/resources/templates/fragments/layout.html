@@ -56,6 +56,7 @@
   <link rel="stylesheet" th:href="@{/css/community-experience.css(v='20261016c')}">
   <link th:if="${navRole == 'REQUESTER'}" rel="stylesheet" th:href="@{/css/requester-sections.css(v='20261016g')}">
   <link th:if="${pageTitle == 'Campus Map'}" rel="stylesheet" th:href="@{/css/campus-map-experience.css(v='20261016c')}">
+  <link th:if="${navRole == 'TECHNICIAN'}" rel="stylesheet" th:href="@{/css/engineer-workspace.css(v='20261017a')}">
   <!--
     Marks the document as script-enabled before first paint. The stylesheet only
     collapses navigation into a menu button for .js, so a browser that runs no
@@ -190,7 +191,7 @@
   script find it without knowing which layout it is on.
 -->
 <th:block th:fragment="appbar(active)">
-  <header class="appbar" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'appbar--rail' : (${navRole == 'REQUESTER'} ? 'appbar--requester' : null)">
+  <header class="appbar" th:classappend="${navRole == 'ADMINISTRATOR'} ? 'appbar--rail' : (${navRole == 'REQUESTER'} ? 'appbar--requester' : (${navRole == 'TECHNICIAN'} ? 'appbar--engineer' : null))">
     <div class="appbar__inner">
       <a class="appbar__brand" th:href="@{/}">
         <span th:replace="~{fragments/layout :: brand}">SmartFix</span>
@@ -222,17 +223,16 @@
       <div class="appbar__panel" id="app-nav-panel" data-nav-panel
            th:unless="${navRole == 'ADMINISTRATOR'}">
         <nav class="appbar__links" aria-label="Sections">
-          <a class="appbar__link" th:href="@{/}"
+          <a class="appbar__link" th:href="${navRole == 'TECHNICIAN'} ? @{/technician} : @{/}"
              th:attr="aria-current=${active == 'overview' or (navRole == 'TECHNICIAN' and active == 'work-orders')} ? 'page' : null" th:text="${navRole == 'TECHNICIAN'} ? 'Workspace' : 'Home'">Home</a>
-          <!-- No role condition: the community board is for every signed-in role, which
-               is what SecurityConfig's /community/** .authenticated() rule says. -->
-          <a class="appbar__link" th:href="@{/community}"
+          <a class="appbar__link" th:if="${navRole == 'TECHNICIAN'}" th:href="@{/technician(view='HISTORY',sort='updated')}"
+             th:attr="aria-current=${active == 'repair-history'} ? 'page' : null">Repair history</a>
+          <!-- Engineer navigation focuses on assigned work; direct route permissions remain server-owned. -->
+          <a class="appbar__link" th:href="@{/community}" th:unless="${navRole == 'TECHNICIAN'}"
              th:attr="aria-current=${active == 'community'} ? 'page' : null">Community</a>
           <a class="appbar__link" th:href="@{/requests/mine}" th:if="${navRole == 'REQUESTER'}"
              th:attr="aria-current=${active == 'my-requests'} ? 'page' : null">My Requests</a>
-          <a class="appbar__link" th:href="@{/technician/profile}" th:if="${navRole == 'TECHNICIAN'}"
-             th:attr="aria-current=${active == 'technician-profile'} ? 'page' : null">Skills &amp; availability</a>
-          <a class="appbar__link" th:href="@{/campus-map}"
+          <a class="appbar__link" th:href="@{/campus-map}" th:unless="${navRole == 'TECHNICIAN'}"
              th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">Campus Map</a>
         </nav>
 

@@ -104,6 +104,12 @@ public class WorkOrderService {
     public Page<WorkOrderQueueRow> queue(Long actorId, WorkOrderStatus status,
             com.smartfix.request.domain.UrgencyLevel priority, java.time.LocalDate since,
             String sort, int page, int size) {
+        return queue(actorId, status, priority, since, sort, page, size, WorkOrderQueueView.WORKSPACE);
+    }
+
+    public Page<WorkOrderQueueRow> queue(Long actorId, WorkOrderStatus status,
+            com.smartfix.request.domain.UrgencyLevel priority, java.time.LocalDate since,
+            String sort, int page, int size, WorkOrderQueueView view) {
         requireTechnician(actorId);
         var activeIds = assignments.findActiveRequestIds(actorId, orders.findRequestIdsByTechnicianId(actorId));
         var contexts = requests.workSummaries(activeIds);
@@ -119,6 +125,8 @@ public class WorkOrderService {
             var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
             predicates.add(cb.equal(root.get("technicianId"), actorId));
             predicates.add(root.get("requestId").in(matchingIds));
+            if (view == WorkOrderQueueView.HISTORY)
+                predicates.add(root.get("status").in(WorkOrderStatus.COMPLETED, WorkOrderStatus.CLOSED));
             if (status != null) predicates.add(cb.equal(root.get("status"), status));
             if (since != null) predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"),
                     since.atStartOfDay(java.time.ZoneOffset.UTC).toInstant()));

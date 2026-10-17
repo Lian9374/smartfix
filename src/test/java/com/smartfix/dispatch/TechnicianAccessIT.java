@@ -124,6 +124,21 @@ class TechnicianAccessIT {
         assertAllDenied(1, 102, order.id());
         assertThat(orders.findMine(101L, 0, 20).getContent()).extracting(WorkOrderResponse::id).containsExactly(order.id());
         assertThat(orders.findMine(102L, 0, 20).getTotalElements()).isZero();
+        var workspace = mvc.perform(get("/technician").session(session(101)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(workspace).doesNotContain("href=\"/community\"", "href=\"/campus-map\"")
+                .contains("href=\"/workorders/" + order.id() + "\"", "name=\"priority\"", "name=\"since\"");
+        var preview = java.nio.file.Path.of("target", "engineer-preview");
+        java.nio.file.Files.createDirectories(preview);
+        java.nio.file.Files.writeString(preview.resolve("assigned.html"), workspace);
+        var empty = mvc.perform(get("/technician").session(session(102)))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        java.nio.file.Files.writeString(preview.resolve("empty.html"), empty);
+        assertThat(empty).doesNotContain("href=\"/workorders/" + order.id() + "\"");
+        var filtered = mvc.perform(get("/technician").session(session(101)).param("status", "COMPLETED"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(filtered).contains("No matching work orders");
+        java.nio.file.Files.writeString(preview.resolve("filtered.html"), filtered);
     }
 
     @Test
@@ -234,6 +249,21 @@ class TechnicianAccessIT {
         assertReadable(1, 101);
         assertThat(listPage(101, 0, 20).getTotalElements()).isEqualTo(1);
         assertThat(orders.countOpenWorkOrders(101L)).isZero();
+        var history = mvc.perform(get("/technician").session(session(101)).param("view", "HISTORY"))
+                .andExpect(status().isOk()).andReturn();
+        var historyPage = (org.springframework.data.domain.Page<?>) history.getModelAndView().getModel().get("orders");
+        assertThat(historyPage.getTotalElements()).isEqualTo(1);
+        String historyHtml = history.getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(historyHtml).contains("Repair history", "name=\"view\" value=\"HISTORY\"");
+        var preview = java.nio.file.Path.of("target", "engineer-preview");
+        java.nio.file.Files.createDirectories(preview);
+        java.nio.file.Files.writeString(preview.resolve("history.html"),historyHtml);
+        var otherHistory = mvc.perform(get("/technician").session(session(102)).param("view", "HISTORY"))
+                .andExpect(status().isOk()).andReturn();
+        assertThat(((org.springframework.data.domain.Page<?>)otherHistory.getModelAndView().getModel().get("orders")).getTotalElements()).isZero();
+        jdbc.update("UPDATE work_orders SET status='CLOSED' WHERE id=?",orderId);
+        assertThat(orders.queue(101L,null,null,null,"updated",0,20,
+                com.smartfix.workorder.dto.WorkOrderQueueView.HISTORY).getTotalElements()).isEqualTo(1);
         assertRequestDenied(1, 102);
     }
 
