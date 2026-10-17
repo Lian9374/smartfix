@@ -41,13 +41,17 @@ public class WorkOrderController {
             @RequestParam(required = false) com.smartfix.request.domain.UrgencyLevel priority,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate since,
             @RequestParam(defaultValue = "newest") String sort,
+            @RequestParam(defaultValue = "WORKSPACE") WorkOrderQueueView view,
             Model model) {
-        var result = orders.queue(p.getUserId(), status, priority, since, sort, page, size);
+        var result = orders.queue(p.getUserId(), status, priority, since, sort, page, size, view);
+        model.addAttribute("queueView", view);
+        model.addAttribute("historyView", view == WorkOrderQueueView.HISTORY);
         model.addAttribute("orders", result);
         var locationNames = new java.util.HashMap<Long, String>();
         result.getContent().forEach(row -> locationNames.computeIfAbsent(row.locationId(), id -> locations.getLocation(id).displayName()));
         model.addAttribute("locationNames", locationNames);
-        model.addAttribute("statuses", WorkOrderStatus.values());
+        model.addAttribute("statuses", view == WorkOrderQueueView.HISTORY
+                ? new WorkOrderStatus[]{WorkOrderStatus.COMPLETED, WorkOrderStatus.CLOSED} : WorkOrderStatus.values());
         model.addAttribute("priorities", com.smartfix.request.domain.UrgencyLevel.values());
         model.addAttribute("selectedStatus", status);
         model.addAttribute("selectedPriority", priority);
