@@ -77,8 +77,10 @@ public class RequestConfirmationController {
 
     @PostMapping("/requests/{ticket}/cancel")
     public String cancel(
-            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p) {
+            @PathVariable String ticket, @AuthenticationPrincipal SmartFixUserDetails p,
+            org.springframework.web.servlet.mvc.support.RedirectAttributes redirect) {
         service.cancel(ticket, p.getUserId());
+        redirect.addFlashAttribute("successMessage", "Request cancelled. Its history has been retained.");
         return redirect(ticket);
     }
 

@@ -267,7 +267,7 @@ class RequestPagesRenderingIT {
                 "The cold-water tap drips constantly and has soaked the cabinet.",
                 MaintenanceCategory.PLUMBING, UrgencyLevel.MEDIUM);
 
-        mvc.perform(get("/requests/SF-2026-000102").session(login("alice")))
+        var detail = mvc.perform(get("/requests/SF-2026-000102").session(login("alice")))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Leaking tap in the pantry")))
                 .andExpect(content().string(containsString("Ticket SF-2026-000102")))
@@ -285,6 +285,66 @@ class RequestPagesRenderingIT {
                 .andExpect(content().string(containsString("href=\"/requests/mine\"")))
                 .andExpect(content().string(not(containsString(
                         "href=\"/admin/requests/lookup\""))));
+        capture("detail-submitted.html", detail.andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void requesterDetailKeepsAcceptanceSeparateFromAdministratorClosure() throws Exception {
+        var request = seed("SF-2026-000906", requesterId,
+                "Ceiling light flickering near the main corridor entrance",
+                "The ceiling light near the main entrance flickers intermittently and sometimes goes dark for several seconds. Please inspect the fitting and restore stable lighting.",
+                MaintenanceCategory.ELECTRICAL, UrgencyLevel.MEDIUM);
+        var session = login("alice");
+        for (var stage : java.util.List.of(
+                com.smartfix.request.domain.RequestStatus.UNDER_REVIEW,
+                com.smartfix.request.domain.RequestStatus.ASSIGNED,
+                com.smartfix.request.domain.RequestStatus.IN_PROGRESS,
+                com.smartfix.request.domain.RequestStatus.RESOLVED,
+                com.smartfix.request.domain.RequestStatus.CONFIRMED,
+                com.smartfix.request.domain.RequestStatus.CLOSED)) {
+            request.transitionTo(stage, Instant.now());
+            request = requests.saveAndFlush(request);
+            var page = mvc.perform(get("/requests/SF-2026-000906").session(session))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(not(containsString("Approve &amp; close request"))))
+                    .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+            org.junit.jupiter.api.Assertions.assertEquals(stage == com.smartfix.request.domain.RequestStatus.RESOLVED,
+                    page.contains(">Accept repair</button>"));
+            capture("detail-" + stage.name().toLowerCase() + ".html", page);
+            if (stage == com.smartfix.request.domain.RequestStatus.CLOSED) {
+                org.junit.jupiter.api.Assertions.assertTrue(page.contains("class=\"star-choice\""));
+                org.junit.jupiter.api.Assertions.assertTrue(page.contains("rows=\"5\""));
+                mvc.perform(post("/requests/SF-2026-000906/feedback").session(session).with(csrf())
+                        .param("rating", "4").param("comment", "The light is working steadily again. Thank you for the clear repair update."))
+                        .andExpect(status().is3xxRedirection());
+                var rated = mvc.perform(get("/requests/SF-2026-000906").session(session)).andExpect(status().isOk())
+                        .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+                org.junit.jupiter.api.Assertions.assertTrue(rated.contains("4 out of 5 stars"));
+                org.junit.jupiter.api.Assertions.assertFalse(rated.contains("class=\"request-feedback-form\""));
+                capture("detail-rated.html", rated);
+                capture("detail-admin-rated.html", mvc.perform(get("/requests/SF-2026-000906").session(login("root.admin")))
+                        .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+            }
+        }
+    }
+
+    @Autowired private com.smartfix.notification.service.NotificationService notifications;
+
+    @Test
+    void navigationShowsOnlyTheCurrentRecipientsUnreadCountAndUpdatesAfterReading() throws Exception {
+        Long recipient = createAccount("badge.reader", Role.REQUESTER);
+        var session = login("badge.reader");
+        var first = notifications.createNotification(recipient, "REQUEST", "Repair update", "Your repair has an update.", 1L);
+        notifications.createNotification(requesterId, "REQUEST", "Other account", "Not for this recipient.", 1L);
+        var page = mvc.perform(get("/").session(session)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        org.junit.jupiter.api.Assertions.assertTrue(page.contains("Notifications, 1 unread"));
+        capture("notification-badge.html", page);
+        mvc.perform(post("/notifications/" + first.getId() + "/read").session(session).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        var readPage = mvc.perform(get("/").session(session)).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        org.junit.jupiter.api.Assertions.assertFalse(readPage.contains("class=\"notification-count\""));
     }
 
     @Test

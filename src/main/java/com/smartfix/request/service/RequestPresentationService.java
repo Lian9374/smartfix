@@ -58,7 +58,8 @@ public class RequestPresentationService {
         }
         if (role == Role.REQUESTER && r.getRequesterId().equals(actorId)) {
             if (r.getStatus() == RequestStatus.SUBMITTED
-                    || r.getStatus() == RequestStatus.UNDER_REVIEW) actions.add("cancel");
+                    || r.getStatus() == RequestStatus.UNDER_REVIEW
+                    || r.getStatus() == RequestStatus.ASSIGNED) actions.add("cancel");
             if (r.getStatus() == RequestStatus.RESOLVED) actions.add("confirm");
             if (r.getStatus() == RequestStatus.RESOLVED || r.getStatus() == RequestStatus.CONFIRMED)
                 actions.add("reopen");

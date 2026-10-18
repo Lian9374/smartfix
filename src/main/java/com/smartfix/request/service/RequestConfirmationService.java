@@ -55,7 +55,7 @@ public class RequestConfirmationService {
 
     @Transactional
     public void cancel(String ticket, Long actorId) {
-        lifecycle.transition(ticket, RequestStatus.CANCELLED, actorId, null);
+        lifecycle.transition(ticket, RequestStatus.CANCELLED, actorId, "Cancelled by requester before repair started.");
     }
 
     @Transactional
