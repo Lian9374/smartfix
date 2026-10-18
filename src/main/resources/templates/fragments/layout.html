@@ -55,8 +55,11 @@
   <link th:if="${navRole == 'REQUESTER' and (pageTitle == 'New request' or pageTitle == 'My Requests')}" rel="stylesheet" th:href="@{/css/request-experience.css(v='20261015')}" >
   <link rel="stylesheet" th:href="@{/css/community-experience.css(v='20261016c')}">
   <link th:if="${navRole == 'REQUESTER'}" rel="stylesheet" th:href="@{/css/requester-sections.css(v='20261016g')}">
+  <link th:if="${navRole == 'REQUESTER' and #strings.startsWith(pageTitle,'My Requests /')}" rel="stylesheet" th:href="@{/css/requester-detail.css(v='20261017a')}">
   <link th:if="${pageTitle == 'Campus Map'}" rel="stylesheet" th:href="@{/css/campus-map-experience.css(v='20261016c')}">
   <link th:if="${navRole == 'TECHNICIAN'}" rel="stylesheet" th:href="@{/css/engineer-workspace.css(v='20261017a')}">
+  <link th:if="${pageTitle == 'Work order'}" rel="stylesheet" th:href="@{/css/engineer-detail.css(v='20261017a')}">
+  <link rel="stylesheet" th:href="@{/css/request-feedback.css(v='20261017a')}">
   <!--
     Marks the document as script-enabled before first paint. The stylesheet only
     collapses navigation into a menu button for .js, so a browser that runs no
@@ -116,11 +119,11 @@
   <form class="logout-form" th:action="@{/logout}" method="post">
     <button type="submit" class="link-button">Sign out</button>
   </form>
-  <a class="notification-entry" th:href="@{/notifications}" aria-label="Notifications" title="Notifications">
+  <a class="notification-entry notification-entry--alerts" th:href="@{/notifications}" aria-label="Notifications" th:attr="aria-label=${navUnreadCount != null and navUnreadCount > 0} ? |Notifications, ${navUnreadCount} unread| : 'Notifications'" title="Notifications">
     <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"></path>
       <path d="M10 21h4"></path>
-    </svg>
+    </svg><span class="notification-count" th:if="${navUnreadCount != null and navUnreadCount > 0}" th:text="${navUnreadCount > 99} ? '99+' : ${navUnreadCount}" aria-hidden="true"></span>
   </a>
 </div>
 

@@ -1,0 +1,56 @@
+/* Requester request details only; shared role actions keep their existing permissions. */
+.content.requester-detail{width:100%;max-width:calc(var(--content-max) + 2 * var(--content-pad));margin-inline:auto;padding:30px var(--content-pad) 48px;font-size:17px;--detail-green:#204f47}
+.requester-detail :is(h1,h2,h3,p){margin:0}
+.requester-detail .crumbs{margin-bottom:22px;font-size:14px}
+.requester-detail .request-detail-heading{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 180px;gap:22px 40px;align-items:center;padding:34px 38px;border-radius:24px;background:#204f47;color:#fffef4;overflow:hidden;margin-bottom:24px}
+.requester-detail .request-detail-heading::after{content:"";position:absolute;inset:0 0 0 auto;width:29%;border-radius:55% 0 0 55%;background:#a1c4ab15;pointer-events:none}
+.requester-detail .page-head{min-width:0;position:relative;z-index:1}
+.requester-detail .requester-detail-only{display:block;color:#efd18b;letter-spacing:.12em;font-size:12px;margin-bottom:16px}
+.requester-detail .page-head__title{font-size:clamp(28px,2.6vw,40px);line-height:1.23;letter-spacing:-.035em;color:#fffef4;max-width:35ch;overflow-wrap:anywhere}
+.requester-detail .page-head__subtitle{font-size:14px;line-height:1.7;color:#d5e4dd;margin-top:18px;display:flex;flex-wrap:wrap;gap:6px}
+.requester-detail .page-head-row__actions{grid-column:1/-1;justify-content:flex-start;z-index:1}
+.requester-detail .page-head-row__actions .btn{min-height:42px;background:#ffffff0c;border-color:#ffffff40;color:#fffef4;font-size:14px}
+.request-detail-art{width:180px;height:180px;object-fit:contain;z-index:1;filter:drop-shadow(0 12px 15px #092e2925);transition:transform .25s ease}
+.request-detail-art:hover{transform:translateY(-4px) rotate(2deg)}
+.requester-detail .request-next-step{padding:26px 30px;margin-bottom:24px;border:1px solid #dde7df;border-radius:20px;background:#f9fbf7}
+.requester-detail .request-stage-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:12px}
+.requester-detail .request-stage-heading .section-kicker{font-size:20px;letter-spacing:0;text-transform:none;font-weight:700;color:#204f47}
+.requester-detail .request-next-step p{font-size:16px;line-height:1.75;color:#596d64;max-width:80ch}
+.repair-stages{list-style:none;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:24px 0 0;padding:22px 0 0;border-top:1px solid #e1e8e1}
+.repair-stages li{display:flex;align-items:center;gap:10px;font-size:14px;color:#718078;position:relative;min-width:0}
+.repair-stages__number{display:grid;place-items:center;width:30px;height:30px;flex-shrink:0;border-radius:50%;border:1px solid #d8e1da;background:#fff;font-size:12px;font-weight:700}
+.repair-stages .is-complete{color:#3b6657}.repair-stages .is-complete .repair-stages__number{background:#e4eee6;border-color:#e4eee6}
+.repair-stages .is-current{color:#204f47;font-weight:700}.repair-stages .is-current .repair-stages__number{background:#204f47;color:#fff;border-color:#204f47;box-shadow:0 0 0 4px #204f4710}
+.requester-detail .detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+.requester-detail .detail-layout__aside{grid-column:2;grid-row:1}
+.requester-detail .detail-layout__main{grid-column:1;grid-row:1;display:grid;gap:24px;min-width:0}
+.requester-detail .card{margin:0;min-width:0;border-radius:20px;overflow:hidden;box-shadow:0 5px 22px #214b3c05}
+.requester-detail .request-next-step{margin-bottom:24px}
+.requester-detail .card__header{padding:24px 28px 0;border:0;background:transparent;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.requester-detail .card__title{font-size:22px;line-height:1.35;letter-spacing:-.025em}
+.requester-detail .card__body{padding:20px 28px 28px}
+.requester-detail .prose{font-size:17px;line-height:1.85;color:#40564d;overflow-wrap:anywhere;max-width:78ch}
+.requester-detail .detail-list{margin:0;display:block}
+.requester-detail .detail-list dt{font-size:12px;font-weight:600;letter-spacing:.06em;color:#74837b;margin-top:22px;text-transform:uppercase}
+.requester-detail .detail-list dt:first-child{margin-top:0}
+.requester-detail .detail-list dd{margin:8px 0 0;font-size:16px;line-height:1.65;color:#294b3e;overflow-wrap:anywhere}
+.requester-detail .request-operational-details{padding-bottom:4px}
+.requester-detail .request-operational-details dt{margin-top:22px}
+.requester-detail .request-operational-details dd{font-size:17px;line-height:1.8}
+.requester-detail .card__body>form{margin-top:24px;padding-top:22px;border-top:1px solid #e5ebe5;display:grid;gap:16px;justify-items:start}
+.requester-detail .card__body>form p{font-size:16px;line-height:1.75;color:#596d64;max-width:68ch}
+.requester-detail .btn{font-size:16px;min-height:46px;border-radius:12px;white-space:normal}
+.requester-detail .further-repair{margin-top:22px;border-top:1px solid #e5ebe5;padding-top:20px}
+.requester-detail summary{cursor:pointer;color:#365f50;font-size:16px;padding:6px 0}
+.requester-detail .further-repair form{display:grid;gap:14px;margin-top:18px}
+.requester-detail :is(textarea,input){max-width:100%;font:inherit}
+.requester-detail .timeline{margin:0}.requester-detail .timeline__item{padding-bottom:26px}
+.requester-detail :is(a,button,summary):focus-visible{outline:3px solid #bc9b4d;outline-offset:4px}
+@media(min-width:1500px){.requester-detail .detail-layout{grid-template-columns:minmax(0,1fr) 340px}}
+@media(max-width:800px){.requester-detail .detail-layout{grid-template-columns:minmax(0,1fr)}.requester-detail .detail-layout__aside{grid-column:1;grid-row:2}.requester-detail .detail-layout__main{grid-row:1}.requester-detail .request-detail-heading{padding:28px;grid-template-columns:minmax(0,1fr) 120px;gap:20px}.request-detail-art{width:120px;height:140px}.repair-stages{gap:8px}.repair-stages li{flex-direction:column;align-items:flex-start;font-size:12px;gap:10px}}
+@media(max-width:480px){.content.requester-detail{padding-top:22px}.requester-detail .request-detail-heading{grid-template-columns:minmax(0,1fr);padding:26px 24px}.request-detail-art{display:none}.requester-detail .page-head__title{font-size:29px}.requester-detail .request-next-step{padding:22px 20px}.requester-detail .request-stage-heading{align-items:flex-start;flex-wrap:wrap;gap:10px}.repair-stages{gap:5px}.repair-stages li{font-size:11px}.repair-stages__number{width:26px;height:26px}.requester-detail .card__header{padding:22px 22px 0}.requester-detail .card__body{padding:18px 22px 24px}.requester-detail .card__title{font-size:21px}.requester-detail .prose{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.request-detail-art{transition:none}.request-detail-art:hover{transform:none}}
+.requester-detail .request-operational-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;padding:0}
+.requester-detail .request-update dt{margin:0}
+.requester-detail .request-update--solution{grid-column:1/-1;padding:22px 24px;background:#f2f6ef;border-left:3px solid #82a48d;border-radius:0 12px 12px 0}
+@media(max-width:480px){.requester-detail .request-operational-details{grid-template-columns:minmax(0,1fr);gap:20px}.requester-detail .request-update--solution{padding:18px}}

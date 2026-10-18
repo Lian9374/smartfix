@@ -238,13 +238,55 @@ class TechnicianAccessIT {
     }
 
     @Test
+    void ownerCanCancelAssignedWorkBeforeItStartsAndAllEngineerWritesStop() throws Exception {
+        assignments.assign(ticket(1), new AssignTechnicianCommand(101L), 103L);
+        Long workId = order(1).id();
+        mvc.perform(post("/requests/" + ticket(1) + "/cancel").session(session(104)).with(csrf()))
+                .andExpect(status().isNotFound());
+        mvc.perform(post("/requests/" + ticket(1) + "/cancel").session(session(100)).with(csrf()))
+                .andExpect(status().is3xxRedirection());
+        assertThat(jdbc.queryForObject("SELECT status FROM maintenance_requests WHERE id=1", String.class)).isEqualTo("CANCELLED");
+        assertThat(order(1).status().name()).isEqualTo("CLOSED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM request_status_history WHERE request_id=1 AND to_status='CANCELLED'", Long.class)).isEqualTo(1);
+        assertThat(orders.countOpenWorkOrders(101L)).isZero();
+        mvc.perform(post("/workorders/" + workId + "/accept").session(session(101)).with(csrf()))
+                .andExpect(status().isConflict());
+        assertThatThrownBy(() -> orders.recordRepair(workId, 101L, repair()))
+                .isInstanceOf(com.smartfix.common.exception.BusinessConflictException.class);
+        mvc.perform(post("/requests/" + ticket(1) + "/cancel").session(session(100)).with(csrf()))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void requesterCannotCancelAfterTheEngineerStartsWork() throws Exception {
+        assignments.assign(ticket(1), new AssignTechnicianCommand(101L), 103L);
+        orders.accept(order(1).id(), 101L);
+        mvc.perform(post("/requests/" + ticket(1) + "/cancel").session(session(100)).with(csrf()))
+                .andExpect(status().isConflict());
+        assertThat(order(1).status().name()).isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
     void resolvedWorkRemainsReadableToItsCurrentTechnician() throws Exception {
+        jdbc.update("UPDATE maintenance_requests SET title=?, description=? WHERE id=1",
+                "Ceiling light flickering near the main corridor entrance",
+                "The ceiling light near the main entrance flickers intermittently and sometimes goes dark for several seconds. Other nearby lights are working. Please inspect the fitting and restore stable lighting.");
         assignments.assign(ticket(1), new AssignTechnicianCommand(101L), 103L);
         Long orderId = order(1).id();
         orders.accept(orderId, 101L);
-        orders.recordRepair(orderId, 101L, repair());
+        var repairLog = repair();
+        repairLog.setDiagnosis("Intermittent LED driver failure caused the corridor light to flicker. Supply connections and the fitting were inspected.");
+        repairLog.setActionTaken("Replaced the faulty LED driver and secured the fitting connections. Restored power and checked repeated switching and continuous operation; lighting remained stable.");
+        repairLog.setMaterialsUsed("1 compatible LED driver");
+        orders.recordRepair(orderId, 101L, repairLog);
         var complete = new CompleteWorkOrderCommand();
         complete.setResolutionNote("Replaced bulb");
+        assertReadable(1, 101);
+        var invalidRecord = mvc.perform(post("/workorders/" + orderId + "/records")
+                .session(session(101)).with(csrf()).param("diagnosis", ""))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+        assertThat(invalidRecord).contains("repair-record-form", "aria-invalid=\"true\"", "open=\"open\"");
+        java.nio.file.Files.writeString(java.nio.file.Path.of("target", "engineer-detail-preview", "invalid.html"), invalidRecord);
         orders.complete(orderId, 101L, complete);
         assertReadable(1, 101);
         assertThat(listPage(101, 0, 20).getTotalElements()).isEqualTo(1);
@@ -285,8 +327,13 @@ class TechnicianAccessIT {
                 .andExpect(header().string("Cache-Control", "private, no-store"))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(content().bytes(image));
-        mvc.perform(get("/workorders/" + order(request).id()).session(session(actor))).andExpect(status().isOk())
+        var detail = mvc.perform(get("/workorders/" + order(request).id()).session(session(actor))).andExpect(status().isOk())
                 .andExpect(content().string(containsString(ticket(request))));
+        var detailDirectory = java.nio.file.Path.of("target", "engineer-detail-preview");
+        java.nio.file.Files.createDirectories(detailDirectory);
+        java.nio.file.Files.write(detailDirectory.resolve("test.png"), image);
+        java.nio.file.Files.writeString(detailDirectory.resolve("detail-" + order(request).status().name().toLowerCase() + ".html"),
+                detail.andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
         assertThat(access.requireReadableRequest(ticket(request), actor).getId()).isEqualTo(request);
     }
 

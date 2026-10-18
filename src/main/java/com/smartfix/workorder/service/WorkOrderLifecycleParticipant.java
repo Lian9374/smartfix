@@ -25,6 +25,10 @@ public class WorkOrderLifecycleParticipant implements RequestTransitionParticipa
     @Override
     public void beforeTransition(RequestTransitionResponse c) {
         var order = orders.findByRequestId(c.requestId());
+        if (c.toStatus() == RequestStatus.CANCELLED && c.fromStatus() == RequestStatus.ASSIGNED
+                && order.map(w -> w.getStatus() != WorkOrderStatus.CREATED).orElse(false)) {
+            throw new BusinessConflictException("The engineer has already started this repair.");
+        }
         if (c.toStatus() == RequestStatus.IN_PROGRESS || c.toStatus() == RequestStatus.RESOLVED) {
             WorkOrder w =
                     order.orElseThrow(

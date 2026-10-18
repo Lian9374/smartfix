@@ -16,6 +16,7 @@ public final class RequestTransition {
                     rule(RequestStatus.UNDER_REVIEW, RequestStatus.ASSIGNED, Role.ADMINISTRATOR),
                     rule(RequestStatus.UNDER_REVIEW, RequestStatus.REJECTED, Role.ADMINISTRATOR),
                     rule(RequestStatus.ASSIGNED, RequestStatus.IN_PROGRESS, Role.TECHNICIAN),
+                    rule(RequestStatus.ASSIGNED, RequestStatus.CANCELLED, Role.REQUESTER),
                     rule(RequestStatus.ASSIGNED, RequestStatus.UNDER_REVIEW, Role.ADMINISTRATOR),
                     rule(RequestStatus.IN_PROGRESS, RequestStatus.ASSIGNED, Role.ADMINISTRATOR),
                     rule(RequestStatus.IN_PROGRESS, RequestStatus.RESOLVED, Role.TECHNICIAN),
