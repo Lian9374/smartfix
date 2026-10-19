@@ -29,12 +29,16 @@ public class DeliveryCompletionService {
             boolean inApp = "IN_APP".equals(task.get("channel"));
             if (!"DELIVERED".equals(outcome) && !("SKIPPED".equals(outcome) && !inApp))
                 throw new IllegalArgumentException("Invalid delivery outcome");
-            if ("DELIVERED".equals(task.get("status")) || "SKIPPED".equals(task.get("status"))) return;
+            if (isTerminal(task.get("status"))) return;
             if (inApp) notifications.insertIfAbsent(((Number)task.get("recipient_id")).longValue(),
                     (String)task.get("event_type"), (String)task.get("title"), (String)task.get("message"),
                     task.get("reference_id") == null ? null : ((Number)task.get("reference_id")).longValue(), key, clock.instant());
             jdbc.update("UPDATE delivery_tasks SET status=?,delivered_at=?,last_error=NULL WHERE id=?",
                     outcome, Timestamp.from(clock.instant()), id);
         });
+    }
+
+    private static boolean isTerminal(Object status) {
+        return "DELIVERED".equals(status) || "SKIPPED".equals(status);
     }
 }

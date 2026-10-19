@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.mockito.ArgumentMatchers.*;
 
 class DistributedLegacyDeliveryTest {
     @Test void skippedWorkerReceiptCannotBeReusedByLegacyRetry() {

@@ -1,0 +1,24 @@
+{
+  "result": "PASS",
+  "timestamp": "2026-10-19T12:36:23.593048+00:00",
+  "command": "mvn -B -Ppostgres-it verify",
+  "database": "dedicated local smartfix_test (PostgreSQL 16)",
+  "suites": {
+    "unit": {
+      "tests": 537,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "integration": {
+      "tests": 454,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "workerUnitTests": 8,
+  "securityFocusedTests": 88,
+  "awsResourcesCreated": false,
+  "sonarCloud": "pending reanalysis after push"
+}

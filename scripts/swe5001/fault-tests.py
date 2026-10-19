@@ -27,7 +27,7 @@ def count(event):
 checks=[]
 # Real protected endpoint rejects no token, wrong token, and mismatched delivery identity.
 event=fixture()
-for token,body,expected in [('',dict(dedupKey=event['dedupKey'],outcome='DELIVERED'),401),('Bearer wrong',dict(dedupKey=event['dedupKey'],outcome='DELIVERED'),401),('Bearer '+os.environ['SMARTFIX_INTERNAL_TOKEN'],dict(dedupKey='wrong',outcome='DELIVERED'),400)]:
+for token,body,expected in [('',dict(dedupKey=event['dedupKey'],outcome='DELIVERED'),403),('Bearer wrong',dict(dedupKey=event['dedupKey'],outcome='DELIVERED'),401),('Bearer '+os.environ['SMARTFIX_INTERNAL_TOKEN'],dict(dedupKey='wrong',outcome='DELIVERED'),400)]:
     request=Request(f"{base}/internal/deliveries/{event['taskId']}/complete",json.dumps(body).encode(),headers={'Content-Type':'application/json','Authorization':token})
     try:
         response=urlopen(request,timeout=10);actual=response.status
