@@ -125,3 +125,6 @@ Core 改造见 `src/main/java/com/smartfix/cloud/`、`application-distributed.ym
 本地部署见 `compose.swe5001.yml` 和 `infra/local/`；AWS 见 `infra/aws/stack.json`；CI/CD 见 `.github/workflows/swe5001-*.yml`；真实表单、故障注入、压测与指标采集见 `scripts/swe5001/`；原始结果见 `results/`。历史设计和实施计划位于 `docs/superpowers/`。
 
 本地代码、回归、E2E、故障与扩容实验已执行。剩余是账户相关的真实 AWS 部署与云上证据，不是已经完成的云端交付：在证书/DNS/OIDC 权限就绪且费用获批后，建议预留半天至一天完成首次部署、排障与演示排练，再预留约两小时跑云端负载并导出指标。证书验证、账户权限和容量限制可能延长时间。
+
+
+GitHub 干净运行器也已通过整条自动验证链路：[成功运行记录](https://github.com/Lian9374/smartfix/actions/runs/39227770132)。这包含构建、单双副本 E2E 和故障测试，不代表已执行 AWS 发布/部署。

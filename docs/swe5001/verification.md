@@ -30,8 +30,13 @@ One run per count, fixed ascending order, increasing database size, warm JVM/cac
 
 An exploratory first load run failed because k6 cleared cookies between iterations while the script cached its login flag. Raw failed data is preserved under `results/initial-cookie-reset-failure/`; it is not used in the comparison. `noCookiesReset:true` fixes the harness. Both final threshold exit codes are 0. The benchmark now retains both scenarios even when a threshold fails, and returns failure afterwards.
 
-The independent code review identified skipped-email retry incompatibility and an overly broad completion assertion. Distributed mode now rejects legacy retries of terminal SKIPPED receipts and prevents synchronous Core draining; the UI describes the limitation. E2E now requires the exact current-ticket completion message and asserts EXPECTED_CORE_COUNT when validating multiple replicas. AWS optional SMTP delivery, actual autoscaling, managed-service availability and GitHub-hosted workflow execution require separate runtime evidence.
+The independent code review identified skipped-email retry incompatibility and an overly broad completion assertion. Distributed mode now rejects legacy retries of terminal SKIPPED receipts and prevents synchronous Core draining; the UI describes the limitation. E2E now requires the exact current-ticket completion message and asserts EXPECTED_CORE_COUNT when validating multiple replicas. AWS optional SMTP delivery, actual autoscaling and managed-service availability require separate runtime evidence.
 
 ## Final image acceptance
 
 After the review fixes, the complete Java/PostgreSQL suite passed again (531 +454). Final images were rebuilt, then two Core and two Worker containers started healthy. `EXPECTED_CORE_COUNT=2 python3 scripts/swe5001/e2e.py` passed for ticket `SF-2026-001710`; the same authenticated browser reached `172.20.0.6:8080` and `172.20.0.9:8080`, and repeated attachment reads matched the uploaded bytes. The exact current-ticket completion notification arrived. Fault tests and gateway smoke passed again against these final containers. Raw E2E and fault records contain UTC timestamps; Singapore local time is UTC+8.
+
+
+## GitHub-hosted CI evidence
+
+[SWE5001 verification run 39227770132](https://github.com/Lian9374/smartfix/actions/runs/39227770132) completed **successfully** for code commit `3f38e97aca2a9806f5e7e2bbab45f390c8feaa3f`. The clean Ubuntu runner passed Java/PostgreSQL tests, Worker tests, CloudFormation lint, full container builds/startup, authenticated E2E, two Core +two Worker E2E, real HTTP/PostgreSQL fault tests and artifact upload. Machine-readable status/steps are in `results/github-ci.json`. A later documentation-only evidence commit records this run without repeating unchanged-code tests. This is CI evidence; AWS image publishing/deployment was not triggered.
