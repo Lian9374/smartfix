@@ -1,0 +1,33 @@
+spring:
+  thymeleaf:
+    cache: true
+  datasource:
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+smartfix:
+  notification:
+    delivery:
+      scheduling-enabled: false
+      eager-enabled: false
+  cloud:
+    enabled: true
+    queue-url: ${SMARTFIX_QUEUE_URL}
+    region: ${AWS_REGION:ap-southeast-1}
+    sqs-endpoint: ${SMARTFIX_SQS_ENDPOINT:}
+    internal-token: ${SMARTFIX_INTERNAL_TOKEN}
+management:
+  server:
+    port: 8081
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+server:
+  shutdown: graceful

@@ -54,6 +54,9 @@ class HomeControllerTests {
     private UserService userService;
 
     @MockitoBean
+    private com.smartfix.notification.service.NotificationService notifications;
+
+    @MockitoBean
     private RequestQueryService requestQueryService;
     @MockitoBean
     private com.smartfix.announcement.service.AnnouncementService announcements;

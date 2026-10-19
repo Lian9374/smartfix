@@ -15,20 +15,19 @@ WORKDIR /workspace
 
 # Copy only the POM first so dependency resolution can be cached by Docker.
 COPY pom.xml .
-RUN mvn -B -q dependency:go-offline
 
 # Copy sources and build the application.
 COPY src ./src
-RUN mvn -B clean verify
+RUN --mount=type=cache,target=/root/.m2 mvn -B clean verify
 
 # ---- Runtime stage ----
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Run as a non-root user (good container hygiene).
-RUN groupadd --system app && useradd --system --gid app app
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app app
 COPY --from=build /workspace/target/smartfix-*.jar /app/app.jar
-RUN chown app:app /app/app.jar
+RUN mkdir /app/uploads && chown -R app:app /app
 USER app
 
 EXPOSE 8080

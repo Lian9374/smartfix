@@ -1,0 +1,9 @@
+# For CI / environments where Maven has already run: mvn -B verify first.
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+RUN groupadd --system --gid 10001 app && useradd --system --uid 10001 --gid app app
+COPY target/smartfix-*.jar /app/app.jar
+RUN mkdir /app/uploads && chown -R app:app /app
+USER app
+EXPOSE 8080 8081
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

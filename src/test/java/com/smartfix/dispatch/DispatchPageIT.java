@@ -54,6 +54,7 @@ class DispatchPageIT {
 
     @BeforeEach
     void fixtures() {
+        com.smartfix.testsupport.OperationalFixtureCleanup.clear(jdbc);
         for (String table : List.of("notifications", "assignments", "repair_records", "request_feedback", "request_status_history",
                 "request_attachments", "work_orders", "maintenance_requests", "technician_skills",
                 "technician_service_areas", "technician_profiles", "users", "locations")) {

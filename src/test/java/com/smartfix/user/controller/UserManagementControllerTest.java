@@ -96,7 +96,7 @@ class UserManagementControllerTest {
 
         mockMvc.perform(get("/admin/users"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("No accounts exist yet.")));
+                .andExpect(content().string(containsString("No matching accounts")));
     }
 
     @Test
@@ -143,7 +143,7 @@ class UserManagementControllerTest {
                 new UserAuthenticationData(ACTOR_ID, "root.admin", "$2a$10$hash", Role.ADMINISTRATOR,
                         AccountStatus.ACTIVE, 0L));
 
-        mockMvc.perform(validCreation().principal(() -> "root.admin"))
+        mockMvc.perform(validCreation().principal(new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("root.admin", "unused")))
                 .andExpect(status().is3xxRedirection());
 
         verify(administration).createUser(any(CreateUserCommand.class), eq(ACTOR_ID));
