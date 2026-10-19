@@ -1,0 +1,62 @@
+{
+  "environment": {
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "architecture": "arm64",
+    "cpuModel": "Apple M3 Pro",
+    "logicalCpuCount": 11,
+    "dockerMemoryBytes": "8321372160",
+    "coreImageId": "sha256:083d39684f1500e75f8b18096b3c823366ca994e64f963bd8d9c6281ab8aa0a4"
+  },
+  "workload": {
+    "stageSeconds": 20,
+    "targetVUs": [
+      2,
+      5,
+      10
+    ],
+    "rampDownSeconds": 5,
+    "coreCpuPerReplica": 0.5,
+    "coreMemoryGiBPerReplica": 1,
+    "workerReplicas": 1,
+    "sequence": [
+      1,
+      2
+    ]
+  },
+  "runs": [
+    {
+      "coreReplicas": 1,
+      "submissionP95Ms": 388.84689195,
+      "workflowPerSecond": 10.499097589415292,
+      "iterations": 684,
+      "workflowErrorRate": 0,
+      "httpErrorRate": 0,
+      "meanCpuPercentPerCore": 32.05538461538462,
+      "maxCpuPercentPerCore": 49.95,
+      "meanMemoryMiBPerCore": 534.8923076923077,
+      "maxMemoryMiBPerCore": 542.8,
+      "maxSampledVisibleQueue": 6,
+      "thresholdExitCode": 0
+    },
+    {
+      "coreReplicas": 2,
+      "submissionP95Ms": 73.65167499999994,
+      "workflowPerSecond": 15.533262060497291,
+      "iterations": 1010,
+      "workflowErrorRate": 0,
+      "httpErrorRate": 0,
+      "meanCpuPercentPerCore": 24.211153846153845,
+      "maxCpuPercentPerCore": 48.62,
+      "meanMemoryMiBPerCore": 520.4692307692308,
+      "maxMemoryMiBPerCore": 552.0,
+      "maxSampledVisibleQueue": 5,
+      "thresholdExitCode": 0
+    }
+  ],
+  "limitations": [
+    "One short run per replica count; ascending run order and growing database; not a production capacity bound.",
+    "Apple M3 Pro host shared by all local containers, per-Core CPU limited to 0.5 and memory 1 GiB.",
+    "Fixed Worker and database; no claim of linear scaling or automatic AWS scaling.",
+    "Final legacy admin retry guard added after measurement; active request/outbox hot path is unchanged."
+  ]
+}

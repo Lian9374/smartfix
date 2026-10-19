@@ -1,3 +1,5 @@
+> **SWE5001 branch:** Cloud-native implementation, run/deploy instructions and evidence: [中文完整手册](docs/swe5001/README.zh-CN.md) · [Architecture](docs/swe5001/architecture.md) · [Verification](docs/swe5001/verification.md). SWE5006 baseline is preserved on `main` at `6cb329f`.
+
 # SmartFix — Campus Facility Maintenance and Technician Dispatch System
 
 **English** | [**简体中文**](README.zh-CN.md)

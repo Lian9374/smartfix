@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-19T09:07:06Z",
+  "ticket": "SF-2026-001710",
+  "workOrder": "6",
+  "result": "PASS",
+  "sharedAttachment": "PASS",
+  "coreUpstreams": [
+    "172.20.0.6:8080",
+    "172.20.0.9:8080"
+  ],
+  "workflow": "submit -> review -> assign -> accept -> complete -> async notification"
+}
