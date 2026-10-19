@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "checks": [
+    "missing/wrong token and wrong dedup key rejected by real HTTP API",
+    "PENDING Core task accepts callback; crash after callback rolls back inbox and safely retries",
+    "six concurrent PostgreSQL inbox consumers execute one callback and one notification"
+  ],
+  "timestamp": "2026-10-19T12:12:11Z"
+}

@@ -1,0 +1,118 @@
+name: smartfix-swe5001
+x-core-env: &core-env
+  SPRING_PROFILES_ACTIVE: distributed
+  DB_URL: jdbc:postgresql://core-db:5432/smartfix
+  DB_USERNAME: smartfix
+  DB_PASSWORD: ${LOCAL_DB_PASSWORD:-smartfix-local-only}
+  SMARTFIX_INTERNAL_TOKEN: ${SMARTFIX_INTERNAL_TOKEN:-local-demo-token-change-before-cloud-123456789}
+  SMARTFIX_QUEUE_URL: http://sqs:9324/000000000000/smartfix-notifications
+  SMARTFIX_SQS_ENDPOINT: http://sqs:9324
+  AWS_REGION: ap-southeast-1
+  AWS_ACCESS_KEY_ID: local
+  AWS_SECRET_ACCESS_KEY: local
+  SMARTFIX_UPLOAD_DIR: /app/uploads
+  SMARTFIX_BOOTSTRAP_ADMIN_ENABLED: 'true'
+  SMARTFIX_BOOTSTRAP_ADMIN_USERNAME: demo.admin
+  SMARTFIX_BOOTSTRAP_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD:-SmartFixDemo1!}
+services:
+  core-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: smartfix
+      POSTGRES_USER: smartfix
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:-smartfix-local-only}
+    volumes: [core-data:/var/lib/postgresql/data]
+    ports: ['127.0.0.1:15432:5432']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U smartfix']
+      interval: 3s
+      retries: 30
+  worker-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notifications
+      POSTGRES_USER: notification_worker
+      POSTGRES_PASSWORD: ${LOCAL_WORKER_PASSWORD:-worker-local-only}
+    volumes: [worker-data:/var/lib/postgresql/data]
+    ports: ['127.0.0.1:15433:5432']
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U notification_worker -d notifications']
+      interval: 3s
+      retries: 30
+  sqs:
+    image: softwaremill/elasticmq-native:1.6.12
+    volumes: ['./infra/local/elasticmq.conf:/opt/elasticmq.conf:ro']
+    ports: ['127.0.0.1:9324:9324']
+  core:
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+    image: smartfix-core:swe5001
+    build: .
+    environment: *core-env
+    volumes: [uploads:/app/uploads]
+    expose: ['8080','8081']
+    depends_on:
+      core-db: {condition: service_healthy}
+      sqs: {condition: service_started}
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:8081/actuator/health/readiness || exit 1']
+      interval: 5s
+      timeout: 5s
+      start_period: 40s
+      retries: 30
+  gateway:
+    image: nginx:1.28-alpine
+    volumes: ['./infra/local/nginx.conf:/etc/nginx/nginx.conf:ro']
+    ports: ['127.0.0.1:8080:80']
+    depends_on:
+      core: {condition: service_healthy}
+  worker:
+    image: smartfix-notification-worker:swe5001
+    build: services/notification-worker
+    environment:
+      WORKER_DB_URL: postgresql://notification_worker:${LOCAL_WORKER_PASSWORD:-worker-local-only}@worker-db:5432/notifications
+      CORE_URL: http://core:8080
+      SMARTFIX_INTERNAL_TOKEN: ${SMARTFIX_INTERNAL_TOKEN:-local-demo-token-change-before-cloud-123456789}
+      SMARTFIX_QUEUE_URL: http://sqs:9324/000000000000/smartfix-notifications
+      SQS_ENDPOINT: http://sqs:9324
+      AWS_REGION: ap-southeast-1
+      AWS_ACCESS_KEY_ID: local
+      AWS_SECRET_ACCESS_KEY: local
+      SMTP_HOST: mailpit
+    depends_on:
+      worker-db: {condition: service_healthy}
+      core: {condition: service_healthy}
+  mailpit:
+    image: axllent/mailpit:v1.27
+    ports: ['127.0.0.1:8025:8025']
+  prometheus:
+    image: prom/prometheus:v3.4.1
+    volumes: ['./infra/local/prometheus.yml:/etc/prometheus/prometheus.yml:ro']
+    ports: ['127.0.0.1:9090:9090']
+    depends_on:
+      core: {condition: service_healthy}
+  fault-tests:
+    profiles: [tools]
+    image: smartfix-notification-worker:swe5001
+    user: "0:0"
+    volumes: ['./scripts/swe5001:/tests:ro','./results:/results']
+    environment:
+      PYTHONPATH: /app
+      CORE_TEST_DB_URL: postgresql://smartfix:${LOCAL_DB_PASSWORD:-smartfix-local-only}@core-db:5432/smartfix
+      WORKER_DB_URL: postgresql://notification_worker:${LOCAL_WORKER_PASSWORD:-worker-local-only}@worker-db:5432/notifications
+      CORE_URL: http://core:8080
+      SMARTFIX_INTERNAL_TOKEN: ${SMARTFIX_INTERNAL_TOKEN:-local-demo-token-change-before-cloud-123456789}
+    command: [python, /tests/fault-tests.py]
+  k6:
+    profiles: [tools]
+    image: grafana/k6:1.0.0
+    volumes: ['./scripts/swe5001:/scripts:ro','./results:/results']
+    environment:
+      BASE_URL: http://gateway
+volumes:
+  core-data:
+  worker-data:
+  uploads:

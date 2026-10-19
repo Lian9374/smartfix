@@ -30,7 +30,7 @@ class LegacyMigrationRecoveryPostgresIT {
         try (var paths = Files.list(Path.of("src/main/resources/db/migration"))) {
             for (Path path : paths.toList()) {
                 String version = path.getFileName().toString().split("__")[0];
-                if (!Set.of("V10", "V11", "V14", "V16", "V25").contains(version))
+                if (Integer.parseInt(version.substring(1)) <= 24 && !Set.of("V10", "V11", "V14", "V16").contains(version))
                     Files.copy(path, legacy.resolve(path.getFileName()));
             }
         }

@@ -97,6 +97,7 @@ class RequestWorkflowTest {
 
     @BeforeEach
     void fixtures() throws Exception {
+        com.smartfix.testsupport.OperationalFixtureCleanup.clear(jdbc);
         for (String table :
                 List.of(
                         "notifications",

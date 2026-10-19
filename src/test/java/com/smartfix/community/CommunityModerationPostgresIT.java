@@ -157,6 +157,7 @@ class CommunityModerationPostgresIT {
 
     @BeforeEach
     void emptyTheSchema() {
+        com.smartfix.testsupport.OperationalFixtureCleanup.clear(jdbc);
         // The schema outlives a single test method, so each one starts from nothing and can
         // create its accounts under plain names.
         recorder.clear();

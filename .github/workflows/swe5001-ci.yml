@@ -1,0 +1,67 @@
+name: SWE5001 verification
+on:
+  push:
+    branches: [swe5001-cloud-native]
+  pull_request:
+    branches: [swe5001-cloud-native]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: smartfix_test
+          POSTGRES_USER: smartfix_test
+          POSTGRES_PASSWORD: ci-test-only
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U smartfix_test" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Java and real PostgreSQL regression suite
+        env:
+          TEST_DB_URL: jdbc:postgresql://localhost:5432/smartfix_test
+          TEST_DB_USERNAME: smartfix_test
+          TEST_DB_PASSWORD: ci-test-only
+        run: mvn -B -Ppostgres-it verify
+      - name: Worker tests
+        run: cd services/notification-worker && python -m unittest discover -s tests -v
+      - name: CloudFormation validation
+        run: pip install cfn-lint==1.36.0 && cfn-lint infra/aws/stack.json
+      - name: Distributed environment
+        run: docker compose -f compose.swe5001.yml up -d --build --wait --wait-timeout 300
+      - name: Local gateway health route
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8080/healthz | python -c 'import json,sys; assert json.load(sys.stdin)["status"]=="UP"'
+      - name: Authenticated workflow and service boundaries
+        run: python scripts/swe5001/e2e.py
+      - name: Repeat with two Core replicas and two Workers
+        run: |
+          docker compose -f compose.swe5001.yml up -d --scale core=2 --scale worker=2 --wait --wait-timeout 180
+          EXPECTED_CORE_COUNT=2 python scripts/swe5001/e2e.py
+      - name: Real PostgreSQL and HTTP fault scenarios
+        run: docker compose -f compose.swe5001.yml run --rm fault-tests
+      - name: Capture diagnostics
+        if: always()
+        run: docker compose -f compose.swe5001.yml logs --no-color > results/compose-ci.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: swe5001-verification
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            results/
+      - name: Stop environment
+        if: always()
+        run: docker compose -f compose.swe5001.yml down -v
