@@ -40,3 +40,8 @@ After the review fixes, the complete Java/PostgreSQL suite passed again (531 +45
 ## GitHub-hosted CI evidence
 
 [SWE5001 verification run 39227770132](https://github.com/Lian9374/smartfix/actions/runs/39227770132) completed **successfully** for code commit `3f38e97aca2a9806f5e7e2bbab45f390c8feaa3f`. The clean Ubuntu runner passed Java/PostgreSQL tests, Worker tests, CloudFormation lint, full container builds/startup, authenticated E2E, two Core +two Worker E2E, real HTTP/PostgreSQL fault tests and artifact upload. Machine-readable status/steps are in `results/github-ci.json`. A later documentation-only evidence commit records this run without repeating unchanged-code tests. This is CI evidence; AWS image publishing/deployment was not triggered.
+
+
+## Follow-up local-only verification
+
+The user selected local testing first and avoiding AWS expenditure. The existing two-Core/two-Worker environment was rechecked, with all four Prometheus targets UP. This found an uncovered nginx `/healthz` bug: the default upstream Host contained an underscore, and the route also targeted the business port rather than the management readiness endpoint. The new local verification command failed on HTTP 400 before the fix. nginx now forwards readiness to port 8081 with the original Host; the same verification command then validates the full workflow, shared state, HTTP/database fault cases and monitoring. The CI workflow now checks this route explicitly. See `results/local-verification.json` for the fresh local outcome. No AWS command was invoked and no AWS resource was created.

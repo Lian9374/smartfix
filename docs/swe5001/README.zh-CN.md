@@ -1,5 +1,30 @@
 # SWE5001 SmartFix：实现、运行与演示手册
 
+## 0. 当前选择：本地验证，避免 AWS 消费
+
+当前按用户选择，先使用现有电脑运行本地完整环境，不创建 AWS 资源。Core、独立 Worker、两个 PostgreSQL、ElasticMQ 消息队列、nginx 与 Prometheus 都在本机容器中运行；这条路径不要求 AWS 账户，不调用 AWS 部署脚本，不产生 AWS 服务账单。AWS 相关章节保留为尚未执行的后续部署说明。
+
+已经构建过镜像时，可启动双副本演示并运行一键验证：
+
+```bash
+docker compose -f compose.swe5001.yml up -d --no-build --scale core=2 --scale worker=2 --wait --wait-timeout 180
+bash scripts/swe5001/verify-local.sh
+```
+
+首次下载仓库的电脑需要先按第 3 节构建镜像。`verify-local.sh` 会检查网关就绪、真实登录/CSRF 业务链路、多个 Core 上的共享会话/附件、数据库与 HTTP 故障恢复、监控连通性、Worker 测试；结果写入 `results/local-verification.json`。测试会创建本地演示账户及报修数据。
+
+当前本地访问入口：应用 http://localhost:8080；监控 http://localhost:9090。以下仅为本地演示账户：
+
+- 管理员：`demo.admin` / `SmartFixDemo1!`，登录时选择 Administrator。
+- 报修人：`swe5001.requester` / `SmartFixUser2!`，选择 Requester。
+- 技师：`swe5001.tech` / `SmartFixUser2!`，选择 Technician。
+
+建议用不同浏览器或独立无痕会话分别登录三个角色。报修人提交 Electrical 类报修，地点选择技师资料中已勾选的服务区域；管理员审核并分配给 `swe5001.tech`；技师开工、添加维修记录、提交完成；报修人刷新站内通知，核对这次报修编号的完成通知。邮件默认未开启，本轮验证的是站内异步通知。
+
+Prometheus 查询 `up` 应看到两个 Core、两个 Worker 共四个在线目标；`smartfix_outbox_pending` 可观察待发布任务，`smartfix_worker_messages_total` 可观察消息确认数量。
+
+本地环境能验证真实的多进程、异步通信、独立数据、横向扩容、CI 和故障恢复。ElasticMQ 是 SQS 协议模拟器，不能作为“已经使用 AWS SQS / 托管云服务”的证据。按提供的需求，托管云部署仍是未执行项；若最终评审要求该项，需要确认老师是否接受本地演示或学校提供的云资源额度，不能保证完全本地等于满足所有云部署要求。
+
 ## 1. 两门课如何区分
 
 同一个仓库，两个版本：`main` 保留 SWE5006；`swe5001-cloud-native` 展示 SWE5001。本次从 `6cb329f` 开始，不修改 main，不新建另一个仓库。演示时打开分支链接，说明业务功能复用，新增成果是架构演进、消息可靠性、独立部署、云基础设施、DevOps 和性能验证。

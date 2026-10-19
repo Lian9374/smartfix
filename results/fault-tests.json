@@ -5,5 +5,5 @@
     "PENDING Core task accepts callback; crash after callback rolls back inbox and safely retries",
     "six concurrent PostgreSQL inbox consumers execute one callback and one notification"
   ],
-  "timestamp": "2026-10-19T09:07:22Z"
+  "timestamp": "2026-10-19T12:12:11Z"
 }

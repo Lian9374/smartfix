@@ -40,6 +40,9 @@ jobs:
         run: pip install cfn-lint==1.36.0 && cfn-lint infra/aws/stack.json
       - name: Distributed environment
         run: docker compose -f compose.swe5001.yml up -d --build --wait --wait-timeout 300
+      - name: Local gateway health route
+        run: |
+          curl --fail --silent --show-error http://127.0.0.1:8080/healthz | python -c 'import json,sys; assert json.load(sys.stdin)["status"]=="UP"'
       - name: Authenticated workflow and service boundaries
         run: python scripts/swe5001/e2e.py
       - name: Repeat with two Core replicas and two Workers
