@@ -49,8 +49,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "/db/technician-test-schema.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class TechnicianProfileIT {
     private static final String ROUTE = "/technician/profile";
-    @org.springframework.test.context.bean.override.mockito.MockitoBean
-    com.smartfix.notification.service.NotificationService notifications;
     @Autowired MockMvc mvc;
     @Autowired UserService users;
     @Autowired TechnicianDirectoryService directory;

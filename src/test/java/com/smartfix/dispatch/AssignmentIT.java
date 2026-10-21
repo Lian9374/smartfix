@@ -64,7 +64,6 @@ class AssignmentIT {
 
     @BeforeEach
     void fixtures() throws Exception {
-        com.smartfix.testsupport.OperationalFixtureCleanup.clear(jdbc);
         try (var connection = jdbc.getDataSource().getConnection()) {
             if (connection.getMetaData().getDatabaseProductName().equals("H2")) {
                 // H2 cannot parse PostgreSQL partial indexes. Only this test schema uses a generated column.

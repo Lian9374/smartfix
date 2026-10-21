@@ -77,7 +77,6 @@ class TechnicianAccessIT {
 
     @BeforeEach
     void fixtures() throws Exception {
-        com.smartfix.testsupport.OperationalFixtureCleanup.clear(jdbc);
         Files.createDirectories(UPLOADS);
         for (String table : List.of("notifications", "assignments", "repair_records", "request_feedback", "request_status_history",
                 "request_attachments", "work_orders", "maintenance_requests", "technician_skills",

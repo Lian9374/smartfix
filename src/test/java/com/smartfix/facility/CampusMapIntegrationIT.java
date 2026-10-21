@@ -279,11 +279,9 @@ class CampusMapIntegrationIT {
             if (!route.equals("/")) mvc.perform(get("/").session(login(username))).andExpect(redirectedUrl(route));
             String home = mvc.perform(get(route).session(login(username)))
                     .andExpect(status().isOk())
+                    .andExpect(content().string(containsString("href=\"/campus-map\"")))
                     .andReturn().getResponse().getContentAsString();
-            if (username.equals("map.requester")) {
-                org.junit.jupiter.api.Assertions.assertTrue(home.contains("href=\"/campus-map\""));
-                export("home.html", home);
-            }
+            if (username.equals("map.requester")) export("home.html", home);
         }
         mvc.perform(get("/campus-map").session(login("map.requester")))
                 .andExpect(status().isOk()).andExpect(content().string(containsString(

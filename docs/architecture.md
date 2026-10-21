@@ -1,5 +1,3 @@
-> This document describes the SWE5006 baseline. For the SWE5001 distributed implementation on this branch, see [SWE5001 architecture](swe5001/architecture.md).
-
 # SmartFix Architecture
 
 Current non-AWS release validation and known boundaries are tracked in
