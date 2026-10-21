@@ -1,4 +1,0 @@
-**
-!target/
-!target/smartfix-*.jar
-!Dockerfile.runtime

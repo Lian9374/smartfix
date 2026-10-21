@@ -1,8 +1,0 @@
-[
-  {"ParameterKey":"Project","ParameterValue":"smartfix-swe5001"},
-  {"ParameterKey":"CertificateArn","ParameterValue":"REPLACE_WITH_ACM_CERTIFICATE_ARN"},
-  {"ParameterKey":"DomainName","ParameterValue":"REPLACE_WITH_YOUR_DNS_NAME"},
-  {"ParameterKey":"ImageTag","ParameterValue":"bootstrap"},
-  {"ParameterKey":"CoreCount","ParameterValue":"0"},
-  {"ParameterKey":"WorkerCount","ParameterValue":"0"}
-]

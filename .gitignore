@@ -38,10 +38,3 @@ nohup.out
 .dockerignore-local
 uploads/
 local-db-backups/
-
-# SWE5001 local tooling and cloud state
-__pycache__/
-.venv/
-.aws-sam/
-infra/aws/parameters.local.json
-results/*.tmp

@@ -151,9 +151,6 @@ class RequestMigrationIT {
                     "spring.flyway.locations=classpath:db/migration",
                     "spring.flyway.schemas=" + schema,
                     "spring.flyway.default-schema=" + schema,
-                    "spring.mail.host=localhost",
-                    "smartfix.notification.delivery.scheduling-enabled=false",
-                    "smartfix.notification.delivery.eager-enabled=false",
                     "smartfix.bootstrap-admin.enabled=false");
             // Keep other tests' route probes and datasource configurations out of this context.
             context.getBeanFactory().registerSingleton("upgradePageTestExclusions", new TypeExcludeFilter() {

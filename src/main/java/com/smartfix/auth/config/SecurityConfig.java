@@ -112,7 +112,7 @@ public class SecurityConfig {
                         .failureHandler(new SelectedAccountTypeFailureHandler())
                         .defaultSuccessUrl("/", true))
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID", "SESSION"))
+                        .invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID"))
                 .exceptionHandling(errors -> errors
                         .accessDeniedHandler((request, response, exception) -> response.sendError(403)))
                 // No servlet bean: run once, after session loading and before CSRF/logout/authorization.
