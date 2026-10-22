@@ -3,6 +3,7 @@ package com.smartfix.common.web;
 import com.smartfix.auth.security.SmartFixUserDetails;
 import com.smartfix.notification.service.NotificationService;
 import org.springframework.beans.factory.ObjectProvider;
+import java.security.Principal;
 import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -18,9 +19,9 @@ public class NotificationNavigationAdvice {
     }
 
     @ModelAttribute
-    public void addUnreadCount(Model model, Authentication authentication) {
+    public void addUnreadCount(Model model, Principal principal) {
         long count = 0;
-        if (authentication != null && authentication.getPrincipal() instanceof SmartFixUserDetails user) {
+        if (principal instanceof Authentication authentication && authentication.getPrincipal() instanceof SmartFixUserDetails user) {
             var service = notifications.getIfAvailable();
             if (service != null) count = service.getUnreadCount(user.getUserId());
         }

@@ -58,6 +58,9 @@ class HomeControllerTests {
     @MockitoBean
     private com.smartfix.announcement.service.AnnouncementService announcements;
 
+    @MockitoBean
+    private com.smartfix.notification.service.NotificationService notifications;
+
     @Test
     void homeLimitsNoticePreviewAndProvidesMultipleSlideControls() throws Exception {
         when(userService.getUserAccess(7L)).thenReturn(
