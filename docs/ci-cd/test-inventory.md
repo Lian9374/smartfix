@@ -1,0 +1,100 @@
+# Test execution inventory
+
+Generated from the complete test source tree for this CI implementation. No existing test class is removed. The navigation expectation is reconciled with additional role and direct-access assertions; see README.md. Actual execution totals are in evidence.md.
+
+Surefire runs the Test/Tests classes below. Default Failsafe runs ordinary IT classes. Native PostgreSQL classes run in postgres-it, whose exclusion override also retains every default IT. Helper classes are not independently discovered as tests.
+
+- `com/smartfix/announcement/controller/AnnouncementControllerTest.java` — Surefire
+- `com/smartfix/announcement/service/AnnouncementServiceTest.java` — Surefire
+- `com/smartfix/auth/AccountInitializationPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/auth/AuthenticationFlowIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/auth/config/SecurityConfigTest.java` — Surefire
+- `com/smartfix/auth/RegistrationConcurrencyPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/auth/RegistrationFlowIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/auth/RegistrationRateLimitIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/auth/RoleWorkspacesIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/auth/security/ActiveAccountFilterTest.java` — Surefire
+- `com/smartfix/auth/security/SelectedAccountTypeTest.java` — Surefire
+- `com/smartfix/auth/service/RegistrationRateLimiterTest.java` — Surefire
+- `com/smartfix/auth/service/SmartFixUserDetailsServiceTest.java` — Surefire
+- `com/smartfix/common/exception/GlobalExceptionHandlerTest.java` — Surefire
+- `com/smartfix/common/LegacyMigrationRecoveryPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/common/MigrationIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/common/web/HomeControllerTests.java` — Surefire
+- `com/smartfix/common/web/NotificationNavigationAdviceTest.java` — Surefire
+- `com/smartfix/community/CommunityAnswerConcurrencyPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/community/CommunityMigrationPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/community/CommunityModerationPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/community/domain/CommunityQuestionTest.java` — Surefire
+- `com/smartfix/community/domain/CommunityReportTest.java` — Surefire
+- `com/smartfix/community/repository/CommunityQuestionRepositoryTest.java` — Surefire
+- `com/smartfix/community/service/CommunityAccessGuardTest.java` — Surefire
+- `com/smartfix/community/service/CommunityAnswerServiceTest.java` — Surefire
+- `com/smartfix/community/service/CommunityModerationServiceTest.java` — Surefire
+- `com/smartfix/community/service/CommunityQueryServiceTest.java` — Surefire
+- `com/smartfix/community/service/CommunityQuestionServiceTest.java` — Surefire
+- `com/smartfix/community/web/CommunityDeliveryIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/community/web/CommunityEmptyBoardIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/community/web/CommunityModerationPagesIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/community/web/CommunityModerationQueuePagingIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/community/web/CommunityPagesIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/dispatch/AssignmentIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/dispatch/AssignmentMigrationIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/dispatch/AssignmentPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/dispatch/DispatchPageIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/dispatch/DispatchPagePostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/dispatch/service/RequestAssignmentLookupAdapterTest.java` — Surefire
+- `com/smartfix/dispatch/service/TechnicianRecommendationServiceTest.java` — Surefire
+- `com/smartfix/dispatch/TechnicianAccessIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/dispatch/TechnicianAccessPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/dispatch/TechnicianRecommendationIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/facility/CampusCatalogueMigrationPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/facility/CampusMapIntegrationIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/facility/CampusMapPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/facility/controller/FacilityControllerTest.java` — Surefire
+- `com/smartfix/facility/service/FacilityServiceTest.java` — Surefire
+- `com/smartfix/facility/service/LocationServiceTest.java` — Surefire
+- `com/smartfix/notification/controller/NotificationControllerTest.java` — Surefire
+- `com/smartfix/notification/DeliveryReliabilityPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/notification/listener/NotificationEventListenerTest.java` — Surefire
+- `com/smartfix/notification/listener/NotificationTransactionTest.java` — Surefire
+- `com/smartfix/notification/repository/NotificationPersistenceIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/notification/service/DeliveryWorkerTest.java` — Surefire
+- `com/smartfix/notification/service/EmailDeliveryServiceTest.java` — Surefire
+- `com/smartfix/notification/service/NotificationServiceTest.java` — Surefire
+- `com/smartfix/notification/UserEDeliveryMigrationPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/reporting/controller/DashboardControllerTest.java` — Surefire
+- `com/smartfix/reporting/controller/ReportControllerTest.java` — Surefire
+- `com/smartfix/reporting/service/DashboardServiceTest.java` — Surefire
+- `com/smartfix/reporting/service/OperationalReportServiceTest.java` — Surefire
+- `com/smartfix/reporting/service/ReportExportServiceTest.java` — Surefire
+- `com/smartfix/reporting/service/ReportingPeriodServiceTest.java` — Surefire
+- `com/smartfix/request/controller/AttachmentControllerTest.java` — Surefire
+- `com/smartfix/request/controller/RequestQueryControllerTest.java` — Surefire
+- `com/smartfix/request/domain/MaintenanceRequestTest.java` — Surefire
+- `com/smartfix/request/domain/RequestTransitionTest.java` — Surefire
+- `com/smartfix/request/repository/AttachmentPersistenceIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/request/repository/RequestRepositoryTest.java` — Surefire
+- `com/smartfix/request/RequestMigrationIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/request/RequestWorkflowPostgresIT.java` — Failsafe / PostgreSQL
+- `com/smartfix/request/RequestWorkflowTest.java` — Surefire
+- `com/smartfix/request/service/AttachmentInspectionServiceTest.java` — Surefire
+- `com/smartfix/request/service/AttachmentServiceTest.java` — Surefire
+- `com/smartfix/request/service/RequestAccessServiceTest.java` — Surefire
+- `com/smartfix/request/service/RequestAssignmentAccessServiceTest.java` — Surefire
+- `com/smartfix/request/service/RequestQueryServiceTest.java` — Surefire
+- `com/smartfix/request/service/RequestSubmissionServiceTest.java` — Surefire
+- `com/smartfix/request/service/RequestTicketNumberGeneratorTest.java` — Surefire
+- `com/smartfix/request/storage/LocalAttachmentStorageServiceTest.java` — Surefire
+- `com/smartfix/request/validation/AttachmentValidatorTest.java` — Surefire
+- `com/smartfix/request/web/RequestPagesRenderingIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/sla/domain/SlaStateTest.java` — Surefire
+- `com/smartfix/SmartFixApplicationTests.java` — Surefire
+- `com/smartfix/support/PostgresFixtureCleanup.java` — support / fixture
+- `com/smartfix/technician/repository/TechnicianProfileRepositoryTest.java` — Surefire
+- `com/smartfix/technician/service/TechnicianDirectoryServiceTest.java` — Surefire
+- `com/smartfix/technician/service/TechnicianWorkloadServiceTest.java` — Surefire
+- `com/smartfix/technician/TechnicianProfileIT.java` — Failsafe / default + postgres-it
+- `com/smartfix/user/controller/UserManagementControllerTest.java` — Surefire
+- `com/smartfix/user/service/UserBootstrapServiceTest.java` — Surefire
+- `com/smartfix/user/service/UserServiceTest.java` — Surefire

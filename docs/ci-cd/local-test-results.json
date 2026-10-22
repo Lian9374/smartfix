@@ -1,0 +1,34 @@
+[
+  {
+    "errors": 0,
+    "engine": "surefire",
+    "job": "default",
+    "tests": 526,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "errors": 0,
+    "engine": "failsafe",
+    "job": "default",
+    "tests": 277,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "errors": 0,
+    "engine": "surefire",
+    "job": "postgres",
+    "tests": 526,
+    "failures": 0,
+    "skipped": 0
+  },
+  {
+    "errors": 0,
+    "engine": "failsafe",
+    "job": "postgres",
+    "tests": 454,
+    "failures": 0,
+    "skipped": 0
+  }
+]

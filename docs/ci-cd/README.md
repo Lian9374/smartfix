@@ -10,7 +10,7 @@ SWE5001 workflows swe5001-ci.yml and swe5001-deploy.yml belong to swe5001-cloud-
 
 92 test Java source files were inspected. Surefire (inherited from Spring Boot parent) runs Test*, *Test, *Tests, *TestCase during test. Failsafe 3.5.3 runs IT*, *IT, *ITCase during integration-test and fails the lifecycle during verify. failIfNoTests is enabled for Failsafe. H2/Spring/Mockito fixtures cover default tests; the test profile disables Flyway and scheduled notification delivery. SMTP delivery is mocked in native reliability tests. PostgreSQL tests require TEST_DB_URL, TEST_DB_USERNAME and TEST_DB_PASSWORD, with dedicated *_test database guards and isolated random schemas.
 
-The old explicit default exclusion list omitted CampusMapPostgresIT, DeliveryReliabilityPostgresIT and UserEDeliveryMigrationPostgresIT. The POM now routes all *PostgresIT plus four historically named native IT classes into postgres-it. The postgres-it profile clears exclusions, so every existing test remains in the full CI verification. No tests, assertions or published migrations are removed or changed.
+The old explicit default exclusion list omitted CampusMapPostgresIT, DeliveryReliabilityPostgresIT and UserEDeliveryMigrationPostgresIT. The POM now routes all *PostgresIT plus four historically named native IT classes into postgres-it. The postgres-it profile clears exclusions, so every existing test remains in the full CI verification. No test classes or published migrations are removed or changed. The contradictory navigation assertion is reconciled with additional role/access assertions as documented below.
 
 ## Architecture and stages
 
@@ -59,3 +59,38 @@ Demo: open the PR, show automatic pull_request event and both jobs, expand Maven
 SmartFix uses an independent GitHub Actions pipeline for SWE5006. Every pull request to main automatically starts two checks on Java 21. The first compiles the application, runs unit and default integration tests, and packages the Spring Boot JAR through Maven verify. The second starts a disposable PostgreSQL 16 database and executes our full PostgreSQL integration profile, including migrations and concurrency tests. Real failures fail the check, while test reports and logs remain available as artifacts. The workflow uses read-only permissions and performs no deployment. Requiring both checks on main connects automated verification with code review before merge. The evidence document distinguishes measured results from events that have not yet been executed.
 
 References: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows and https://github.com/actions/upload-artifact .
+
+## Baseline defects exposed and repaired
+
+Existing behavioral coverage is retained; the contradictory navigation expectation is reconciled as explained below. Additional notification-navigation regression tests check both generic principals and recipient scoping.
+
+- NotificationNavigationAdvice now accepts Principal before checking its Authentication subtype, avoiding MVC argument resolution failure on generic principals.
+- HomeControllerTests and TechnicianProfileIT explicitly mock the shared notification-count collaborator where their deliberately limited database fixtures do not contain notification tables. Real notification behavior remains covered by delivery/native tests.
+- Unfiltered empty account lists render the existing tested message; filtered empty lists keep the matching-results message.
+- CampusMapIntegrationIT previously required map links for all roles, contradicting TechnicianAccessIT (no map link in technician workspace) and DispatchPageIT (fixed administrator navigation). Production navigation is preserved. The map test now checks requester link presence, administrator/technician link absence, and adds direct map route access assertions for all three roles, inherited by the PostgreSQL variant. No route or authorization coverage is removed.
+- CommunityDeliveryIT waits up to five seconds while driving the real dispatcher; its original delivery payload, recipient and count assertions remain intact.
+- Native fixture resets remove dependent delivery/SLA/audit rows before users/requests. The helper refuses non-test databases and the public schema; H2 fixture behavior is unchanged. This only resets synthetic test data between test methods.
+- LegacyMigrationRecoveryPostgresIT now creates its named V24 fixture using target(24). It previously included V26/V27 while omitting V25, which failed the existing strict recovery whitelist before the intended rollback/data-preservation assertions could run. No recovery whitelist or validation requirement is relaxed.
+- RequestMigrationIT supplies localhost mail configuration to its manually constructed Spring context and disables scheduled delivery, allowing the application dependency graph to initialize without sending external mail.
+
+## Pipeline diagram
+
+```mermaid
+flowchart TD
+  A[Developer pushes feature branch] --> B[Pull request targeting main]
+  B --> C[SmartFix SWE5006 CI]
+  P[Push to main] --> C
+  D[Manual dispatch after workflow reaches main] --> C
+  C --> E[SWE5006 Build and Test]
+  C --> F[SWE5006 PostgreSQL Integration]
+  E --> G[Java 21 / Maven clean verify]
+  G --> H[Surefire + Spring Boot package + default Failsafe]
+  F --> I[Healthy disposable PostgreSQL 16]
+  I --> J[Full postgres-it verify / migrations / concurrency]
+  H --> K[Always retain reports and logs]
+  J --> L[Always retain reports and logs]
+  H --> M[Verified JAR artifact on success]
+  E --> N[Both checks successful]
+  F --> N
+  N --> O[Code review and user-approved merge]
+```
