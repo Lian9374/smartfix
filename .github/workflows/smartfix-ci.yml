@@ -1,0 +1,105 @@
+name: SmartFix SWE5006 CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: swe5006-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build-test:
+    name: SWE5006 Build and Test
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: pom.xml
+      - name: Compile, unit tests, package, and default integration tests
+        run: |
+          set -o pipefail
+          mvn -B --no-transfer-progress clean verify 2>&1 | tee build-verify.log
+      - name: Upload test reports and verification log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-build-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            build-verify.log
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload verified Spring Boot JAR
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: target/smartfix-*.jar
+          if-no-files-found: error
+          retention-days: 30
+
+  postgres-it:
+    name: SWE5006 PostgreSQL Integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: smartfix_ci_test
+          POSTGRES_USER: smartfix_ci
+          POSTGRES_PASSWORD: ci_only_ephemeral_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U smartfix_ci -d smartfix_ci_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      TEST_DB_URL: jdbc:postgresql://localhost:5432/smartfix_ci_test
+      TEST_DB_USERNAME: smartfix_ci
+      TEST_DB_PASSWORD: ci_only_ephemeral_password
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: pom.xml
+      - name: Run full postgres-it verification
+        run: |
+          set -o pipefail
+          mvn -B --no-transfer-progress -Ppostgres-it verify 2>&1 | tee postgres-verify.log
+      - name: Upload PostgreSQL reports and verification log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-postgres-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+            postgres-verify.log
+          if-no-files-found: error
+          retention-days: 30

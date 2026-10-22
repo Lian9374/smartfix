@@ -110,25 +110,11 @@
                     <failIfNoTests>true</failIfNoTests>
                     <!-- Native PostgreSQL cases are opt-in through postgres-it; H2 authentication IT still runs in verify. -->
                     <excludes>
+                        <exclude>**/*PostgresIT.java</exclude>
                         <exclude>**/MigrationIT.java</exclude>
                         <exclude>**/AttachmentPersistenceIT.java</exclude>
                         <exclude>**/RequestMigrationIT.java</exclude>
-                        <exclude>**/RequestWorkflowPostgresIT.java</exclude>
-                        <exclude>**/AssignmentPostgresIT.java</exclude>
-                        <exclude>**/DispatchPagePostgresIT.java</exclude>
-                        <exclude>**/TechnicianAccessPostgresIT.java</exclude>
                         <exclude>**/AssignmentMigrationIT.java</exclude>
-                        <exclude>**/CommunityMigrationPostgresIT.java</exclude>
-                        <exclude>**/CommunityAnswerConcurrencyPostgresIT.java</exclude>
-                        <exclude>**/CommunityModerationPostgresIT.java</exclude>
-                        <exclude>**/RegistrationConcurrencyPostgresIT.java</exclude>
-                        <exclude>**/CampusCatalogueMigrationPostgresIT.java</exclude>
-                        <exclude>**/AssignmentMigrationIT.java</exclude>
-                        <exclude>**/AssignmentPostgresIT.java</exclude>
-                        <exclude>**/DispatchPagePostgresIT.java</exclude>
-                        <exclude>**/TechnicianAccessPostgresIT.java</exclude>
-                        <exclude>**/AccountInitializationPostgresIT.java</exclude>
-                        <exclude>**/LegacyMigrationRecoveryPostgresIT.java</exclude>
                     </excludes>
                 </configuration>
                 <executions>
