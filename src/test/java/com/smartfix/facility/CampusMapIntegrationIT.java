@@ -279,9 +279,15 @@ class CampusMapIntegrationIT {
             if (!route.equals("/")) mvc.perform(get("/").session(login(username))).andExpect(redirectedUrl(route));
             String home = mvc.perform(get(route).session(login(username)))
                     .andExpect(status().isOk())
-                    .andExpect(content().string(containsString("href=\"/campus-map\"")))
                     .andReturn().getResponse().getContentAsString();
-            if (username.equals("map.requester")) export("home.html", home);
+            // Navigation is role-specific; route access remains available to every role.
+            if (username.equals("map.requester")) {
+                assertTrue(home.contains("href=\"/campus-map\""));
+                export("home.html", home);
+            } else {
+                assertFalse(home.contains("href=\"/campus-map\""));
+            }
+            mvc.perform(get("/campus-map").session(login(username))).andExpect(status().isOk());
         }
         mvc.perform(get("/campus-map").session(login("map.requester")))
                 .andExpect(status().isOk()).andExpect(content().string(containsString(
