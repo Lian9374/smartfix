@@ -147,6 +147,8 @@ class RequestMigrationIT {
                     "spring.datasource.driver-class-name=org.postgresql.Driver",
                     "spring.jpa.hibernate.ddl-auto=validate",
                     "spring.jpa.open-in-view=false",
+                    "spring.mail.host=localhost",
+                    "smartfix.notification.delivery.scheduling-enabled=false",
                     "spring.flyway.enabled=true",
                     "spring.flyway.locations=classpath:db/migration",
                     "spring.flyway.schemas=" + schema,

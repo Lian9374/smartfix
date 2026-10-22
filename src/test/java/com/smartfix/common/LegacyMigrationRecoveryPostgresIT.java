@@ -48,7 +48,8 @@ class LegacyMigrationRecoveryPostgresIT {
         return config.load();
     }
     void legacyDatabase() {
-        configured("filesystem:" + legacy.toAbsolutePath(), false).migrate();
+        Flyway.configure().configuration(configured("filesystem:" + legacy.toAbsolutePath(), false).getConfiguration())
+                .target("24").load().migrate();
     }
     void seed() throws Exception {
         execute("INSERT INTO users(id,username,display_name,password_hash,role) VALUES "

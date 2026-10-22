@@ -97,6 +97,7 @@ class RequestWorkflowTest {
 
     @BeforeEach
     void fixtures() throws Exception {
+        com.smartfix.support.PostgresFixtureCleanup.clearDeliveryAndSla(jdbc);
         for (String table :
                 List.of(
                         "notifications",
