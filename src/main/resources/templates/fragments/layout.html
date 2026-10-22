@@ -154,6 +154,7 @@
 
       <nav class="nav" aria-label="Sections">
         <span class="nav__group-label">Administration</span>
+        <a class="nav__link" th:href="@{/campus-map}" th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">Campus Map</a>
         <a class="nav__link" th:href="@{/admin}" th:attr="aria-current=${active == 'overview'} ? 'page' : null">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m3 10 9-7 9 7M6 9v12h12V9M10 21v-7h4v7"/></svg><span>Overview</span>
         </a>
@@ -235,7 +236,7 @@
              th:attr="aria-current=${active == 'community'} ? 'page' : null">Community</a>
           <a class="appbar__link" th:href="@{/requests/mine}" th:if="${navRole == 'REQUESTER'}"
              th:attr="aria-current=${active == 'my-requests'} ? 'page' : null">My Requests</a>
-          <a class="appbar__link" th:href="@{/campus-map}" th:unless="${navRole == 'TECHNICIAN'}"
+          <a class="appbar__link" th:href="@{/campus-map}"
              th:attr="aria-current=${active == 'campus-map'} ? 'page' : null">Campus Map</a>
         </nav>
 
