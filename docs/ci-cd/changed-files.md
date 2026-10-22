@@ -9,6 +9,7 @@ Compared with audited main d586609. The complete PR diff is the source of truth.
 - [docs/ci-cd/github-run.json](../../docs/ci-cd/github-run.json)
 - [docs/ci-cd/github-test-results.json](../../docs/ci-cd/github-test-results.json)
 - [docs/ci-cd/jar-verification.json](../../docs/ci-cd/jar-verification.json)
+- [docs/ci-cd/local-test-results.json](../../docs/ci-cd/local-test-results.json)
 - [docs/ci-cd/README.md](../../docs/ci-cd/README.md)
 - [docs/ci-cd/run-history.json](../../docs/ci-cd/run-history.json)
 - [docs/ci-cd/test-inventory.md](../../docs/ci-cd/test-inventory.md)
