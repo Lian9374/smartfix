@@ -1,0 +1,38 @@
+name: smartfix-swe5006-demo
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: smartfix_demo
+      POSTGRES_USER: smartfix_demo
+      POSTGRES_PASSWORD: ${DEMO_DB_PASSWORD:?Use the generated local env file}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U smartfix_demo -d smartfix_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+  app:
+    image: ${SMARTFIX_DEMO_IMAGE:?Select a verified image}
+    ports:
+      - "127.0.0.1:18080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/smartfix_demo
+      DB_USERNAME: smartfix_demo
+      DB_PASSWORD: ${DEMO_DB_PASSWORD}
+      SMARTFIX_UPLOAD_DIR: /data/uploads
+      SMARTFIX_BOOTSTRAP_ADMIN_ENABLED: 'true'
+      SMARTFIX_BOOTSTRAP_ADMIN_USERNAME: demo.admin
+      SMARTFIX_BOOTSTRAP_ADMIN_PASSWORD: ${DEMO_ADMIN_PASSWORD}
+      SMARTFIX_NOTIFICATION_EMAIL_ENABLED: 'false'
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  database:
+  uploads:
