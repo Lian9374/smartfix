@@ -130,7 +130,7 @@
 
       <section class="card account-directory" aria-labelledby="accounts-title" th:unless="${showCreateForm}">
         <div class="card__header"><h2 class="card__title" id="accounts-title">Account directory</h2><span class="account-count" th:text="|${#lists.size(users)} accounts|">0 accounts</span></div>
-        <div th:if="${#lists.isEmpty(users)}" class="workspace-empty"><h3>No matching accounts</h3><p>Try another name or adjust the filters.</p><a class="btn btn--secondary" th:href="@{/admin/users}">Clear filters</a></div>
+        <div th:if="${#lists.isEmpty(users)}" class="workspace-empty"><h3 th:if="${#strings.isEmpty(search) and selectedRole == null and selectedAccountStatus == null}">No accounts exist yet.</h3><h3 th:unless="${#strings.isEmpty(search) and selectedRole == null and selectedAccountStatus == null}">No matching accounts</h3><p>Try another name or adjust the filters.</p><a class="btn btn--secondary" th:href="@{/admin/users}">Clear filters</a></div>
         <div class="account-rows">
           <article class="account-row" th:each="user : ${users}">
             <div class="account-row__overview">

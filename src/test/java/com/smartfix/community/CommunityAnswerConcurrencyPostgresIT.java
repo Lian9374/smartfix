@@ -140,6 +140,7 @@ class CommunityAnswerConcurrencyPostgresIT {
 
     @BeforeEach
     void emptyTheSchema() {
+        com.smartfix.support.PostgresFixtureCleanup.clearDeliveryAndSla(jdbc);
         // The schema outlives a single test method, so each one starts from nothing and can
         // create its accounts under plain names.
         recorder.clear();
