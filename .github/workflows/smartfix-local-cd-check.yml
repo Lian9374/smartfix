@@ -1,0 +1,25 @@
+name: SmartFix Local CD Configuration
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    name: Local CD Trust Gates and Compose
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Validate deployment trust gates
+        run: python3 -m unittest discover -s deploy/local -p test_deploy.py -v
+      - name: Validate Compose
+        env:
+          DEMO_DB_PASSWORD: synthetic_validation_only
+          DEMO_ADMIN_PASSWORD: synthetic_validation_only
+          SMARTFIX_DEMO_IMAGE: smartfix-swe5006-demo:validation
+        run: docker compose -f deploy/local/compose.yml config --quiet
