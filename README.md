@@ -811,3 +811,4 @@ has lasting architectural impact, e.g.:
 The documentation exists to protect the team and make the engineering process visible —
 not to become bureaucracy. When in doubt: prefer a small, reviewed, tested change over a
 large, unreviewed one.
+CI automatic trigger demonstration.
