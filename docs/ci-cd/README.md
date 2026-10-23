@@ -72,7 +72,7 @@ Existing behavioral coverage is retained; the contradictory navigation expectati
 - Native fixture resets remove dependent delivery/SLA/audit rows before users/requests. The helper refuses non-test databases and the public schema; H2 fixture behavior is unchanged. This only resets synthetic test data between test methods.
 - LegacyMigrationRecoveryPostgresIT now creates its named V24 fixture using target(24). It previously included V26/V27 while omitting V25, which failed the existing strict recovery whitelist before the intended rollback/data-preservation assertions could run. No recovery whitelist or validation requirement is relaxed.
 - RequestMigrationIT supplies localhost mail configuration to its manually constructed Spring context and disables scheduled delivery, allowing the application dependency graph to initialize without sending external mail.
-
+CI demonstration test.
 ## Pipeline diagram
 
 ```mermaid
