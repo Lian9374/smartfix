@@ -18,7 +18,7 @@ SOURCE = Path(__file__).resolve().parent
 
 
 def command(*args, capture=False, env=None, timeout=120):
-    result = subprocess.run(args, check=True, text=True, capture_output=capture, env=env, timeout=timeout)
+    result = subprocess.run(args, check=True, text=True, encoding="utf-8", capture_output=capture, env=env, timeout=timeout)
     return result.stdout.strip() if capture else None
 
 
