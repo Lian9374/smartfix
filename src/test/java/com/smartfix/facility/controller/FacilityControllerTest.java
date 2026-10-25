@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     controllers = FacilityController.class,
     excludeAutoConfiguration = {
         org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration.class,
+        org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration.class,
         org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration.class})
 class FacilityControllerTest {
 
