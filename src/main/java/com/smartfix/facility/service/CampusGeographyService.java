@@ -1,6 +1,6 @@
 package com.smartfix.facility.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.smartfix.facility.dto.CampusBuilding;
 import com.smartfix.facility.dto.CampusGeography;
 import com.smartfix.facility.repository.FacilityRepository;

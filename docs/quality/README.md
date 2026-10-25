@@ -1,5 +1,14 @@
 # SmartFix quality gates
 
+> Publication update (25 October): the implementation is now uploaded in
+> [PR #47](https://github.com/Lian9374/smartfix/pull/47). A real hosted run has
+> executed, NVD_API_KEY is configured, and the first complete dependency scan
+> failed on genuine dependency findings. Static/dependency remediation and exact
+> execution scope are tracked in [the remediation record](remediation-20261025.md)
+> and [ADR-006](../decisions/ADR-006-supported-ci-dependencies.md). The sections
+> below retain the original 24 October local baseline; their original no-push /
+> not-executed statements describe that historical checkpoint.
+
 Implementation worktree: C:/Users/zhour/smartfix-quality-gates, branch
 ci/quality-gates. Includes the preceding uncommitted Beanstalk workflow changes
 without modifying the original developer checkout or previous worktree. No push,

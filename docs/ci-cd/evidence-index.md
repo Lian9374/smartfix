@@ -3,6 +3,19 @@
 This index distinguishes configuration, actual execution, failed execution and
 plans. Source files alone never establish a passed deployment/scan.
 
+## Latest hosted publication checkpoint — 25 October
+
+- Uploaded implementation: [PR #47](https://github.com/Lian9374/smartfix/pull/47).
+- Original revision fd2d655, [run 40173111438, attempt 2](https://github.com/Lian9374/smartfix/actions/runs/40173111438):
+  build/default tests PASS, PostgreSQL/core coverage PASS, Docker runtime PASS;
+  static FAIL and completed dependency scan FAIL. ZIP/CD correctly skipped.
+- NVD_API_KEY is now configured by the owner. Its value is never stored here.
+- Remediation, finite static exceptions, local negative gate and dependency
+  migration: [25 October record](../quality/remediation-20261025.md),
+  [ADR-006](../decisions/ADR-006-supported-ci-dependencies.md).
+- No AWS deployment or private image publication has been triggered. The
+  following 24 October records remain historical evidence, not the latest run.
+
 ## A. Formal JAR/ZIP -> Elastic Beanstalk Java SE
 
 - Implementation: .github/workflows/smartfix-ci.yml; deploy/beanstalk/ci.py,
