@@ -139,6 +139,9 @@ class AuthenticationFlowIT {
         MockHttpSession before = new MockHttpSession();
         String originalId = before.getId();
         MockHttpSession after = (MockHttpSession) mvc.perform(post("/login").session(before).with(csrf())
+                // Model an existing valid browser session, rather than an invalid/missing cookie.
+                .with(request -> { request.setRequestedSessionId(originalId);
+                    request.setRequestedSessionIdValid(true); return request; })
                 .param("username", "alice").param("password", PASSWORD))
                 .andExpect(authenticated()).andReturn().getRequest().getSession(false);
         assertThat(after).isNotNull();

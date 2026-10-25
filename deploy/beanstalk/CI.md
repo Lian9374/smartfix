@@ -134,9 +134,15 @@ Use repository/environment variables for these non-secret settings:
 - Optional AWS_BEANSTALK_VERIFY_ROLE_ARN: read-only verification role; otherwise
   verification obtains a fresh session of the deployment role.
 
-OIDC trust should constrain audience to sts.amazonaws.com and subject to
-`repo:Lian9374/smartfix:environment:beanstalk`, together with environment branch
-restrictions. No long-lived AWS key or runtime DB password is required in Actions.
+OIDC trust must constrain audience to sts.amazonaws.com and the exact repository
+environment subject, together with environment branch restrictions to main.
+Read `GET /repos/Lian9374/smartfix/actions/oidc/customization/sub` before creating
+trust: this repository currently reports `use_immutable_subject=true` and prefix
+`repo:Lian9374@139187520/smartfix@1360254409`. Its environment subject is therefore
+`repo:Lian9374@139187520/smartfix@1360254409:environment:beanstalk`, rather than the
+older name-only example. Do not change the repository subject settings to fit
+an outdated trust policy. No long-lived AWS key or runtime DB password is required
+in Actions. See [GitHub's OIDC guidance](https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-aws).
 Deployment permissions must cover the actual existing application/environment
 and bucket prefix smartfix/releases/: upload/read source objects, describe the
 environment, create an application version and update the environment, plus any

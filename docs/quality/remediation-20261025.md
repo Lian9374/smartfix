@@ -63,3 +63,17 @@ unchanged. Relevant primary references:
 
 Further execution results must identify their actual source commit and run;
 configuration alone is never recorded as passed execution.
+
+Local Boot 4.0.9 checkpoint: full `mvn verify` completed successfully, reporting
+557 Surefire and 277 default Failsafe executions with zero failures/errors/skips.
+The Surefire XML contains 557 testcase elements but its declared root counters
+sum to 556; retain this distinction when aggregating the raw report. SpotBugs
+passed with zero High/Medium and four Low findings. The unchanged session-rotation
+assertion passes with an explicitly valid requested-session fixture. Thymeleaf
+JavaScript rendering retains Jackson 2 Java-time support; HTTP JSON/catalogue
+mapping uses Boot's Jackson 3 mapper. Two new tests verify that encoder failures
+cannot partially change a password or its session security version.
+
+The NVD data cache contains public vulnerability data only. Every run still
+executes the scanner with updates enabled and enforces its four-hour database
+freshness requirement. Restoring a cache never counts as a successful scan.

@@ -376,6 +376,12 @@ jobs:
           cache-dependency-path: pom.xml
       - name: Require configured NVD access without printing its value
         run: python3 tools/quality.py security-preflight --output verification/security/preflight.json
+      - name: Restore public vulnerability database (scan and freshness gates still run)
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/smartfix-dependency-check
+          key: nvd-13-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: nvd-13-${{ runner.os }}-
       - name: Scan Maven dependencies and reject CVSS 7 or above
         id: scan
         run: |
@@ -388,6 +394,12 @@ jobs:
         env:
           QUALITY_SCANNER_OUTCOME: ${{ steps.scan.outcome }}
         run: python3 tools/quality.py security --report target/dependency-check/dependency-check-report.json --output verification/security/gate.json
+      - name: Cache downloaded public database after a report was generated
+        if: always() && hashFiles('target/dependency-check/dependency-check-report.json') != ''
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: ~/.cache/smartfix-dependency-check
+          key: nvd-13-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
       - name: 'Verification artifact: actual dependency reports or explicit failure status'
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

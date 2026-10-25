@@ -41,6 +41,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
+        <!-- Thymeleaf 3's JavaScript serializer still uses Jackson 2. Its
+             maintained BOM version is managed by Boot; retain Java-time support. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
 
         <!-- Persistence -->
         <dependency>
@@ -197,6 +203,8 @@
                             <failOnError>true</failOnError>
                             <formats><format>HTML</format><format>JSON</format></formats>
                             <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
+                            <!-- Public vulnerability data only; no credentials are cached. -->
+                            <dataDirectory>${user.home}/.cache/smartfix-dependency-check</dataDirectory>
                             <!-- Avoid command-line/property interpolation of API key values. -->
                             <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
                             <nvdValidForHours>4</nvdValidForHours>
