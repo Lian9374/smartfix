@@ -128,6 +128,42 @@ class ReleaseTests(unittest.TestCase):
             with self.subTest(origin=origin), patch.dict(os.environ, {"EB_BASE_URL": origin}), self.assertRaises(ValueError):
                 ci.deployment_config()
 
+    def test_http_needs_explicit_authorization_and_still_rejects_unsafe_origins(self):
+        with patch.dict(os.environ, {"EB_BASE_URL": "http://fixture.example.test", "EB_ALLOW_HTTP_VERIFY": "true"}):
+            self.assertEqual(ci.deployment_config()["EB_BASE_URL"], "http://fixture.example.test")
+            for origin in ("http://user:password@fixture.example.test", "http://fixture.example.test:8080",
+                           "http://fixture.example.test/path", "http://fixture.example.test?token=value"):
+                with self.subTest(origin=origin), patch.dict(os.environ, {"EB_BASE_URL": origin}), self.assertRaises(ValueError):
+                    ci.deployment_config()
+        with patch.dict(os.environ, {"EB_ALLOW_HTTP_VERIFY": "yes"}), self.assertRaises(ValueError):
+            ci.deployment_config()
+
+    def test_http_cannot_target_a_host_other_than_authenticated_aws_cname(self):
+        self.make_release()
+        env = {"ApplicationName": "fixture-app", "Status": "Ready", "CNAME": "expected.example.test",
+               "PlatformArn": "arn:aws:elasticbeanstalk:ap-southeast-1::platform/Corretto 21 Linux"}
+        with patch.dict(os.environ, {"EB_BASE_URL": "http://other.example.test", "EB_ALLOW_HTTP_VERIFY": "true"}), \
+                patch.object(ci, "aws", return_value={"Environments": [env]}) as aws:
+            with self.assertRaises(ValueError):
+                ci.deploy(self.release, self.out)
+            self.assertEqual(aws.call_count, 1)  # Read only: no ZIP upload or environment update.
+
+    def test_http_verification_cannot_be_reported_as_https(self):
+        metadata = self.make_release()
+        env = {"ApplicationName": "fixture-app", "EnvironmentName": "fixture-env", "Status": "Ready",
+               "Health": "Green", "VersionLabel": metadata["application_version"], "CNAME": "fixture.example.test"}
+        instances = {"InstanceHealthList": [{"Deployment": {"Status": "Deployed", "VersionLabel": metadata["application_version"]}}]}
+        with patch.dict(os.environ, {"EB_BASE_URL": "http://fixture.example.test", "EB_ALLOW_HTTP_VERIFY": "true"}), \
+                patch.object(ci, "aws", side_effect=[{"Environments": [env]}, instances]), \
+                patch.object(ci, "http_smoke", return_value=[{"http_status": 200}]), \
+                contextlib.redirect_stdout(io.StringIO()):
+            ci.verify(self.release, self.out, timeout=0)
+        receipt = json.loads((self.out / "post-deploy.json").read_text())
+        self.assertEqual(receipt["status"], "PASS")
+        self.assertEqual(receipt["transport"], "HTTP")
+        self.assertFalse(receipt["https_transport_verified"])
+        self.assertFalse(receipt["authenticated_http_checks"])
+
     def test_wrong_environment_does_not_upload(self):
         self.make_release()
         with patch.object(ci, "aws", return_value={"Environments": [{"ApplicationName": "other"}]}) as aws:

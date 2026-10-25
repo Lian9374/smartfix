@@ -15,6 +15,18 @@ plans. Source files alone never establish a passed deployment/scan.
   [ADR-006](../decisions/ADR-006-supported-ci-dependencies.md).
 - No AWS deployment or private image publication has been triggered. The
   following 24 October records remain historical evidence, not the latest run.
+- Revision head 5c97256, [run 40176500314](https://github.com/Lian9374/smartfix/actions/runs/40176500314):
+  hosted build, PostgreSQL/core coverage, static analysis and Docker passed;
+  security was still running at this checkpoint. Tested PR merge SHA is
+  6314247eecb28239d349411f14c0761c2081fba9 (not the branch head SHA).
+  Coverage: line 93.18227796884483%, branch 74.83870967741936%; unchanged core
+  package floors passed. Docker: 13 HTTP checks and cleanup passed; input JAR
+  SHA-256 dd2dbe7d9cbfc8ae101ccad2915fb19e7230d8533f6b56a255129ac9eac1bc48.
+- Owner-authorized preparation: main-only GitHub environment, verified target
+  variables, immutable repository OIDC subject and scoped IAM role configured.
+  Policy validation and permitted/denied target simulations executed; no actual
+  OIDC exchange/deployment result is claimed. Existing HTTP endpoint authorization
+  permits anonymous checks only; it does not establish HTTPS transport.
 
 ## A. Formal JAR/ZIP -> Elastic Beanstalk Java SE
 

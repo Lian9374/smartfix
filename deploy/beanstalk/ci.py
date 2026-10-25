@@ -201,10 +201,22 @@ def deployment_config() -> dict:
     if not all(config.values()):
         raise ValueError("Missing deployment configuration; see deploy/beanstalk/CI.md")
     url = urlsplit(config["EB_BASE_URL"])
-    if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment or url.path not in ("", "/"):
-        raise ValueError("EB_BASE_URL must be an HTTPS origin without credentials, query or path")
+    allow_http = os.environ.get("EB_ALLOW_HTTP_VERIFY", "false")
+    if allow_http not in ("true", "false"):
+        raise ValueError("EB_ALLOW_HTTP_VERIFY must explicitly be true or false")
+    http_demo = url.scheme == "http" and allow_http == "true" and url.port in (None, 80)
+    if (url.scheme != "https" and not http_demo) or not url.hostname or url.username or url.password or url.query or url.fragment or url.path not in ("", "/"):
+        raise ValueError("Expected an HTTPS origin; existing HTTP needs explicit anonymous-verification authorization")
     config["EB_BASE_URL"] = config["EB_BASE_URL"].rstrip("/")
     return config
+
+
+def require_existing_http_target(config: dict, environment: dict) -> None:
+    # The HTTP exception sends no credentials and cannot target another host or
+    # follow redirects. Compare with authenticated AWS metadata before any GET.
+    url = urlsplit(config["EB_BASE_URL"])
+    if url.scheme == "http" and url.hostname != environment.get("CNAME", "").lower():
+        raise ValueError("Authorized HTTP checks must target the existing Beanstalk CNAME")
 
 
 def aws(*args: str) -> dict:
@@ -242,6 +254,7 @@ def deploy(directory: Path, output: Path) -> None:
             raise ValueError("Existing Beanstalk environment/application mismatch")
         if environment[0]["Status"] != "Ready" or ":platform/Corretto 21 " not in environment[0].get("PlatformArn", ""):
             raise ValueError("Expected a Ready Java SE Corretto 21 environment")
+        require_existing_http_target(config, environment[0])
         key = f"smartfix/releases/{metadata['application_version']}/{archive.name}"
         receipt["s3_key"] = key
         uploaded = aws("s3api", "put-object", "--bucket", config["EB_S3_BUCKET"], "--key", key,
@@ -294,7 +307,12 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
     trusted_manual_deployment()
     config = deployment_config()
     metadata, _ = load_release(directory)
-    receipt = {**identity(), "status": "FAIL", "checks": [], "scope": "version, EB health, instance deployment, HTTPS health and login-page smoke"}
+    transport = urlsplit(config["EB_BASE_URL"]).scheme.upper()
+    receipt = {**identity(), "status": "FAIL", "checks": [],
+               "transport": transport, "https_transport_required": transport == "HTTPS",
+               "https_transport_verified": False,
+               "authenticated_http_checks": False,
+               "scope": f"version, EB health, instance deployment, {transport} anonymous health and login-page smoke"}
     path = output / "post-deploy.json"
     try:
         deadline = time.monotonic() + timeout
@@ -303,6 +321,7 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
             if len(environments) != 1 or environments[0]["ApplicationName"] != config["EB_APPLICATION"]:
                 raise ValueError("Beanstalk verification target mismatch")
             env = environments[0]
+            require_existing_http_target(config, env)
             receipt["environment"] = {key: env.get(key) for key in ("EnvironmentName", "Status", "Health", "HealthStatus", "VersionLabel")}
             write_json(path, receipt)
             if env["Status"] == "Ready" and env.get("VersionLabel") == metadata["application_version"] and env.get("Health") == "Green":
@@ -315,8 +334,9 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
                                 or item.get("Deployment", {}).get("Status") != "Deployed" for item in instances):
             raise ValueError("Not every instance has deployed the expected version")
         receipt["checks"] = http_smoke(config["EB_BASE_URL"])
+        receipt["https_transport_verified"] = transport == "HTTPS"
         receipt["status"] = "PASS"
-        print("PASS: expected Beanstalk version, Green health and HTTPS smoke checks")
+        print(f"PASS: expected Beanstalk version, Green health and {transport} anonymous smoke checks")
     finally:
         write_json(path, receipt)
 

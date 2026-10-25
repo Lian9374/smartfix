@@ -130,6 +130,12 @@ Use repository/environment variables for these non-secret settings:
 - EB_ENVIRONMENT: existing environment name, e.g. smartfix-prod.
 - EB_S3_BUCKET: existing source-bundle bucket in that region.
 - EB_BASE_URL: final HTTPS origin, without credentials/path/query/fragment.
+- EB_ALLOW_HTTP_VERIFY: defaults to false. The owner explicitly authorized true
+  for the existing HTTP-only demonstration endpoint on 25 October. Only anonymous
+  health/login-page GETs are made, redirects are refused, and the HTTP hostname
+  must match CNAME from authenticated Beanstalk metadata. No credentials are sent.
+  Reports label transport=HTTP and https_transport_verified=false; this is not
+  TLS validation. Keep the default false for an HTTPS deployment.
 - AWS_BEANSTALK_ROLE_ARN: OIDC deployment role ARN.
 - Optional AWS_BEANSTALK_VERIFY_ROLE_ARN: read-only verification role; otherwise
   verification obtains a fresh session of the deployment role.
@@ -150,6 +156,14 @@ platform-specific dependent permissions. Verification needs environment and
 instance-health reads. Service/instance-role access to bundles/runtime resources
 is configured separately. Verify least privilege in an authorized cloud run;
 local mocked tests cannot prove IAM permissions.
+
+Authorized preparation on 25 October created the `beanstalk` GitHub environment
+with a main-only deployment branch policy, its verified target variables and a
+dedicated GitHub OIDC role. Access Analyzer reported no policy findings after
+review; IAM permission simulation allowed updating the existing SmartFix
+environment and denied another environment. This establishes configuration and
+policy-simulation evidence, not a successful OIDC exchange, deployment, or
+post-deployment verification. No actual deployment was requested by the owner.
 
 Runtime DB/SMTP credentials and EFS settings remain in Beanstalk's runtime
 configuration/secret mechanism. The workflow never reads/archives that environment

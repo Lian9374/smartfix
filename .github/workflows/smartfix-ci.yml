@@ -241,6 +241,7 @@ jobs:
       EB_ENVIRONMENT: ${{ vars.EB_ENVIRONMENT }}
       EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
       EB_BASE_URL: ${{ vars.EB_BASE_URL }}
+      EB_ALLOW_HTTP_VERIFY: ${{ vars.EB_ALLOW_HTTP_VERIFY || 'false' }}
       DEPLOY_REQUESTED: ${{ inputs.deploy && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -285,6 +286,7 @@ jobs:
       EB_ENVIRONMENT: ${{ vars.EB_ENVIRONMENT }}
       EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
       EB_BASE_URL: ${{ vars.EB_BASE_URL }}
+      EB_ALLOW_HTTP_VERIFY: ${{ vars.EB_ALLOW_HTTP_VERIFY || 'false' }}
       DEPLOY_REQUESTED: ${{ inputs.deploy && 'true' || 'false' }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -301,7 +303,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           role-session-name: smartfix-verify-${{ github.run_id }}
           mask-aws-account-id: true
-      - name: Verify deployed version, Green health, instances and HTTPS endpoints
+      - name: Verify deployed version, Green health, instances and anonymous endpoints
         run: python3 deploy/beanstalk/ci.py verify --release-dir release --output verification/post-deploy --timeout 600
       - name: 'Verification artifact: post-deploy results and diagnostics'
         if: always()
