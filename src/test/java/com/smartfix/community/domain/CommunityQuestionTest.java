@@ -153,6 +153,13 @@ class CommunityQuestionTest {
         assertThat(hidden.getStatus()).isEqualTo(CommunityContentStatus.HIDDEN);
     }
 
+    @Test
+    void minimumLengthTitleAndBodyAreAcceptedAfterTrimming() {
+        CommunityQuestion question = ask("  abc  ", "  1234567890  ");
+        assertThat(question.getTitle()).isEqualTo("abc");
+        assertThat(question.getBody()).isEqualTo("1234567890");
+    }
+
     private CommunityQuestion ask(String title, String body) {
         return CommunityQuestion.ask(7L, title, body, CommunityCategory.NETWORK, POSTED);
     }
