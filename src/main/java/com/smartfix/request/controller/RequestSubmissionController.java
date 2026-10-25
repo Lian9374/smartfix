@@ -35,9 +35,11 @@ public class RequestSubmissionController {
     }
 
     @ModelAttribute("uploadLimits")
-    public AttachmentProperties uploadLimits() {
-        return uploadLimits;
+    public UploadLimits uploadLimits() {
+        return new UploadLimits(uploadLimits.getMaxFiles(), uploadLimits.getMaxFileSize(), uploadLimits.getMaxTotalSize());
     }
+
+    public record UploadLimits(int maxFiles, long maxFileSize, long maxTotalSize) {}
 
     @ModelAttribute("categories")
     public MaintenanceCategory[] categories() {

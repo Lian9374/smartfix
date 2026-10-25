@@ -29,5 +29,10 @@ public class AttachmentInspectionService {
         }catch(java.io.IOException failure){throw new IllegalStateException("Attachment inspection unavailable",failure);}
         candidates.sort(String::compareTo);return new Inspection(List.copyOf(candidates),truncated);
     }
-    public record Inspection(List<String> candidates,boolean truncated){}
+    public record Inspection(List<String> candidates,boolean truncated){
+    // Own the collection structure; preserve existing null/element semantics.
+    public Inspection {
+        candidates = candidates == null ? null : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(candidates));
+    }
+}
 }

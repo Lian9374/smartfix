@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * A distributed ingress limiter is required when deploying multiple application nodes.
  */
 @Component
-public class RegistrationRateLimiter {
+public final class RegistrationRateLimiter {
     private final Clock clock;
     private final int perAddress;
     private final int globalLimit;

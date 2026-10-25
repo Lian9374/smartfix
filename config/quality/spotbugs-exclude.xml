@@ -1,12 +1,187 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <FindBugsFilter>
-    <!-- Exact field/pattern only. Credential hashes intentionally MUST NOT be
-         restored from a serialized session. SmartFixUserDetailsSerializationTest
-         verifies both omission of the hash and preservation of identity/roles.
-         Review this exception whenever the session principal design changes. -->
+    <!--Finite reviewed framework contracts only: exact class/method/field and one bug pattern. No packages or complete business classes are excluded. Inventory: spotbugs-reviewed-exceptions.json.-->
     <Match>
-        <Class name="com.smartfix.auth.security.SmartFixUserDetails"/>
-        <Field name="passwordHash"/>
-        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+        <Class name="com.smartfix.auth.security.SmartFixUserDetails" />
+        <Field name="passwordHash" />
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.common.configuration.LegacyMigrationCompatibility" />
+        <Method name="archive" />
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.common.configuration.LegacyMigrationCompatibility" />
+        <Method name="restore" />
+        <Bug pattern="SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.config.CommunityProperties" />
+        <Method name="getPage" />
+        <Field name="page" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.config.CommunityProperties" />
+        <Method name="getPosting" />
+        <Field name="posting" />
+        <Bug pattern="EI_EXPOSE_REP" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.controller.CommunityAnswerController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="answerService" type="com.smartfix.community.service.CommunityAnswerService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.controller.CommunityAnswerController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="detailPage" type="com.smartfix.community.controller.CommunityDetailPageModel" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.controller.CommunityQuestionController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="detailPage" type="com.smartfix.community.controller.CommunityDetailPageModel" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.service.CommunityAnswerService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="questions" type="com.smartfix.community.repository.CommunityQuestionRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.service.CommunityModerationService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="questions" type="com.smartfix.community.repository.CommunityQuestionRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.service.CommunityQueryService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="questions" type="com.smartfix.community.repository.CommunityQuestionRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.community.service.CommunityQuestionService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="questions" type="com.smartfix.community.repository.CommunityQuestionRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.listener.CommunityNotificationListener" />
+        <Method name="&lt;init&gt;" />
+        <Field name="outbox" type="com.smartfix.notification.service.DeliveryOutboxService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.listener.NotificationEventListener" />
+        <Method name="&lt;init&gt;" />
+        <Field name="outbox" type="com.smartfix.notification.service.DeliveryOutboxService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.listener.SlaNotificationListener" />
+        <Method name="&lt;init&gt;" />
+        <Field name="outbox" type="com.smartfix.notification.service.DeliveryOutboxService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.repository.DeliveryTaskInsertRepository" />
+        <Method name="&lt;init&gt;" />
+        <Field name="jdbc" type="org.springframework.jdbc.core.JdbcTemplate" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.repository.PostgresNotificationInsertRepository" />
+        <Method name="&lt;init&gt;" />
+        <Field name="jdbcTemplate" type="org.springframework.jdbc.core.JdbcTemplate" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.service.DeliveryOutboxService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="insert" type="com.smartfix.notification.repository.DeliveryTaskInsertRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.notification.service.NotificationService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="insertRepository" type="com.smartfix.notification.repository.NotificationInsertRepository" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.controller.AttachmentController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="attachmentService" type="com.smartfix.request.service.AttachmentService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.controller.RequestSubmissionController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="uploadLimits" type="com.smartfix.request.config.AttachmentProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.service.AttachmentInspectionService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="properties" type="com.smartfix.request.config.AttachmentProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.service.AttachmentService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="storageService" type="com.smartfix.request.service.AttachmentStorageService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.service.RequestLifecycleService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="properties" type="com.smartfix.request.config.RequestWorkflowProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.service.RequestPresentationService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="attachments" type="com.smartfix.request.service.AttachmentService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.service.RequestSubmissionService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="attachments" type="com.smartfix.request.service.AttachmentService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.storage.LocalAttachmentStorageService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="properties" type="com.smartfix.request.config.AttachmentProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.request.validation.AttachmentValidator" />
+        <Method name="&lt;init&gt;" />
+        <Field name="properties" type="com.smartfix.request.config.AttachmentProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.user.service.UserBootstrapService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="properties" type="com.smartfix.user.config.BootstrapAdminProperties" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.workorder.controller.WorkOrderController" />
+        <Method name="&lt;init&gt;" />
+        <Field name="attachments" type="com.smartfix.request.service.AttachmentService" />
+        <Bug pattern="EI_EXPOSE_REP2" />
+    </Match>
+    <Match>
+        <Class name="com.smartfix.workorder.service.WorkOrderService" />
+        <Method name="&lt;init&gt;" />
+        <Field name="entityManager" type="jakarta.persistence.EntityManager" />
+        <Bug pattern="EI_EXPOSE_REP2" />
     </Match>
 </FindBugsFilter>

@@ -55,13 +55,13 @@ public class Notification {
             Instant createdAt,
             String dedupKey
     ) {
-        this.recipientId = Objects.requireNonNull(recipientId);
-        this.eventType = requireText(eventType, 80);
-        this.title = requireText(title, 150);
-        this.message = requireText(message, 1000);
+        this.recipientId = recipientId;
+        this.eventType = eventType;
+        this.title = title;
+        this.message = message;
         this.referenceId = referenceId;
-        this.createdAt = Objects.requireNonNull(createdAt);
-        this.dedupKey = requireText(dedupKey, 200);
+        this.createdAt = createdAt;
+        this.dedupKey = dedupKey;
     }
 
     public static Notification create(
@@ -79,13 +79,13 @@ public class Notification {
     public static Notification create(Long recipientId, String eventType, String title, String message,
             Long referenceId, Instant createdAt, String dedupKey) {
         return new Notification(
-                recipientId,
-                eventType,
-                title,
-                message,
+                Objects.requireNonNull(recipientId),
+                requireText(eventType, 80),
+                requireText(title, 150),
+                requireText(message, 1000),
                 referenceId,
-                createdAt,
-                dedupKey
+                Objects.requireNonNull(createdAt),
+                requireText(dedupKey, 200)
         );
     }
 

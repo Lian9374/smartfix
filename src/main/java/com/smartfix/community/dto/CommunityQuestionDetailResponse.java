@@ -42,6 +42,11 @@ public record CommunityQuestionDetailResponse(
         boolean edited,
         List<CommunityAnswerResponse> answers
 ) {
+    // Own the collection structure; preserve existing null/element semantics.
+    public CommunityQuestionDetailResponse {
+        answers = answers == null ? null : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(answers));
+    }
+
     public long getVisibleAnswerCount() {
         return answers.stream().filter(a -> a.status() == CommunityContentStatus.VISIBLE).count();
     }

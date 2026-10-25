@@ -54,12 +54,24 @@ public class Facility {
         FacilityStatus status,
         OffsetDateTime createdAt) {
 
-        this.location = Objects.requireNonNull(location, "location must not be null");
-        this.name = requireText(name, "name");
-        this.description = normalizeOptionalText(description);
-        this.status = Objects.requireNonNull(status, "status must not be null");
-        this.createdAt = Objects.requireNonNull(createdAt, "createdAt must not be null");
-        this.updatedAt = createdAt;
+        this(new InitialState(location, name, description, status, createdAt));
+    }
+
+    private Facility(InitialState value) {
+        this.location = value.location(); this.name = value.name();
+        this.description = value.description(); this.status = value.status();
+        this.createdAt = value.createdAt(); this.updatedAt = value.createdAt();
+    }
+
+    private record InitialState(Location location, String name, String description,
+                                FacilityStatus status, OffsetDateTime createdAt) {
+        InitialState {
+            Objects.requireNonNull(location, "location must not be null");
+            name = requireText(name, "name");
+            description = normalizeOptionalText(description);
+            Objects.requireNonNull(status, "status must not be null");
+            Objects.requireNonNull(createdAt, "createdAt must not be null");
+        }
     }
 
     public Long getId() {

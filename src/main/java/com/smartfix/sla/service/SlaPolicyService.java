@@ -25,5 +25,10 @@ public class SlaPolicyService {
     @Transactional(readOnly=true) public Page<SlaState.Snapshot> states(Long actor,int page){access.requireAdmin(actor);return states.findAllByOrderByDueAtAscIdAsc(PageRequest.of(Math.max(0,page),20)).map(SlaState::snapshot);}
     /** D read contract. Empty explicitly means UNCONFIGURED; never fabricate a deadline. */
     @Transactional(readOnly=true) public ReadResult read(Long actor,Long requestId){access.requireAdmin(actor);var rows=states.findByRequestIdOrderByPhaseAsc(requestId).stream().map(SlaState::snapshot).toList();return new ReadResult(rows.isEmpty()?"UNCONFIGURED":"AVAILABLE",rows);}
-    public record ReadResult(String availability,List<SlaState.Snapshot> phases){}
+    public record ReadResult(String availability,List<SlaState.Snapshot> phases){
+    // Own the collection structure; preserve existing null/element semantics.
+    public ReadResult {
+        phases = phases == null ? null : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(phases));
+    }
+}
 }

@@ -22,6 +22,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SelectedAccountTypeTest {
 
     @Test
+    void explicitlyPreservesTheSuperclassAuthenticationDetailsEquality() {
+        var request = request("REQUESTER");
+        var selected = new SelectedAccountType(request);
+        var base = new org.springframework.security.web.authentication.WebAuthenticationDetails(request);
+        assertThat(selected.equals(base)).isEqualTo(base.equals(selected));
+        assertThat(selected.hashCode()).isEqualTo(base.hashCode());
+        assertThat(selected).isEqualTo(new SelectedAccountType(request));
+    }
+
+    @Test
     void aRequestWithoutTheFieldAsksForNothing() {
         assertThat(selected("alice", null).contradicts(Role.REQUESTER))
                 .as("a client that does not know about the choice signs in as it always did")
