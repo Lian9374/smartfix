@@ -1,0 +1,42 @@
+# Verification overlay for the existing developer Compose file.
+# Compose >= 2.24.4 is required for !reset / !override.
+# Always invoke through tools/container_verify.py: unique project, no user .env.
+services:
+  db:
+    container_name: !reset null
+    ports: !reset []
+    environment: !override
+      POSTGRES_DB: smartfix_container_test
+      POSTGRES_USER: smartfix_verify
+      POSTGRES_PASSWORD: ${SMARTFIX_VERIFY_DB_PASSWORD:?Generated per verification run}
+    volumes: !override
+      - verify_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U smartfix_verify -d smartfix_container_test"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    restart: "no"
+  app:
+    container_name: !reset null
+    build: !reset null
+    image: ${SMARTFIX_VERIFY_IMAGE:?Use the tested JAR image}
+    environment: !override
+      DB_URL: jdbc:postgresql://db:5432/smartfix_container_test
+      DB_USERNAME: smartfix_verify
+      DB_PASSWORD: ${SMARTFIX_VERIFY_DB_PASSWORD:?Generated per verification run}
+      SMARTFIX_UPLOAD_DIR: /app/uploads
+      SMARTFIX_BOOTSTRAP_ADMIN_ENABLED: "false"
+      SMARTFIX_SESSION_COOKIE_SECURE: "false"
+      SMARTFIX_NOTIFICATION_EMAIL_ENABLED: "false"
+      SMARTFIX_DELIVERY_SCHEDULING_ENABLED: "false"
+      SMARTFIX_SMTP_HEALTH_ENABLED: "false"
+    ports: !override
+      - "127.0.0.1::8080"
+    volumes: !override
+      - verify_uploads:/app/uploads
+    restart: "no"
+volumes:
+  verify_pgdata:
+  verify_uploads:

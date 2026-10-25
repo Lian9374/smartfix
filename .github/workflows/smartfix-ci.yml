@@ -6,11 +6,38 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Deploy this main build to the existing Java SE Beanstalk environment'
+        type: boolean
+        required: true
+        default: false
+      container_release:
+        description: 'Publish to an EXISTING PRIVATE GHCR package and verify digest deployment in a temporary runner (not production); deploy must be false'
+        type: boolean
+        required: true
+        default: false
+      load_test:
+        description: 'Run an optional isolated k6 benchmark; deploy and container_release must be false'
+        type: boolean
+        required: true
+        default: false
+      load_vus:
+        description: 'Closed concurrent REQUESTER sessions (5..50), one account per VU'
+        type: number
+        required: true
+        default: 10
+      load_duration_seconds:
+        description: 'Formal measurement duration (60..600), plus smoke and 30s warmup'
+        type: number
+        required: true
+        default: 120
 
 permissions:
   contents: read
 
 concurrency:
+  # Serialize the whole main run, including deployment and post-deploy checks.
   group: swe5006-ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -33,26 +60,61 @@ jobs:
           java-version: '21'
           cache: maven
           cache-dependency-path: pom.xml
-      - name: Compile, unit tests, package, and default integration tests
+      - name: Verify artifact handling and deployment safety
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          python3 -m unittest discover -s deploy/beanstalk -p 'test_ci.py' -v 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/release-tools.log
+          python3 -m unittest discover -s tools -p 'test_quality.py' -v 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/quality-tools.log
+      - name: Require mutually exclusive deployment, container release and load modes
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          FORMAL_DEPLOY: ${{ inputs.deploy }}
+          CONTAINER_RELEASE: ${{ inputs.container_release }}
+          LOAD_TEST: ${{ inputs.load_test }}
+        run: python3 -c "import os; assert sum(os.environ[k] == 'true' for k in ('FORMAL_DEPLOY','CONTAINER_RELEASE','LOAD_TEST')) <= 1, 'Choose only one optional mode'"
+      - name: Compile, test, package JAR and verify default integration tests
         run: |
           set -o pipefail
-          mvn -B --no-transfer-progress clean verify 2>&1 | tee build-verify.log
-      - name: Upload test reports and verification log
+          mvn -B --no-transfer-progress clean verify 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/build-verify.log
+      - name: Record the Maven-produced JAR and its SHA-256
+        run: python3 deploy/beanstalk/ci.py build --jar-dir target --output build-artifact
+      - name: Generate available coverage after a failed test run
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          mvn -B --no-transfer-progress jacoco:report 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/coverage-report.log
+      - name: Prepare sanitized test reports and diagnostics
+        if: always()
+        run: python3 deploy/beanstalk/ci.py reports --output verification/build
+      - name: 'Verification artifact: Surefire, default Failsafe and logs'
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: swe5006-build-reports-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            target/surefire-reports/
-            target/failsafe-reports/
-            build-verify.log
+          path: verification/build/
           if-no-files-found: error
           retention-days: 30
-      - name: Upload verified Spring Boot JAR
+      - name: 'Verification artifact: default-test coverage report'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-default-coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            target/site/jacoco/
+            ci-logs/coverage-report.log
+          if-no-files-found: error
+          retention-days: 30
+      - name: 'Build artifact: verified JAR and provenance'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
-          path: target/smartfix-*.jar
+          path: build-artifact/
           if-no-files-found: error
           retention-days: 30
 
@@ -88,18 +150,409 @@ jobs:
           java-version: '21'
           cache: maven
           cache-dependency-path: pom.xml
-      - name: Run full postgres-it verification
+      - name: Run the existing full postgres-it verification profile
         run: |
+          mkdir -p ci-logs
           set -o pipefail
-          mvn -B --no-transfer-progress -Ppostgres-it verify 2>&1 | tee postgres-verify.log
-      - name: Upload PostgreSQL reports and verification log
+          mvn -B --no-transfer-progress -Ppostgres-it verify 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/postgres-verify.log
+      - name: Enforce measured core-business coverage
+        run: python3 tools/quality.py coverage --report target/site/jacoco/jacoco.xml --output verification/coverage/gate.json
+      - name: Generate available coverage after a failed test run
+        if: failure()
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          mvn -B --no-transfer-progress jacoco:report 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/coverage-report.log
+      - name: Prepare sanitized PostgreSQL reports and diagnostics
+        if: always()
+        run: python3 deploy/beanstalk/ci.py reports --output verification/postgres
+      - name: 'Verification artifact: full-profile reports and logs'
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: swe5006-postgres-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/postgres/
+          if-no-files-found: error
+          retention-days: 30
+      - name: 'Verification artifact: full-profile coverage and gate'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-core-coverage-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            target/surefire-reports/
-            target/failsafe-reports/
-            postgres-verify.log
+            target/site/jacoco/
+            verification/coverage/
+            ci-logs/coverage-report.log
+          if-no-files-found: error
+          retention-days: 30
+
+  package-eb:
+    name: SWE5006 Beanstalk ZIP
+    needs: [build-test, postgres-it, static-analysis, dependency-security, container-verification]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-jar/
+      - name: Verify provenance and package the same JAR for Java SE
+        run: python3 deploy/beanstalk/ci.py package --jar-dir incoming-jar --output release
+      - name: 'Build artifact: Beanstalk ZIP and release metadata'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-beanstalk-zip-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/
+          if-no-files-found: error
+          retention-days: 30
+      - name: 'Verification artifact: packaging receipt or failure'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-package-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release/release-metadata.json
+            release/failure.json
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-eb:
+    name: SWE5006 Beanstalk Deploy
+    needs: [build-test, postgres-it, static-analysis, dependency-security, container-verification, package-eb]
+    # PRs and normal pushes NEVER deploy. Dispatch defaults to validation only.
+    if: >-
+      github.repository == 'Lian9374/smartfix' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' && inputs.deploy == true && inputs.container_release != true && inputs.load_test != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: beanstalk
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      EB_APPLICATION: ${{ vars.EB_APPLICATION }}
+      EB_ENVIRONMENT: ${{ vars.EB_ENVIRONMENT }}
+      EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
+      EB_BASE_URL: ${{ vars.EB_BASE_URL }}
+      DEPLOY_REQUESTED: ${{ inputs.deploy && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-beanstalk-zip-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/
+      - name: Check explicit authorization and deployment configuration
+        run: python3 deploy/beanstalk/ci.py check-config --output verification/deploy
+      - name: Obtain short-lived AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.AWS_BEANSTALK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: smartfix-${{ github.run_id }}
+          mask-aws-account-id: true
+      - name: Upload ZIP, register version and update the existing environment
+        run: python3 deploy/beanstalk/ci.py deploy --release-dir release --output verification/deploy
+      - name: 'Verification artifact: deployment receipt and diagnostics'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-deployment-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/deploy/
+          if-no-files-found: error
+          retention-days: 30
+
+  post-deploy:
+    name: SWE5006 Beanstalk Post-deploy Verification
+    needs: [deploy-eb, package-eb]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: beanstalk
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      EB_APPLICATION: ${{ vars.EB_APPLICATION }}
+      EB_ENVIRONMENT: ${{ vars.EB_ENVIRONMENT }}
+      EB_S3_BUCKET: ${{ vars.EB_S3_BUCKET }}
+      EB_BASE_URL: ${{ vars.EB_BASE_URL }}
+      DEPLOY_REQUESTED: ${{ inputs.deploy && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-beanstalk-zip-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release/
+      - name: Obtain short-lived verification credentials
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.AWS_BEANSTALK_VERIFY_ROLE_ARN || vars.AWS_BEANSTALK_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: smartfix-verify-${{ github.run_id }}
+          mask-aws-account-id: true
+      - name: Verify deployed version, Green health, instances and HTTPS endpoints
+        run: python3 deploy/beanstalk/ci.py verify --release-dir release --output verification/post-deploy --timeout 600
+      - name: 'Verification artifact: post-deploy results and diagnostics'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-post-deploy-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/post-deploy/
+          if-no-files-found: error
+          retention-days: 30
+
+  static-analysis:
+    name: SWE5006 SpotBugs Gate
+    needs: [build-test]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: pom.xml
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-jar/
+      - name: Verify JAR provenance and reuse its application classes
+        run: python3 tools/quality.py unpack-classes --jar-dir incoming-jar --output target/classes
+      - name: Analyze all application classes and reject High or Medium findings
+        id: scan
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          mvn -B --no-transfer-progress -Pquality-static spotbugs:check 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/spotbugs.log
+      - name: Record findings and reject missing or incomplete analysis
+        if: always()
+        env:
+          QUALITY_SCANNER_OUTCOME: ${{ steps.scan.outcome }}
+        run: python3 tools/quality.py static --report target/spotbugsXml.xml --output verification/static/gate.json
+      - name: 'Verification artifact: actual static-analysis reports and diagnostics'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-spotbugs-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            target/spotbugsXml.xml
+            target/class-provenance.json
+            verification/static/
+            ci-logs/spotbugs.log
+          if-no-files-found: error
+          retention-days: 30
+
+  dependency-security:
+    name: SWE5006 Dependency Security Gate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: pom.xml
+      - name: Require configured NVD access without printing its value
+        run: python3 tools/quality.py security-preflight --output verification/security/preflight.json
+      - name: Scan Maven dependencies and reject CVSS 7 or above
+        id: scan
+        run: |
+          mkdir -p ci-logs
+          set -o pipefail
+          mvn -B --no-transfer-progress -Pquality-security dependency-check:check 2>&1 \
+            | python3 deploy/beanstalk/ci.py redact | tee ci-logs/dependency-check.log
+      - name: Reject incomplete scans, stale databases and known-exploited findings
+        if: always()
+        env:
+          QUALITY_SCANNER_OUTCOME: ${{ steps.scan.outcome }}
+        run: python3 tools/quality.py security --report target/dependency-check/dependency-check-report.json --output verification/security/gate.json
+      - name: 'Verification artifact: actual dependency reports or explicit failure status'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-dependency-security-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            target/dependency-check/
+            verification/security/
+            ci-logs/dependency-check.log
+          if-no-files-found: error
+          retention-days: 30
+
+  container-verification:
+    name: SWE5006 Docker Runtime Verification
+    # Mutually exclusive with the credentialed release job; no duplicate image
+    # build in a container-release run and no private image archives on artifacts.
+    if: ${{ !(github.event_name == 'workflow_dispatch' && (inputs.container_release == true || inputs.load_test == true)) }}
+    needs: [build-test, postgres-it]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-jar/
+      - name: Verify smoke assertion and cleanup guards
+        run: python3 -m unittest discover -s tools -p 'test_container*.py' -v
+      - name: Build the tested JAR image and verify isolated runtime and business HTTP flows
+        run: python3 tools/container_verify.py run --jar-dir incoming-jar --output verification/container --readiness-timeout 180
+      - name: Ensure verification containers, networks, volumes and image are removed
+        if: always()
+        run: python3 tools/container_verify.py cleanup --output verification/container
+      - name: 'Verification artifact: Docker provenance, actual assertions and sanitized logs'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-container-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/container/
+          if-no-files-found: error
+          retention-days: 30
+
+  container-publish:
+    name: SWE5006 Container Publish (Private Test Release)
+    needs: [build-test, postgres-it, static-analysis, dependency-security]
+    if: >-
+      github.repository == 'Lian9374/smartfix' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' && inputs.container_release == true && inputs.deploy == false && inputs.load_test != true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+    env:
+      CONTAINER_IMAGE: ${{ vars.CONTAINER_IMAGE }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-jar/
+      - name: Test release guards
+        run: python3 -m unittest discover -s tools -p 'test_container*.py' -v
+      - name: Require successful quality jobs and an existing PRIVATE package
+        env:
+          CONTAINER_GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/container_release.py preflight --output verification/container-publish
+      - name: Build and verify the same tested JAR; retain only the passing image for publication
+        run: python3 tools/container_verify.py run --jar-dir incoming-jar --output verification/container --retain-image --readiness-timeout 180
+      - name: Push that exact verified image and confirm registry digest and private visibility
+        env:
+          CONTAINER_GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/container_release.py publish --verified verification/container --output verification/container-publish
+      - name: Remove retained local image and any interrupted test resources
+        if: always()
+        run: python3 tools/container_verify.py cleanup --output verification/container
+      - name: 'Release metadata artifact: digest receipt (no image archive or credentials)'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-container-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/container-publish/release.json
+          if-no-files-found: error
+          retention-days: 30
+      - name: 'Verification artifact: container release outcomes and sanitized diagnostics'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-container-publish-reports-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            verification/container/
+            verification/container-publish/
+          if-no-files-found: error
+          retention-days: 30
+
+  container-test-deploy:
+    name: SWE5006 Container Test Deployment (Temporary Runner)
+    needs: [container-publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    env:
+      CONTAINER_IMAGE: ${{ vars.CONTAINER_IMAGE }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-container-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-release/
+      - name: Pull the published digest and verify deployment in a temporary container environment
+        env:
+          CONTAINER_GITHUB_TOKEN: ${{ github.token }}
+        run: python3 tools/container_release.py test-deploy --release incoming-release/release.json --output verification/container-test-deploy --readiness-timeout 180
+      - name: Ensure temporary deployment containers, networks, data and image reference are cleaned
+        if: always()
+        run: python3 tools/container_verify.py cleanup --output verification/container-test-deploy
+      - name: 'Verification artifact: actual digest deployment results and sanitized logs'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-container-test-deployment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/container-test-deploy/
+          if-no-files-found: error
+          retention-days: 30
+
+  load-test:
+    name: SWE5006 Optional Isolated Load Test (Not AWS)
+    if: github.event_name == 'workflow_dispatch' && inputs.load_test == true && inputs.deploy == false && inputs.container_release == false
+    # Benchmark is independent of publication. Existing quality gates still block
+    # releases. No PR load execution, no production target, no release dependency.
+    needs: [build-test, postgres-it]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: swe5006-jar-${{ github.run_id }}-${{ github.run_attempt }}
+          path: incoming-jar/
+      - name: Verify benchmark metric decisions and safety controls
+        run: python3 -m unittest discover -s tools -p 'test_load.py' -v
+      - name: Execute smoke, warmup and measured read-query load using the same tested JAR
+        env:
+          LOAD_VUS: ${{ inputs.load_vus }}
+          LOAD_SECONDS: ${{ inputs.load_duration_seconds }}
+        run: python3 tools/run_load.py run --jar-dir incoming-jar --output verification/load --vus "$LOAD_VUS" --duration-seconds "$LOAD_SECONDS"
+      - name: Clean up only this benchmark's resources
+        if: always()
+        run: python3 tools/run_load.py cleanup --output verification/load
+      - name: 'Verification artifact: actual k6 results, fixed policy, resource samples and sanitized logs'
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: swe5006-load-verification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: verification/load/
           if-no-files-found: error
           retention-days: 30

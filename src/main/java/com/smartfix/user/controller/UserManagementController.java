@@ -86,8 +86,7 @@ public class UserManagementController {
     @GetMapping("/new")
     public String showCreateForm(Model model, @org.springframework.web.bind.annotation.RequestParam(required = false) Role role) {
         populateForListing(model);
-        registerEmptyCreateForm(model);
-        ((CreateUserCommand) model.getAttribute(CREATE_FORM)).setRole(role);
+        registerEmptyCreateForm(model).setRole(role);
         model.addAttribute(SHOW_CREATE_FORM, true);
         return VIEW;
     }
@@ -200,11 +199,12 @@ public class UserManagementController {
      * for field errors, and rendering fails outright rather than showing an empty form.
      * Spring supplies both by itself after a POST; on a plain GET it does not.</p>
      */
-    private void registerEmptyCreateForm(Model model) {
+    private CreateUserCommand registerEmptyCreateForm(Model model) {
         CreateUserCommand command = new CreateUserCommand();
         model.addAttribute(CREATE_FORM, command);
         model.addAttribute(BindingResult.MODEL_KEY_PREFIX + CREATE_FORM,
                 new BeanPropertyBindingResult(command, CREATE_FORM));
+        return command;
     }
 
     /**

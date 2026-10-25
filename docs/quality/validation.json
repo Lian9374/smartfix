@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-24",
+  "branch": "ci/quality-gates",
+  "base_commit": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+  "no_aws_deployment": true,
+  "test_database": "new loopback-only smartfix_quality_test on port 55467; stopped after validation",
+  "final_tests": {
+    "surefire": {
+      "tests": 527,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_files": 65
+    },
+    "failsafe": {
+      "tests": 454,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report_files": 34
+    }
+  },
+  "final_maven_exit": 0,
+  "final_maven_elapsed": "06:36",
+  "coverage_gate": {
+    "status": "PASS",
+    "project": {
+      "LINE": {
+        "covered": 4540,
+        "missed": 338,
+        "percent": 93.07093070930709
+      },
+      "BRANCH": {
+        "covered": 1572,
+        "missed": 546,
+        "percent": 74.22096317280453
+      }
+    },
+    "policy_sha256": "c83e01f926b8ef9bc8938bbd2a948dd21665e9fd6ca5efeafe2cd2cd77737cdc",
+    "original_baseline_floor_policy_preserved": true,
+    "final_report_sha256": "1eb7e26ba604082c2ce58ee4c3e04a8aaf88a83753ec0a5a188c371d9b62e0ed"
+  },
+  "static_gate": {
+    "status": "FAIL",
+    "scan_status": "COMPLETED",
+    "analyzed_classes": 295,
+    "findings": 93,
+    "medium_blocking": 87,
+    "low_nonblocking": 6,
+    "native_exit": 1,
+    "engine_errors": 0,
+    "missing_classes": 0,
+    "probe_absent": true,
+    "report_sha256": "1d0a5d5dd670c83327ed0b39420fa59f0b7d9922d9d55a04a475a5c78cc1ce13"
+  },
+  "dependency_scan": {
+    "status": "NOT_COMPLETED",
+    "gate_status": "FAIL",
+    "secret_values_not_read_or_disclosed": true,
+    "required_secret": "NVD_API_KEY",
+    "native_empty_key_database_negative_exit": 1,
+    "native_negative_reason": "UpdateException and NoDataException, not a clean vulnerability result"
+  },
+  "negative_gates": {
+    "scope": "isolated ci/quality-gates worktree; deliberate defect only in ignored target files",
+    "expected_exit": 1,
+    "actual_exit": 1,
+    "probe_findings": [
+      {
+        "pattern": "NP_ALWAYS_NULL",
+        "priority": "1"
+      }
+    ],
+    "deliberate_source_and_class_removed": true,
+    "coverage_probe_policy_removed": true
+  },
+  "python_release_tests": {
+    "tests": 24,
+    "status": "PASS"
+  },
+  "python_quality_guard_tests": {
+    "tests": 20,
+    "status": "PASS"
+  },
+  "hosted_actions_and_uploads": "NOT RUN",
+  "required_branch_protection_settings": "NOT CHANGED",
+  "workflow_validation": {
+    "actionlint": "1.7.12 PASS (external shellcheck/pyflakes disabled)",
+    "syntax": "YAML/XML/Python PASS",
+    "required_release_dependencies": "PASS",
+    "deliberate_probe_absent": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "final_report_guard_recheck": {
+    "coverage_exit": 0,
+    "static_exit": 1,
+    "missing_secret_exit": 1
+  }
+}

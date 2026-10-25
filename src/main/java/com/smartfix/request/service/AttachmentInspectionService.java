@@ -22,7 +22,7 @@ public class AttachmentInspectionService {
             var iterator=files.iterator();int checked=0;
             while(iterator.hasNext()){
                 if(checked++>=10000){truncated=true;break;}
-                Path file=iterator.next();String key=file.getFileName().toString();
+                Path file=iterator.next();String key=Objects.requireNonNull(file.getFileName(),"Directory entry must have a file name").toString();
                 if(!key.matches("[0-9a-fA-F-]{36}\\.(png|jpg)(\\.part)?")||!Files.isRegularFile(file,LinkOption.NOFOLLOW_LINKS))continue;
                 if(!known.contains(key)&&Files.getLastModifiedTime(file,LinkOption.NOFOLLOW_LINKS).toInstant().isBefore(clock.instant().minus(Duration.ofDays(1))))candidates.add(key);
             }

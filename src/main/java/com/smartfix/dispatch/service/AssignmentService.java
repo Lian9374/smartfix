@@ -193,9 +193,11 @@ public class AssignmentService {
 
     private static boolean isActiveAssignmentConflict(Throwable exception) {
         for (Throwable cause = exception; cause != null; cause = cause.getCause()) {
-            if (cause instanceof ConstraintViolationException violation && violation.getConstraintName() != null
-                    && violation.getConstraintName().toLowerCase(java.util.Locale.ROOT)
-                    .contains("uk_assignments_active_request")) return true;
+            if (cause instanceof ConstraintViolationException violation) {
+                String constraintName = violation.getConstraintName();
+                if (constraintName != null && constraintName.toLowerCase(java.util.Locale.ROOT)
+                        .contains("uk_assignments_active_request")) return true;
+            }
         }
         return false;
     }

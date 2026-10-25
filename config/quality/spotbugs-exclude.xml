@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <!-- Exact field/pattern only. Credential hashes intentionally MUST NOT be
+         restored from a serialized session. SmartFixUserDetailsSerializationTest
+         verifies both omission of the hash and preservation of identity/roles.
+         Review this exception whenever the session principal design changes. -->
+    <Match>
+        <Class name="com.smartfix.auth.security.SmartFixUserDetails"/>
+        <Field name="passwordHash"/>
+        <Bug pattern="SE_TRANSIENT_FIELD_NOT_RESTORED"/>
+    </Match>
+</FindBugsFilter>

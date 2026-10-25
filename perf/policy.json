@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "defined_before_first_load_run": "2026-10-24",
+  "purpose": "Initial LOCAL Docker read-query baseline, not AWS capacity or a production SLA",
+  "rationale": "Interactive read endpoints should normally finish within 1 second, with a 2 second tail bound. Less than 1 percent protocol or business failures is required. These are initial engineering targets, not inferred production guarantees.",
+  "p95_ms": 1000,
+  "p99_ms": 2000,
+  "max_error_rate_exclusive": 0.01,
+  "min_load_samples_per_endpoint": 100,
+  "smoke_vus": 2,
+  "smoke_iterations_per_vu": 2,
+  "warmup_seconds": 30,
+  "default_load_vus": 10,
+  "default_load_seconds": 120,
+  "think_seconds": 1,
+  "request_timeout_seconds": 10,
+  "endpoints": ["map", "requests", "community"]
+}

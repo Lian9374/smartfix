@@ -1,0 +1,184 @@
+{
+  "measured_at": "2026-10-24",
+  "source_commit": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+  "scope": "Unmodified application sources; full postgres-it profile; Surefire 526 and Failsafe 454, no failures/errors/skips",
+  "jacoco_version": "0.8.14",
+  "report_sha256": "d11aeeb94cfe11ad2daba5c3b0e373d423864e92096a79957e47b72adb1a57fc",
+  "project": {
+    "BRANCH": {
+      "covered": 1572,
+      "missed": 546,
+      "percent": 74.22096317280453
+    },
+    "LINE": {
+      "covered": 4540,
+      "missed": 338,
+      "percent": 93.07093070930709
+    }
+  },
+  "core_packages": {
+    "com/smartfix/workorder/service": {
+      "BRANCH": {
+        "covered": 76,
+        "missed": 25,
+        "percent": 75.24752475247524
+      },
+      "LINE": {
+        "covered": 196,
+        "missed": 16,
+        "percent": 92.45283018867924
+      }
+    },
+    "com/smartfix/dispatch/service": {
+      "BRANCH": {
+        "covered": 80,
+        "missed": 8,
+        "percent": 90.9090909090909
+      },
+      "LINE": {
+        "covered": 150,
+        "missed": 7,
+        "percent": 95.54140127388536
+      }
+    },
+    "com/smartfix/auth/service": {
+      "BRANCH": {
+        "covered": 27,
+        "missed": 7,
+        "percent": 79.41176470588235
+      },
+      "LINE": {
+        "covered": 40,
+        "missed": 1,
+        "percent": 97.5609756097561
+      }
+    },
+    "com/smartfix/notification/service": {
+      "BRANCH": {
+        "covered": 19,
+        "missed": 3,
+        "percent": 86.36363636363636
+      },
+      "LINE": {
+        "covered": 57,
+        "missed": 1,
+        "percent": 98.27586206896552
+      }
+    },
+    "com/smartfix/reporting/service": {
+      "BRANCH": {
+        "covered": 35,
+        "missed": 7,
+        "percent": 83.33333333333333
+      },
+      "LINE": {
+        "covered": 130,
+        "missed": 3,
+        "percent": 97.74436090225564
+      }
+    },
+    "com/smartfix/audit/service": {
+      "BRANCH": {
+        "covered": 5,
+        "missed": 5,
+        "percent": 50.0
+      },
+      "LINE": {
+        "covered": 16,
+        "missed": 4,
+        "percent": 80.0
+      }
+    },
+    "com/smartfix/announcement/service": {
+      "LINE": {
+        "covered": 24,
+        "missed": 6,
+        "percent": 80.0
+      }
+    },
+    "com/smartfix/facility/service": {
+      "BRANCH": {
+        "covered": 78,
+        "missed": 24,
+        "percent": 76.47058823529412
+      },
+      "LINE": {
+        "covered": 171,
+        "missed": 3,
+        "percent": 98.27586206896552
+      }
+    },
+    "com/smartfix/request/service": {
+      "BRANCH": {
+        "covered": 212,
+        "missed": 71,
+        "percent": 74.91166077738517
+      },
+      "LINE": {
+        "covered": 510,
+        "missed": 40,
+        "percent": 92.72727272727273
+      }
+    },
+    "com/smartfix/sla/service": {
+      "BRANCH": {
+        "covered": 57,
+        "missed": 41,
+        "percent": 58.16326530612245
+      },
+      "LINE": {
+        "covered": 46,
+        "missed": 5,
+        "percent": 90.19607843137256
+      }
+    },
+    "com/smartfix/auth/security": {
+      "BRANCH": {
+        "covered": 53,
+        "missed": 11,
+        "percent": 82.8125
+      },
+      "LINE": {
+        "covered": 86,
+        "missed": 1,
+        "percent": 98.85057471264368
+      }
+    },
+    "com/smartfix/technician/service": {
+      "BRANCH": {
+        "covered": 49,
+        "missed": 5,
+        "percent": 90.74074074074075
+      },
+      "LINE": {
+        "covered": 73,
+        "missed": 4,
+        "percent": 94.8051948051948
+      }
+    },
+    "com/smartfix/user/service": {
+      "BRANCH": {
+        "covered": 83,
+        "missed": 33,
+        "percent": 71.55172413793103
+      },
+      "LINE": {
+        "covered": 198,
+        "missed": 6,
+        "percent": 97.05882352941177
+      }
+    },
+    "com/smartfix/community/service": {
+      "BRANCH": {
+        "covered": 166,
+        "missed": 23,
+        "percent": 87.83068783068784
+      },
+      "LINE": {
+        "covered": 486,
+        "missed": 13,
+        "percent": 97.39478957915831
+      }
+    }
+  }
+}

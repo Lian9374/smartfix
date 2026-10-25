@@ -1,0 +1,173 @@
+{
+  "date": "2026-10-24",
+  "status": "EXECUTED_PASS_LOCAL_ONLY",
+  "application_version": "0.0.1-SNAPSHOT",
+  "source": {
+    "commit_sha": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+    "origin": "LOCAL_WORKTREE_NOT_CI",
+    "worktree_dirty": true,
+    "jar_sha256": "53e2fbfd0d7bd39966d3e9e9dc5f2782cbe40f867bf6bd159e8a63eae75259fe"
+  },
+  "origin": "LOCAL_DOCKER_NOT_AWS",
+  "started_utc": "2026-10-24T13:33:52.726959+00:00",
+  "finished_utc": "2026-10-24T13:37:48.258474+00:00",
+  "formal_business_response_window": {
+    "first": "2026-10-24T13:35:37.541042816Z",
+    "last": "2026-10-24T13:37:36.987816613Z"
+  },
+  "configuration": {
+    "vus": 10,
+    "duration_seconds": 120,
+    "think_seconds": 1,
+    "model": "closed constant-vus",
+    "requests_per_user": 10,
+    "questions_per_user": 3
+  },
+  "dataset": {
+    "users": 10,
+    "requests": 100,
+    "community_questions": 30,
+    "locations": 183
+  },
+  "environment": {
+    "NCPU": 32,
+    "MemTotal": 16391471104,
+    "OperatingSystem": "Docker Desktop",
+    "KernelVersion": "6.6.87.2-microsoft-standard-WSL2",
+    "ServerVersion": "29.1.3",
+    "app_cpus": 2,
+    "app_memory_bytes": 1073741824,
+    "db_cpus": 1,
+    "db_memory_bytes": 536870912,
+    "hikari_pool": 10,
+    "k6_cpus": 1,
+    "k6_memory_bytes": 536870912,
+    "k6_image": "grafana/k6:1.8.2@sha256:bd6ae8607c0a05d0dc0dc3f5753c464b0929baf083ef0f20b7eed845a3d9e6b4",
+    "shared_host": true
+  },
+  "formal_load": {
+    "status": "PASS",
+    "measured_duration_seconds": 121.156814033,
+    "business": {
+      "requests": 3366,
+      "requests_per_second": 27.78217656898099,
+      "p95_ms": 37.02969825,
+      "p99_ms": 99.09042619999995,
+      "error_rate": 0
+    },
+    "endpoints": {
+      "map": {
+        "requests": 1122,
+        "requests_per_second": 9.260725522993663,
+        "p95_ms": 14.928346750000003,
+        "p99_ms": 46.65608252999943,
+        "error_rate": 0
+      },
+      "requests": {
+        "requests": 1122,
+        "requests_per_second": 9.260725522993663,
+        "p95_ms": 42.549432300000056,
+        "p99_ms": 111.20900548999994,
+        "error_rate": 0
+      },
+      "community": {
+        "requests": 1122,
+        "requests_per_second": 9.260725522993663,
+        "p95_ms": 54.726085850000004,
+        "p99_ms": 108.36881229,
+        "error_rate": 0
+      }
+    },
+    "all_http_requests": 3387,
+    "auth_requests": 20,
+    "protocol_error_rate": 0,
+    "error_types": {
+      "http_5xx": 0,
+      "content": 0,
+      "timeout": 0,
+      "http_4xx": 0,
+      "unexpected_http": 0,
+      "transport": 0,
+      "authentication_or_permission": 0
+    }
+  },
+  "resources": {
+    "status": "AVAILABLE",
+    "samples": 16,
+    "sampled_maxima": {
+      "app": {
+        "cpu_percent": 84.12,
+        "memory_bytes": 461058867
+      },
+      "db": {
+        "cpu_percent": 27.06,
+        "memory_bytes": 68859986
+      }
+    },
+    "max_database_connections": 10
+  },
+  "formal_threshold_decisions": 17,
+  "all_formal_thresholds_passed": true,
+  "policy_sha256": "1ce0f0ffe51dc27bdf3ca4a625dcd2047d74840b4328fb4243ca9d9a7c25c69d",
+  "failed_attempts": [
+    {
+      "attempt": "01",
+      "status": "FAIL_BEFORE_LOAD",
+      "reason": "Same-origin absolute redirect was not accepted by initial fixture helper",
+      "cleanup": "PASS"
+    },
+    {
+      "attempt": "02",
+      "status": "FAIL_BEFORE_LOAD",
+      "reason": "k6 rejects Trend count aggregation in smoke materialization threshold",
+      "cleanup": "PASS"
+    }
+  ],
+  "checks": {
+    "load_tool_unit_tests": {
+      "status": "PASS",
+      "tests": 13
+    },
+    "existing_container_release_tests": {
+      "status": "PASS",
+      "tests": 32
+    },
+    "actionlint": "1.7.12 PASS; external shellcheck/pyflakes disabled",
+    "python_compile": "PASS",
+    "raw_summary_verification": {
+      "status": "PASS",
+      "raw_business_requests": 3366,
+      "raw_p95_ms": 37.02969825,
+      "raw_p99_ms": 99.09042619999995,
+      "first_business_response_utc": "2026-10-24T13:35:37.541042816Z",
+      "last_business_response_utc": "2026-10-24T13:37:36.987816613Z",
+      "raw_summary_agreement": true,
+      "policy_unchanged": true,
+      "forbidden_sensitive_metric_tags_present": false,
+      "all_attempts_cleanup": "PASS"
+    }
+  },
+  "cleanup": {
+    "status": "PASS",
+    "compose_exit": 0,
+    "remaining": {
+      "containers": 0,
+      "networks": 0,
+      "volumes": 0
+    },
+    "temporary_image_removed": true,
+    "image_retained": false
+  },
+  "configured_not_executed": [
+    "GitHub Actions manual load_test job and artifact transfer/upload",
+    "k6 advanced external isolated-target configuration"
+  ],
+  "limitations": [
+    "Single local run on a shared Docker Desktop host, small synthetic dataset, closed concurrency; not maximum capacity or production SLA",
+    "Local dirty-worktree JAR, not a hosted CI build receipt",
+    "Not AWS performance, no AWS deployment or production traffic",
+    "Resource sampling can miss short peaks; no Hikari-internal or browser rendering measurements",
+    "Performance remains an optional benchmark, not a required PR/release gate"
+  ],
+  "evidence": "C:/Users/zhour/SmartFix-Load-Evidence-20261024/reports/load-attempt-03/report.md"
+}
