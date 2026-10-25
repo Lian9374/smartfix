@@ -1,0 +1,43 @@
+# External deployment configuration. The same verified JAR remains usable locally.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  thymeleaf:
+    cache: true
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: none
+  flyway:
+    enabled: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+server:
+  shutdown: graceful
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
+      # Only loopback nginx and the two planned ALB subnet ranges are trusted.
+      internal-proxies: '127\.0\.0\.1|::1|0:0:0:0:0:0:0:1|10\.20\.(0|1)\.\d{1,3}'
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: lax
+
+smartfix:
+  uploads:
+    dir: /mnt/smartfix-uploads
+  bootstrap-admin:
+    enabled: ${SMARTFIX_BOOTSTRAP_ADMIN_ENABLED:false}
+
+logging:
+  level:
+    root: INFO
+    com.smartfix: INFO

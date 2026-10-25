@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-24",
+  "branch": "ci/quality-gates",
+  "formal_path": "JAR/ZIP -> Elastic Beanstalk Java SE; unchanged; not deployed by this change",
+  "container_path": "Explicit main container_release=true/deploy=false -> required checks -> same-JAR image build/test -> private push -> registry digest -> new ephemeral runner digest pull -> isolated PG/business smoke -> cleanup",
+  "local_smartfix_runtime": {
+    "status": "PASS",
+    "http_checks": 13,
+    "readiness": {
+      "status": "PASS",
+      "attempts": 9,
+      "timeout_seconds": 180,
+      "http_status": 200,
+      "health_status": "UP"
+    },
+    "source": {
+      "commit_sha": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+      "origin": "LOCAL_WORKTREE_NOT_CI",
+      "worktree_dirty": true,
+      "jar_sha256": "53e2fbfd0d7bd39966d3e9e9dc5f2782cbe40f867bf6bd159e8a63eae75259fe"
+    },
+    "image": {
+      "id": "sha256:f0226d9ff92104c723564f1f9c8518cee25eb2267ccc373d77c162fd94ea6fcb",
+      "repo_digests": [
+        "smartfix-verification@sha256:f0226d9ff92104c723564f1f9c8518cee25eb2267ccc373d77c162fd94ea6fcb"
+      ],
+      "revision": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+      "jar_sha256": "53e2fbfd0d7bd39966d3e9e9dc5f2782cbe40f867bf6bd159e8a63eae75259fe",
+      "user": "app"
+    },
+    "retention_followed_by_final_cleanup": "PASS"
+  },
+  "checks": {
+    "container-release-guards": {
+      "status": "PASS",
+      "tests": 32
+    },
+    "quality-guards": {
+      "status": "PASS",
+      "tests": 20
+    },
+    "formal-release-tools": {
+      "status": "PASS",
+      "tests": 24
+    }
+  },
+  "actionlint": "1.7.12 PASS (external shellcheck/pyflakes disabled)",
+  "syntax": "PASS",
+  "git_diff_check": "PASS",
+  "permissions_and_dependencies": "PASS",
+  "actual_package_access_probe": {
+    "status": "FAIL",
+    "http_status": 403,
+    "missing_scope": "read:packages",
+    "private_package_visibility_and_write_access": "UNKNOWN"
+  },
+  "existing_quality_blockers": {
+    "spotbugs_medium": 87,
+    "dependency_scan": "NOT_COMPLETED"
+  },
+  "synthetic_registry_transport": {
+    "status": "FAIL",
+    "contains_smartfix_jar": false,
+    "failure": {
+      "phase": "push-fixture-and-confirm-registry-digest",
+      "error_type": "RuntimeError"
+    },
+    "registry_digest": null,
+    "cleanup": "PASS"
+  },
+  "smartfix_ghcr_publication": "CONFIGURED_NOT_RUN",
+  "smartfix_registry_digest": null,
+  "smartfix_digest_test_deployment": "CONFIGURED_NOT_RUN",
+  "hosted_actions_and_artifact_uploads": "NOT_RUN",
+  "test_environment_label": "\u4e34\u65f6\u5bb9\u5668\u73af\u5883\u4e2d\u7684\u90e8\u7f72\u9a8c\u8bc1",
+  "new_registry_secrets": [],
+  "required_external_settings": [
+    "CONTAINER_IMAGE: existing PRIVATE GHCR repository",
+    "Package Actions access: write for publisher/read for deployment",
+    "Existing NVD_API_KEY and resolution of current static/security blockers"
+  ],
+  "production_changed": false,
+  "paid_resources_created": false,
+  "public_smartfix_image_pushed": false
+}

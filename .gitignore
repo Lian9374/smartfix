@@ -38,3 +38,12 @@ nohup.out
 .dockerignore-local
 uploads/
 local-db-backups/
+
+# ---- Python release tools / CI outputs ----
+__pycache__/
+*.py[cod]
+/build-artifact/
+/incoming-jar/
+/release/
+/verification/
+/ci-logs/

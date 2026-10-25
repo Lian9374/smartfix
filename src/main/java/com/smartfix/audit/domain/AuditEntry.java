@@ -21,12 +21,21 @@ public class AuditEntry {
     }
     public AuditEntry(Long actorUserId, String action, String targetType, Long targetId,
                       String outcome, Instant occurredAt) {
-        this.actorUserId = java.util.Objects.requireNonNull(actorUserId);
-        this.action = java.util.Objects.requireNonNull(action);
-        this.targetType = java.util.Objects.requireNonNull(targetType);
-        this.targetId = java.util.Objects.requireNonNull(targetId);
-        this.outcome = java.util.Objects.requireNonNull(outcome);
-        this.occurredAt = java.util.Objects.requireNonNull(occurredAt);
+        this(new InitialState(actorUserId, action, targetType, targetId, outcome, occurredAt));
+    }
+    private AuditEntry(InitialState value) {
+        this.actorUserId = value.actorUserId(); this.action = value.action();
+        this.targetType = value.targetType(); this.targetId = value.targetId();
+        this.outcome = value.outcome(); this.occurredAt = value.occurredAt();
+    }
+    // Validate before the entity's Object constructor, preventing partial construction.
+    private record InitialState(Long actorUserId, String action, String targetType, Long targetId,
+                                String outcome, Instant occurredAt) {
+        InitialState {
+            java.util.Objects.requireNonNull(actorUserId); java.util.Objects.requireNonNull(action);
+            java.util.Objects.requireNonNull(targetType); java.util.Objects.requireNonNull(targetId);
+            java.util.Objects.requireNonNull(outcome); java.util.Objects.requireNonNull(occurredAt);
+        }
     }
     public Long getId() { return id; }
     public Long getActorUserId() { return actorUserId; }

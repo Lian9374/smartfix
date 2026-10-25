@@ -21,4 +21,9 @@ public record MaintenanceRequestDetailsResponse(
     Instant updatedAt,
     List<RequestStatusHistoryResponse> statusHistory
 ) {
+    // Own the collection structure; preserve existing null/element semantics.
+    public MaintenanceRequestDetailsResponse {
+        statusHistory = statusHistory == null ? null : java.util.Collections.unmodifiableList(new java.util.ArrayList<>(statusHistory));
+    }
+
 }

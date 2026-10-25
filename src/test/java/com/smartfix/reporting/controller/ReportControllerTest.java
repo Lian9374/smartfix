@@ -9,7 +9,7 @@ import com.smartfix.request.domain.RequestStatus;
 import com.smartfix.request.domain.UrgencyLevel;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -27,8 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(
     controllers = ReportController.class,
-    excludeAutoConfiguration =
-        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)
+    excludeAutoConfiguration = {
+        org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration.class,
+        org.springframework.boot.security.autoconfigure.web.servlet.ServletWebSecurityAutoConfiguration.class,
+        org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration.class})
 class ReportControllerTest {
 
     @Autowired

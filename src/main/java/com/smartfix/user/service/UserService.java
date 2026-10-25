@@ -359,7 +359,8 @@ public class UserService {
         validateNewPassword(newPassword, confirmation);
         if (passwordEncoder.matches(newPassword, user.getPasswordHash()))
             throw new InputValidationException("Choose a different new password.");
-        user.changePassword(passwordEncoder.encode(newPassword), false, Instant.now());
+        user.changePassword(Objects.requireNonNull(passwordEncoder.encode(newPassword),
+                "Password encoder returned no hash"), false, Instant.now());
     }
 
     @Transactional
@@ -375,7 +376,8 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found."));
         if (passwordEncoder.matches(newPassword, target.getPasswordHash()))
             throw new InputValidationException("Choose a different temporary password.");
-        target.changePassword(passwordEncoder.encode(newPassword), true, Instant.now());
+        target.changePassword(Objects.requireNonNull(passwordEncoder.encode(newPassword),
+                "Password encoder returned no hash"), true, Instant.now());
     }
 
     private void validateNewPassword(String password, String confirmation) {

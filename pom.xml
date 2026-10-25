@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.4</version>
+        <version>4.0.9</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -21,17 +21,31 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!-- Pin the already cached Java-21-compatible agent for reproducible baselines. -->
+        <jacoco.version>0.8.14</jacoco.version>
+        <spotbugs.version>4.10.5.0</spotbugs.version>
+        <dependency-check.version>13.0.0</dependency-check.version>
+        <!-- Compatible maintained component patches selected from Maven Central;
+             actual dependency scan must still pass; no CVE suppression added. -->
+        <log4j2.version>2.26.1</log4j2.version>
+        <postgresql.version>42.7.14</postgresql.version>
     </properties>
 
     <dependencies>
         <!-- Web / server-rendered UI -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <!-- Thymeleaf 3's JavaScript serializer still uses Jackson 2. Its
+             maintained BOM version is managed by Boot; retain Java-time support. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <!-- Persistence -->
@@ -40,8 +54,8 @@
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -90,14 +104,40 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-test</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>coverage-agent</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>coverage-report</id>
+                        <phase>verify</phase>
+                        <goals><goal>report</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -126,6 +166,58 @@
         </plugins>
     </build>
     <profiles>
+        <profile>
+            <id>quality-static</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-maven-plugin</artifactId>
+                        <version>${spotbugs.version}</version>
+                        <configuration>
+                            <effort>Max</effort>
+                            <!-- Report all confidence levels; block High and Medium. -->
+                            <threshold>Low</threshold>
+                            <failThreshold>Medium</failThreshold>
+                            <maxAllowedViolations>0</maxAllowedViolations>
+                            <failOnError>true</failOnError>
+                            <xmlOutput>true</xmlOutput>
+                            <htmlOutput>false</htmlOutput>
+                            <noClassOk>false</noClassOk>
+                            <excludeFilterFile>${project.basedir}/config/quality/spotbugs-exclude.xml</excludeFilterFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>quality-security</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>${dependency-check.version}</version>
+                        <configuration>
+                            <failBuildOnCVSS>7.0</failBuildOnCVSS>
+                            <failOnError>true</failOnError>
+                            <formats><format>HTML</format><format>JSON</format></formats>
+                            <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
+                            <!-- Public vulnerability data only; no credentials are cached. -->
+                            <dataDirectory>${user.home}/.cache/smartfix-dependency-check</dataDirectory>
+                            <!-- Avoid command-line/property interpolation of API key values. -->
+                            <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
+                            <nvdValidForHours>4</nvdValidForHours>
+                            <nvdMaxRetryCount>3</nvdMaxRetryCount>
+                            <autoUpdate>true</autoUpdate>
+                            <!-- NVD + bundled CISA KEV feed are the declared sources.
+                                 Do not add a second account-backed vulnerability service. -->
+                            <ossIndexAnalyzerEnabled>false</ossIndexAnalyzerEnabled>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <profile>
             <id>postgres-it</id>
             <build>

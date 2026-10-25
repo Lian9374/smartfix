@@ -562,6 +562,36 @@ class UserServiceTest {
         }
     }
 
+    @Test
+    void encoderFailureCannotPartiallyChangeOwnPasswordOrSessionVersion() {
+        User user = User.create("alice", "Alice", BCRYPT_HASH, Role.REQUESTER, Instant.EPOCH);
+        when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(RAW_PASSWORD, BCRYPT_HASH)).thenReturn(true);
+        when(passwordEncoder.encode("DifferentPassword9")).thenReturn(null);
+
+        assertThatThrownBy(() -> userService.changeOwnPassword(1L, RAW_PASSWORD,
+                "DifferentPassword9", "DifferentPassword9")).isInstanceOf(NullPointerException.class);
+        assertThat(user.getPasswordHash()).isEqualTo(BCRYPT_HASH);
+        assertThat(user.getSecurityVersion()).isZero();
+        assertThat(user.isPasswordChangeRequired()).isFalse();
+    }
+
+    @Test
+    void encoderFailureCannotPartiallyResetManagedPasswordOrSessionVersion() {
+        User admin = User.create("root.admin", "Admin", BCRYPT_HASH, Role.ADMINISTRATOR, Instant.EPOCH);
+        User target = User.create("alice", "Alice", BCRYPT_HASH, Role.REQUESTER, Instant.EPOCH);
+        when(userRepository.findById(99L)).thenReturn(Optional.of(admin));
+        when(userRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(target));
+        when(passwordEncoder.matches(RAW_PASSWORD, BCRYPT_HASH)).thenReturn(true);
+        when(passwordEncoder.encode("DifferentPassword9")).thenReturn(null);
+
+        assertThatThrownBy(() -> userService.resetManagedPassword(1L, 99L, RAW_PASSWORD,
+                "DifferentPassword9", "DifferentPassword9")).isInstanceOf(NullPointerException.class);
+        assertThat(target.getPasswordHash()).isEqualTo(BCRYPT_HASH);
+        assertThat(target.getSecurityVersion()).isZero();
+        assertThat(target.isPasswordChangeRequired()).isFalse();
+    }
+
     // ---------------------------------------------------------------- helpers
 
     private void stubSuccessfulCreation() {

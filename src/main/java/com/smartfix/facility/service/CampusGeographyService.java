@@ -1,6 +1,6 @@
 package com.smartfix.facility.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.smartfix.facility.dto.CampusBuilding;
 import com.smartfix.facility.dto.CampusGeography;
 import com.smartfix.facility.repository.FacilityRepository;
@@ -21,11 +21,20 @@ public class CampusGeographyService {
     private final LocationRepository locations;
     private final FacilityRepository facilities;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public CampusGeographyService(ObjectMapper mapper, CampusMapService access,
             LocationRepository locations, FacilityRepository facilities) throws IOException {
-        this.access = access;
-        this.locations = locations;
-        this.facilities = facilities;
+        this(loadCatalogue(mapper), access, locations, facilities);
+    }
+
+    private CampusGeographyService(LoadedCatalogue loaded, CampusMapService access,
+            LocationRepository locations, FacilityRepository facilities) {
+        this.catalogue = loaded.catalogue(); this.aliases = loaded.aliases();
+        this.access = access; this.locations = locations; this.facilities = facilities;
+    }
+
+    private static LoadedCatalogue loadCatalogue(ObjectMapper mapper) throws IOException {
+        Catalogue catalogue;
         try (var input = new ClassPathResource("data/nus-campus-buildings.json").getInputStream()) {
             catalogue = mapper.readValue(input, Catalogue.class);
         }
@@ -41,12 +50,15 @@ public class CampusGeographyService {
                 candidates.computeIfAbsent(normalize(alias), ignored -> new HashSet<>()).add(building.id());
             }
         }
-        aliases = new HashMap<>();
+        Map<String, String> aliases = new HashMap<>();
         // Ambiguous names intentionally stay unmapped rather than selecting the wrong campus/block.
         candidates.forEach((name, matches) -> {
             if (matches.size() == 1) aliases.put(name, matches.iterator().next());
         });
+        return new LoadedCatalogue(catalogue, Map.copyOf(aliases));
     }
+
+    private record LoadedCatalogue(Catalogue catalogue, Map<String, String> aliases) {}
 
     @Transactional(readOnly = true)
     public CampusGeography read(Long actorId) {

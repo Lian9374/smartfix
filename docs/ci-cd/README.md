@@ -1,5 +1,17 @@
 # SmartFix SWE5006 Continuous Integration
 
+> Latest quality implementation and measured outcomes: [quality gates](../quality/README.md).
+> Additional mandatory check: [Docker runtime verification](docker-verification.md).
+> Separate optional path: [container release and temporary test deployment](container-release.md).
+> Optional manual benchmark: [isolated k6 load testing](load-testing.md), with
+> [actual local results](load-validation.json); not a required PR/release gate.
+> Actual results versus configured/planned steps: [evidence index](evidence-index.md).
+
+> Current pipeline: see [Beanstalk CI/CD](../../deploy/beanstalk/CI.md) for the
+> updated jobs, artifact names, metadata and opt-in manual deployment. The text
+> below records the original CI implementation and audit; statements about
+> missing deployment, unmerged PRs and unexecuted main events are historical.
+
 ## Scope and audit
 
 This implementation starts from main d586609 (2026-10-22 audit). The developer checkout on feature/requester-detail-refresh contained unrelated uncommitted changes; implementation uses the separate ci/swe5006-github-actions branch and worktree. Those changes are preserved.

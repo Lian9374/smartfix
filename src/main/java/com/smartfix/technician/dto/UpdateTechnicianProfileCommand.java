@@ -24,10 +24,10 @@ public class UpdateTechnicianProfileCommand {
     @PositiveOrZero
     private Long version;
 
-    public Set<MaintenanceCategory> getSkills() { return skills; }
-    public void setSkills(Set<MaintenanceCategory> skills) { this.skills = skills; }
-    public Set<Long> getServiceAreaIds() { return serviceAreaIds; }
-    public void setServiceAreaIds(Set<Long> serviceAreaIds) { this.serviceAreaIds = serviceAreaIds; }
+    public Set<MaintenanceCategory> getSkills() { return skills == null ? null : new LinkedHashSet<>(skills); }
+    public void setSkills(Set<MaintenanceCategory> skills) { this.skills = skills == null ? null : new LinkedHashSet<>(skills); }
+    public Set<Long> getServiceAreaIds() { return serviceAreaIds == null ? null : new LinkedHashSet<>(serviceAreaIds); }
+    public void setServiceAreaIds(Set<Long> serviceAreaIds) { this.serviceAreaIds = serviceAreaIds == null ? null : new LinkedHashSet<>(serviceAreaIds); }
     public AvailabilityStatus getAvailabilityStatus() { return availabilityStatus; }
     public void setAvailabilityStatus(AvailabilityStatus status) { this.availabilityStatus = status; }
     public Long getVersion() { return version; }

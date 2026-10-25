@@ -1,0 +1,217 @@
+{
+  "review_date": "2026-10-25",
+  "scope": "30 finite rules covering 30 Medium and 2 Low findings, reviewed after 57 Medium findings were fixed in code. Thresholds unchanged.",
+  "review_on": "Any listed injection, binding or SQL-input change",
+  "exceptions": [
+    {
+      "class": "com.smartfix.common.configuration.LegacyMigrationCompatibility",
+      "method": "archive",
+      "field": null,
+      "pattern": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+      "reason": "Sequence identifier is server-quoted pg_get_serial_sequence output, table names use fixed TABLES allowlists, and schema identifiers use quote(). Identifiers cannot be JDBC parameters. Re-review when SQL sources change; native migration rollback/recovery tests remain mandatory."
+    },
+    {
+      "class": "com.smartfix.common.configuration.LegacyMigrationCompatibility",
+      "method": "restore",
+      "field": null,
+      "pattern": "SQL_NONCONSTANT_STRING_PASSED_TO_EXECUTE",
+      "reason": "Sequence identifier is server-quoted pg_get_serial_sequence output, table names use fixed TABLES allowlists, and schema identifiers use quote(). Identifiers cannot be JDBC parameters. Re-review when SQL sources change; native migration rollback/recovery tests remain mandatory."
+    },
+    {
+      "class": "com.smartfix.community.config.CommunityProperties",
+      "method": "getPage",
+      "field": "page",
+      "pattern": "EI_EXPOSE_REP",
+      "reason": "Stable nested mutable bean required by Spring ConfigurationProperties binding; not a browser DTO."
+    },
+    {
+      "class": "com.smartfix.community.config.CommunityProperties",
+      "method": "getPosting",
+      "field": "posting",
+      "pattern": "EI_EXPOSE_REP",
+      "reason": "Stable nested mutable bean required by Spring ConfigurationProperties binding; not a browser DTO."
+    },
+    {
+      "class": "com.smartfix.community.controller.CommunityAnswerController",
+      "method": "<init>",
+      "field": "answerService",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.controller.CommunityAnswerController",
+      "method": "<init>",
+      "field": "detailPage",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.controller.CommunityQuestionController",
+      "method": "<init>",
+      "field": "detailPage",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.service.CommunityAnswerService",
+      "method": "<init>",
+      "field": "questions",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.service.CommunityModerationService",
+      "method": "<init>",
+      "field": "questions",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.service.CommunityQueryService",
+      "method": "<init>",
+      "field": "questions",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.community.service.CommunityQuestionService",
+      "method": "<init>",
+      "field": "questions",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.listener.CommunityNotificationListener",
+      "method": "<init>",
+      "field": "outbox",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.listener.NotificationEventListener",
+      "method": "<init>",
+      "field": "outbox",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.listener.SlaNotificationListener",
+      "method": "<init>",
+      "field": "outbox",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.repository.DeliveryTaskInsertRepository",
+      "method": "<init>",
+      "field": "jdbc",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.repository.PostgresNotificationInsertRepository",
+      "method": "<init>",
+      "field": "jdbcTemplate",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.service.DeliveryOutboxService",
+      "method": "<init>",
+      "field": "insert",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.notification.service.NotificationService",
+      "method": "<init>",
+      "field": "insertRepository",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.controller.AttachmentController",
+      "method": "<init>",
+      "field": "attachmentService",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.controller.RequestSubmissionController",
+      "method": "<init>",
+      "field": "uploadLimits",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.service.AttachmentInspectionService",
+      "method": "<init>",
+      "field": "properties",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.service.AttachmentService",
+      "method": "<init>",
+      "field": "storageService",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.service.RequestLifecycleService",
+      "method": "<init>",
+      "field": "properties",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.service.RequestPresentationService",
+      "method": "<init>",
+      "field": "attachments",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.service.RequestSubmissionService",
+      "method": "<init>",
+      "field": "attachments",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.storage.LocalAttachmentStorageService",
+      "method": "<init>",
+      "field": "properties",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.request.validation.AttachmentValidator",
+      "method": "<init>",
+      "field": "properties",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.user.service.UserBootstrapService",
+      "method": "<init>",
+      "field": "properties",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.workorder.controller.WorkOrderController",
+      "method": "<init>",
+      "field": "attachments",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    },
+    {
+      "class": "com.smartfix.workorder.service.WorkOrderService",
+      "method": "<init>",
+      "field": "entityManager",
+      "pattern": "EI_EXPOSE_REP2",
+      "reason": "Trusted Spring-managed injected bean. Preserve its lifecycle/transaction/configuration identity; copying the managed collaborator is not valid. No request DTO collection is exempted."
+    }
+  ]
+}

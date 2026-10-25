@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "basis": "Measured full PostgreSQL baseline, each ratio rounded down to the nearest whole percentage point; no exclusions; do not regenerate in CI",
+  "baseline_report_sha256": "d11aeeb94cfe11ad2daba5c3b0e373d423864e92096a79957e47b72adb1a57fc",
+  "project": {
+    "BRANCH": 74,
+    "LINE": 93
+  },
+  "core_packages": {
+    "com/smartfix/workorder/service": {
+      "BRANCH": 75,
+      "LINE": 92
+    },
+    "com/smartfix/dispatch/service": {
+      "BRANCH": 90,
+      "LINE": 95
+    },
+    "com/smartfix/auth/service": {
+      "BRANCH": 79,
+      "LINE": 97
+    },
+    "com/smartfix/notification/service": {
+      "BRANCH": 86,
+      "LINE": 98
+    },
+    "com/smartfix/reporting/service": {
+      "BRANCH": 83,
+      "LINE": 97
+    },
+    "com/smartfix/audit/service": {
+      "BRANCH": 50,
+      "LINE": 80
+    },
+    "com/smartfix/announcement/service": {
+      "LINE": 80
+    },
+    "com/smartfix/facility/service": {
+      "BRANCH": 76,
+      "LINE": 98
+    },
+    "com/smartfix/request/service": {
+      "BRANCH": 74,
+      "LINE": 92
+    },
+    "com/smartfix/sla/service": {
+      "BRANCH": 58,
+      "LINE": 90
+    },
+    "com/smartfix/auth/security": {
+      "BRANCH": 82,
+      "LINE": 98
+    },
+    "com/smartfix/technician/service": {
+      "BRANCH": 90,
+      "LINE": 94
+    },
+    "com/smartfix/user/service": {
+      "BRANCH": 71,
+      "LINE": 97
+    },
+    "com/smartfix/community/service": {
+      "BRANCH": 87,
+      "LINE": 97
+    }
+  }
+}

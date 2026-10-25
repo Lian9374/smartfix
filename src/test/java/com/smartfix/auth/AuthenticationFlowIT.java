@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.mock.web.MockHttpSession;
@@ -139,6 +139,9 @@ class AuthenticationFlowIT {
         MockHttpSession before = new MockHttpSession();
         String originalId = before.getId();
         MockHttpSession after = (MockHttpSession) mvc.perform(post("/login").session(before).with(csrf())
+                // Model an existing valid browser session, rather than an invalid/missing cookie.
+                .with(request -> { request.setRequestedSessionId(originalId);
+                    request.setRequestedSessionIdValid(true); return request; })
                 .param("username", "alice").param("password", PASSWORD))
                 .andExpect(authenticated()).andReturn().getRequest().getSession(false);
         assertThat(after).isNotNull();

@@ -19,4 +19,11 @@ public record OperationalReportResponse(
     Map<RequestStatus, Long> requestsByStatus,
     Map<MaintenanceCategory, Long> requestsByCategory,
     Map<UrgencyLevel, Long> requestsByUrgency) {
+    // Own the collection structure; preserve existing null/element semantics.
+    public OperationalReportResponse {
+        requestsByStatus = requestsByStatus == null ? null : java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(requestsByStatus));
+        requestsByCategory = requestsByCategory == null ? null : java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(requestsByCategory));
+        requestsByUrgency = requestsByUrgency == null ? null : java.util.Collections.unmodifiableMap(new java.util.LinkedHashMap<>(requestsByUrgency));
+    }
+
 }

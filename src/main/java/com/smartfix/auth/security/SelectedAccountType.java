@@ -137,4 +137,12 @@ public final class SelectedAccountType extends WebAuthenticationDetails {
     public String toString() {
         return "SelectedAccountType{selected=" + selected + ", submitted=" + submitted + '}';
     }
+
+    // Preserve WebAuthenticationDetails identity semantics: accountType is an
+    // authentication hint, never part of the granted account identity.
+    @Override
+    public boolean equals(Object other) { return super.equals(other); }
+
+    @Override
+    public int hashCode() { return super.hashCode(); }
 }

@@ -1,0 +1,49 @@
+{
+  "date": "2026-10-24",
+  "branch": "ci/quality-gates",
+  "docker_local_execution": "PASS",
+  "local_ci_origin": "LOCAL_WORKTREE_NOT_CI",
+  "source_commit": "7e91ce0a2fdc11279aa4f15218facf986abcb41a",
+  "worktree_dirty": true,
+  "jar_sha256": "53e2fbfd0d7bd39966d3e9e9dc5f2782cbe40f867bf6bd159e8a63eae75259fe",
+  "image_id": "sha256:af1b4fc870b922b676ca75904d7c2369b76023f1d17662880999e26e5f8109d2",
+  "image_tag": "smartfix-verification:sha-7e91ce0a2fdc11279aa4f15218facf986abcb41a-ba98e6daacee",
+  "http_checks_passed": 13,
+  "readiness": {
+    "status": "PASS",
+    "attempts": 9,
+    "timeout_seconds": 180,
+    "http_status": 200,
+    "health_status": "UP"
+  },
+  "cleanup": {
+    "status": "PASS",
+    "compose_exit": 0,
+    "remaining": {
+      "containers": 0,
+      "networks": 0,
+      "volumes": 0
+    },
+    "temporary_image_removed": true
+  },
+  "guard_tests": {
+    "count": 15,
+    "status": "PASS"
+  },
+  "host_only_protocol": "PASS (separate evidence scope)",
+  "compose_config": "PASS",
+  "actionlint": "1.7.12 PASS (external shellcheck/pyflakes disabled)",
+  "git_diff_check": "PASS",
+  "required_job_dependencies": "PASS",
+  "hosted_actions": "NOT RUN",
+  "artifact_uploads": "CONFIGURED; NOT OBSERVED",
+  "image_published": false,
+  "aws_deployed": false,
+  "new_secrets": [],
+  "source_hashes": {
+    "Dockerfile": "41ebc19734de876c39a779800261d5d9d1180a584168ad2be8f8c52021c2ad37",
+    "deploy/docker/compose.verify.yml": "6a70f2096967a420e720268c549813fb7d59e81945233c41354214b94fce10e2",
+    "tools/container_verify.py": "c0042ceb7c76e908cddd2afa5313ef76ab2c5524e402343339af8675cc0eefca",
+    ".github/workflows/smartfix-ci.yml": "5f6b660a216109e2cb54227572df1a4cef212adfb1a2fb2de00a9eb5a1133191"
+  }
+}

@@ -3,7 +3,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DeliveryProperties {
+public final class DeliveryProperties {
     public final int maxAttempts,batchSize;
     public final long retrySeconds;
     public final boolean eager,emailEnabled;

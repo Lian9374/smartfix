@@ -72,22 +72,12 @@ public class Attachment {
             long sizeBytes,
             Instant createdAt
     ) {
-        this.requestId = Objects.requireNonNull(requestId);
-        this.originalFilename =
-                requireText(originalFilename, "originalFilename");
-        this.storedFilename =
-                requireText(storedFilename, "storedFilename");
-        this.contentType =
-                requireText(contentType, "contentType");
-
-        if (sizeBytes <= 0) {
-            throw new IllegalArgumentException(
-                    "sizeBytes must be greater than zero"
-            );
-        }
-
+        this.requestId = requestId;
+        this.originalFilename = originalFilename;
+        this.storedFilename = storedFilename;
+        this.contentType = contentType;
         this.sizeBytes = sizeBytes;
-        this.createdAt = Objects.requireNonNull(createdAt);
+        this.createdAt = createdAt;
     }
 
     public static Attachment create(
@@ -99,13 +89,18 @@ public class Attachment {
             Instant createdAt
     ) {
         return new Attachment(
-                requestId,
-                originalFilename,
-                storedFilename,
-                contentType,
-                sizeBytes,
-                createdAt
+                Objects.requireNonNull(requestId),
+                requireText(originalFilename, "originalFilename"),
+                requireText(storedFilename, "storedFilename"),
+                requireText(contentType, "contentType"),
+                requirePositiveSize(sizeBytes),
+                Objects.requireNonNull(createdAt)
         );
+    }
+
+    private static long requirePositiveSize(long value) {
+        if (value <= 0) throw new IllegalArgumentException("sizeBytes must be greater than zero");
+        return value;
     }
 
     private static String requireText(

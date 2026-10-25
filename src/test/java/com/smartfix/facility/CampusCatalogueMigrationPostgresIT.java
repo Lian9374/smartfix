@@ -1,6 +1,6 @@
 package com.smartfix.facility;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.Test;
 import java.sql.DriverManager;
