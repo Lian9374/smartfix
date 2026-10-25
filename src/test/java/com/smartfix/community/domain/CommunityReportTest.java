@@ -178,6 +178,18 @@ class CommunityReportTest {
         assertThat(report.isOpen()).isTrue();
     }
 
+    @Test
+    void blankAnswerReportDetailIsStoredAsAbsent() {
+        CommunityReport report = CommunityReport.ofAnswer(
+                REPORTER, ANSWER_ID, CommunityReportReason.SPAM, "   ", REPORTED);
+
+        assertThat(report.getDetail()).isNull();
+        assertThat(report.getAnswerId()).isEqualTo(ANSWER_ID);
+        assertThat(report.getQuestionId()).isNull();
+        assertThat(report.getTargetType()).isEqualTo(CommunityContentType.ANSWER);
+        assertThat(report.isOpen()).isTrue();
+    }
+
     // ----------------------------------------------------------- the status
 
     @Test
