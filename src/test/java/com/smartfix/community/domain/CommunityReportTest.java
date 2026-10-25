@@ -163,6 +163,21 @@ class CommunityReportTest {
                 .hasSize(CommunityReport.DETAIL_MAX_LENGTH);
     }
 
+    @Test
+    void answerReportAcceptsMaximumLengthDetailAfterTrimming() {
+        String detail = "n".repeat(CommunityReport.DETAIL_MAX_LENGTH);
+        CommunityReport report = CommunityReport.ofAnswer(
+                REPORTER, ANSWER_ID, CommunityReportReason.OTHER, "  " + detail + "  ", REPORTED);
+
+        assertThat(report.getDetail()).isEqualTo(detail);
+        assertThat(report.getAnswerId()).isEqualTo(ANSWER_ID);
+        assertThat(report.getQuestionId()).isNull();
+        assertThat(report.getTargetType()).isEqualTo(CommunityContentType.ANSWER);
+        assertThat(report.getReporterId()).isEqualTo(REPORTER);
+        assertThat(report.getCreatedAt()).isEqualTo(REPORTED);
+        assertThat(report.isOpen()).isTrue();
+    }
+
     // ----------------------------------------------------------- the status
 
     @Test
