@@ -227,7 +227,16 @@ def aws(*args: str) -> dict:
     if result.returncode:
         # No raw AWS output: it can include request parameters or environment values.
         code = re.search(r"\(([A-Za-z0-9_.-]+)\)", result.stderr)
-        raise RuntimeError(f"AWS {args[0]}/{args[1]} failed: {code.group(1) if code else result.returncode}")
+        detail = code.group(1) if code else str(result.returncode)
+        denied = re.search(r"not authorized to perform:\s*([a-z0-9-]+:[A-Za-z0-9]+)", result.stderr)
+        if denied:
+            detail += "; denied_action=" + denied.group(1)
+            # Fixed labels only: never export raw object keys, identities or messages.
+            if "resources/_runtime/_embedded_extensions/smartfix/" in result.stderr:
+                detail += "; resource_scope=smartfix_application_extensions"
+            elif re.search(r"resources/environments/[a-z0-9-]+/_runtime/_embedded_extensions/smartfix/", result.stderr):
+                detail += "; resource_scope=smartfix_environment_extensions"
+        raise RuntimeError(f"AWS {args[0]}/{args[1]} failed: {detail}")
     return json.loads(result.stdout or "{}")
 
 
