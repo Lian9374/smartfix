@@ -303,6 +303,32 @@ def http_smoke(origin: str) -> list[dict]:
     return results  # No cookies, headers, CSRF tokens or response bodies are saved.
 
 
+def deployment_events(config: dict, version: str) -> list[dict]:
+    """Only events after this exact version was created; export no raw messages."""
+    versions = aws("elasticbeanstalk", "describe-application-versions", "--application-name",
+                   config["EB_APPLICATION"], "--version-labels", version).get("ApplicationVersions", [])
+    if len(versions) != 1:
+        return []
+    start = versions[0].get("DateCreated", "")
+    if not re.fullmatch(r"[0-9T:.+Z-]+", start):
+        return []
+    events = aws("elasticbeanstalk", "describe-events", "--environment-name", config["EB_ENVIRONMENT"],
+                 "--start-time", start).get("Events", [])
+    safe = []
+    for event in events:
+        message = event.get("Message", "")
+        if event.get("Severity") not in ("ERROR", "FATAL"):
+            continue
+        request = event.get("RequestId", "")
+        action = re.search(r"not authorized to perform: ([a-z0-9-]+:[A-Za-z0-9]+)", message)
+        safe.append({"severity": event["Severity"],
+                     "request_id": request if re.fullmatch(r"[0-9a-f-]{36}", request) else None,
+                     "category": "deployment_failed" if message.strip() == "Failed to deploy application."
+                                 else "access_denied" if action else "aws_error",
+                     "denied_action": action.group(1) if action else None})
+    return safe
+
+
 def verify(directory: Path, output: Path, timeout: int = 600) -> None:
     trusted_manual_deployment()
     config = deployment_config()
@@ -326,6 +352,19 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
             write_json(path, receipt)
             if env["Status"] == "Ready" and env.get("VersionLabel") == metadata["application_version"] and env.get("Health") == "Green":
                 break
+            if env["Status"] == "Ready" and env.get("VersionLabel") != metadata["application_version"]:
+                try:
+                    receipt["aws_events"] = deployment_events(config, metadata["application_version"])
+                except RuntimeError:
+                    # A diagnostic lookup failure can never turn verification into PASS.
+                    receipt["diagnostics_status"] = "UNAVAILABLE"
+                else:
+                    failed = next((event for event in receipt["aws_events"]
+                                   if event["category"] == "deployment_failed"), None)
+                    if failed:
+                        raise ValueError("AWS reported application deployment failure; request "
+                                         + (failed["request_id"] or "unavailable")
+                                         + "; expected version is not running (see post-deploy.json)")
             if time.monotonic() >= deadline:
                 raise ValueError("Timed out waiting for expected version and Green environment health")
             time.sleep(10)

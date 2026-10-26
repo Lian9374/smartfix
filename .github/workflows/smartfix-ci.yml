@@ -64,7 +64,7 @@ jobs:
         run: |
           mkdir -p ci-logs
           set -o pipefail
-          python3 -m unittest discover -s deploy/beanstalk -p 'test_ci.py' -v 2>&1 \
+          python3 -m unittest discover -s deploy/beanstalk -p 'test_*.py' -v 2>&1 \
             | python3 deploy/beanstalk/ci.py redact | tee ci-logs/release-tools.log
           python3 -m unittest discover -s tools -p 'test_quality.py' -v 2>&1 \
             | python3 deploy/beanstalk/ci.py redact | tee ci-logs/quality-tools.log

@@ -225,6 +225,23 @@ class ReleaseTests(unittest.TestCase):
                 ci.verify(self.release, self.out, timeout=0)
         self.assertEqual(json.loads((self.out / "post-deploy.json").read_text())["status"], "FAIL")
 
+    def test_explicit_aws_failure_stops_without_waiting_or_leaking_event_messages(self):
+        self.make_release()
+        env = {"ApplicationName": "fixture-app", "Status": "Ready", "Health": "Red", "VersionLabel": "old"}
+        events = [{"Severity": "ERROR", "Message": "Failed to deploy application.",
+                   "RequestId": "12345678-1234-1234-1234-123456789abc"},
+                  {"Severity": "ERROR", "Message": "password=do-not-export not authorized to perform: s3:PutObjectAcl"}]
+        with patch.object(ci, "aws", side_effect=[{"Environments": [env]},
+                          {"ApplicationVersions": [{"DateCreated": "2026-10-26T02:08:30Z"}]},
+                          {"Events": events}]), patch.object(ci.time, "sleep") as sleep:
+            with self.assertRaisesRegex(ValueError, "AWS reported application deployment failure"):
+                ci.verify(self.release, self.out)
+            sleep.assert_not_called()
+        text = (self.out / "post-deploy.json").read_text()
+        self.assertNotIn("do-not-export", text)
+        self.assertIn("s3:PutObjectAcl", text)
+        self.assertEqual(json.loads(text)["status"], "FAIL")
+
     def test_reports_preserve_failure_but_remove_properties_and_app_output(self):
         directory = self.jar_dir / "surefire-reports"
         directory.mkdir()
