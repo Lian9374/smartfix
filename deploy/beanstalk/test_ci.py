@@ -271,6 +271,21 @@ class ReleaseTests(unittest.TestCase):
         self.assertIn("AccessDenied", str(error.exception))
         self.assertNotIn("do-not-log", str(error.exception))
 
+    def test_aws_denial_exposes_only_action_and_fixed_scope_label(self):
+        for path, label in (("resources/_runtime/_embedded_extensions/smartfix/hash", "smartfix_application_extensions"),
+                            ("resources/environments/e-fixture/_runtime/_embedded_extensions/smartfix/hash", "smartfix_environment_extensions")):
+            stderr = ('An error occurred (InsufficientPrivilegesException): User: private-user '
+                      'is not authorized to perform: s3:GetObject on resource: "arn:aws:s3:::fixture/'
+                      + path + '" password=do-not-log private@example.test')
+            result = ci.subprocess.CompletedProcess([], 1, "", stderr)
+            with self.subTest(path=path), patch.object(ci.subprocess, "run", return_value=result), self.assertRaises(RuntimeError) as error:
+                ci.aws("elasticbeanstalk", "update-environment")
+            message = str(error.exception)
+            self.assertIn("denied_action=s3:GetObject", message)
+            self.assertIn("resource_scope=" + label, message)
+            for sensitive in ("private-user", "do-not-log", "private@example.test", path, "arn:aws:s3"):
+                self.assertNotIn(sensitive, message)
+
     def test_malformed_report_does_not_discard_other_diagnostics(self):
         directory = self.jar_dir / "surefire-reports"
         directory.mkdir()
