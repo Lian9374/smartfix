@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 from urllib.parse import urlsplit
+from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 import xml.etree.ElementTree as ET
 import zipfile
@@ -351,7 +352,20 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
     path = output / "post-deploy.json"
     try:
         deadline = time.monotonic() + timeout
+        readiness = {"attempts": 0, "transient_http_statuses": [], "status": "WAITING"}
+
+        def timeout_error() -> ValueError:
+            if readiness["transient_http_statuses"]:
+                return ValueError("Timed out waiting for version/Green health/HTTP startup readiness; last transient HTTP status "
+                                  + str(readiness["transient_http_statuses"][-1]))
+            return ValueError("Timed out waiting for expected version and Green environment health")
+
+        first_poll = True
         while True:
+            if not first_poll and time.monotonic() >= deadline:
+                raise timeout_error()
+            first_poll = False
+            interval = 10
             environments = aws("elasticbeanstalk", "describe-environments", "--environment-names", config["EB_ENVIRONMENT"])["Environments"]
             if len(environments) != 1 or environments[0]["ApplicationName"] != config["EB_APPLICATION"]:
                 raise ValueError("Beanstalk verification target mismatch")
@@ -360,7 +374,30 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
             receipt["environment"] = {key: env.get(key) for key in ("EnvironmentName", "Status", "Health", "HealthStatus", "VersionLabel")}
             write_json(path, receipt)
             if env["Status"] == "Ready" and env.get("VersionLabel") == metadata["application_version"] and env.get("Health") == "Green":
-                break
+                instances = aws("elasticbeanstalk", "describe-instances-health", "--environment-name", config["EB_ENVIRONMENT"], "--attribute-names", "Deployment")["InstanceHealthList"]
+                if not instances or any(item.get("Deployment", {}).get("VersionLabel") != metadata["application_version"]
+                                        or item.get("Deployment", {}).get("Status") != "Deployed" for item in instances):
+                    raise ValueError("Not every instance has deployed the expected version")
+                readiness["attempts"] += 1
+                receipt["http_readiness"] = readiness
+                try:
+                    checks = http_smoke(config["EB_BASE_URL"])
+                except HTTPError as error:
+                    # Green/Info can precede Java/proxy readiness. Only temporary
+                    # gateway/unavailable statuses retry; every assertion must
+                    # eventually pass, under the original shared deadline.
+                    if error.code not in (502, 503, 504):
+                        raise
+                    readiness["transient_http_statuses"].append(error.code)
+                    print(f"HTTP startup not ready ({error.code}); rechecking version, health and endpoints")
+                    interval = 5
+                else:
+                    receipt["checks"] = checks
+                    readiness["status"] = "PASS"
+                    receipt["https_transport_verified"] = transport == "HTTPS"
+                    receipt["status"] = "PASS"
+                    print(f"PASS: expected Beanstalk version, Green health and {transport} anonymous smoke checks")
+                    break
             if env["Status"] == "Ready" and env.get("VersionLabel") != metadata["application_version"]:
                 try:
                     receipt["aws_events"] = deployment_events(config, metadata["application_version"])
@@ -375,16 +412,9 @@ def verify(directory: Path, output: Path, timeout: int = 600) -> None:
                                          + (failed["request_id"] or "unavailable")
                                          + "; expected version is not running (see post-deploy.json)")
             if time.monotonic() >= deadline:
-                raise ValueError("Timed out waiting for expected version and Green environment health")
-            time.sleep(10)
-        instances = aws("elasticbeanstalk", "describe-instances-health", "--environment-name", config["EB_ENVIRONMENT"], "--attribute-names", "Deployment")["InstanceHealthList"]
-        if not instances or any(item.get("Deployment", {}).get("VersionLabel") != metadata["application_version"]
-                                or item.get("Deployment", {}).get("Status") != "Deployed" for item in instances):
-            raise ValueError("Not every instance has deployed the expected version")
-        receipt["checks"] = http_smoke(config["EB_BASE_URL"])
-        receipt["https_transport_verified"] = transport == "HTTPS"
-        receipt["status"] = "PASS"
-        print(f"PASS: expected Beanstalk version, Green health and {transport} anonymous smoke checks")
+                raise timeout_error()
+            write_json(path, receipt)
+            time.sleep(min(interval, max(0, deadline - time.monotonic())))
     finally:
         write_json(path, receipt)
 

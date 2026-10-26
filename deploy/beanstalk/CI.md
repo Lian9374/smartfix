@@ -4,6 +4,15 @@ For failed control-plane delivery, use the separate manual
 [same-role S3 diagnostics](../../docs/ci-cd/beanstalk-delivery-diagnostics.md)
 before another deployment. It never updates the running environment.
 
+Post-deploy verification shares one bounded deadline across Beanstalk readiness
+and anonymous HTTP startup checks. Green/Info can precede the Java process being
+ready: only HTTP 502/503/504 are retried, at most every five seconds while HTTP
+readiness is pending, and every retry rechecks the exact version, Green state and
+all instance deployments. Other HTTP errors, redirects and failed response-body
+assertions remain blocking. Persistent startup errors time out and fail. The
+receipt records actual attempt counts and transient statuses; no 5xx is accepted
+as a passing check.
+
 Quality gates now extend this release path: see [quality rules and real results](../../docs/quality/README.md).
 For the formal path, Docker is a mandatory verification check. A separate
 [container release and temporary test deployment path](../../docs/ci-cd/container-release.md)
