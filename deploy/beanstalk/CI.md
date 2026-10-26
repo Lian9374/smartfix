@@ -1,5 +1,9 @@
 # SmartFix CI and opt-in Java SE Beanstalk CD
 
+For failed control-plane delivery, use the separate manual
+[same-role S3 diagnostics](../../docs/ci-cd/beanstalk-delivery-diagnostics.md)
+before another deployment. It never updates the running environment.
+
 Quality gates now extend this release path: see [quality rules and real results](../../docs/quality/README.md).
 For the formal path, Docker is a mandatory verification check. A separate
 [container release and temporary test deployment path](../../docs/ci-cd/container-release.md)
