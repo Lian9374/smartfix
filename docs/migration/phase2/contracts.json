@@ -1,0 +1,347 @@
+{
+  "contractVersion": "1.0-design",
+  "implementationStatus": "NOT_IMPLEMENTED",
+  "browserRouteMappings": [
+    {
+      "browserMethod": "GET",
+      "browserPath": "/admin/community/reports",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/moderation/reports",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/admin/community/reports/{reportId}/resolve",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/moderation/reports/{reportId}/resolve",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/admin/community/questions/{questionId}/hide",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/moderation/questions/{questionId}/hide",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/admin/community/questions/{questionId}/restore",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/moderation/questions/{questionId}/restore",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/admin/community/answers/{answerId}/hide",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/moderation/answers/{answerId}/hide",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/admin/community/answers/{answerId}/restore",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/moderation/answers/{answerId}/restore",
+      "source": "src/main/java/com/smartfix/community/controller/AdminCommunityController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}/answers",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}/answers",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community/answers/{answerId}/edit",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/answers/{answerId}/edit-context",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/answers/{answerId}",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/answers/{answerId}",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/answers/{answerId}/withdraw",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/answers/{answerId}/withdraw",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}/answers/{answerId}/accept",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}/answers/{answerId}/accept",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}/acceptance/remove",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}/acceptance/remove",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityAnswerController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/questions",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community/mine",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/mine",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community/questions/new",
+      "owner": "Core HTML",
+      "targetKind": "core-form-only",
+      "communityMethod": null,
+      "communityPath": null,
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community/questions/{questionId}",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/questions/{questionId}",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/community/questions/{questionId}/edit",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "GET",
+      "communityPath": "/internal/community/v1/questions/{questionId}/edit-context",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}/withdraw",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}/withdraw",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityQuestionController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/questions/{questionId}/reports",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/questions/{questionId}/reports",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityReportController.java"
+    },
+    {
+      "browserMethod": "POST",
+      "browserPath": "/community/answers/{answerId}/reports",
+      "owner": "Core HTML",
+      "targetKind": "service-api",
+      "communityMethod": "POST",
+      "communityPath": "/internal/community/v1/answers/{answerId}/reports",
+      "source": "src/main/java/com/smartfix/community/controller/CommunityReportController.java"
+    },
+    {
+      "browserMethod": "GET",
+      "browserPath": "/admin/community/audit",
+      "owner": "Core HTML",
+      "targetKind": "core-unified-audit-projection",
+      "communityMethod": null,
+      "communityPath": null,
+      "source": "src/main/java/com/smartfix/audit/controller/AuditController.java"
+    }
+  ],
+  "additionalCommunityOperations": [
+    {
+      "method": "POST",
+      "path": "/internal/community/v1/commands/lookup",
+      "purpose": "actor scoped idempotent result lookup",
+      "body": [
+        "operation",
+        "key"
+      ]
+    },
+    {
+      "method": "GET",
+      "path": "/internal/community/v1/audit",
+      "purpose": "administrator-only authoritative community audit"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/community/v1/moderation/reports/count",
+      "purpose": "administrator-only OPEN badge count"
+    }
+  ],
+  "coreEventReceiver": {
+    "method": "POST",
+    "path": "/internal/community-events/v1/events",
+    "identity": "community service credential; audience smartfix-core-events",
+    "dedupKey": "eventId",
+    "commitBeforeAck": true
+  },
+  "eventEnvelopeRequired": [
+    "eventId",
+    "eventType",
+    "schemaVersion",
+    "producer",
+    "aggregateType",
+    "aggregateId",
+    "aggregateSequence",
+    "occurredAt",
+    "traceId",
+    "payload"
+  ],
+  "eventTypes": {
+    "CommunityAnswerCreated": [
+      "answerId",
+      "questionId",
+      "questionAuthorId",
+      "answerAuthorId",
+      "occurredAt"
+    ],
+    "CommunityAnswerAccepted": [
+      "answerId",
+      "questionId",
+      "questionAuthorId",
+      "answerAuthorId",
+      "occurredAt"
+    ],
+    "CommunityContentVisibilityChanged": [
+      "contentId",
+      "contentType",
+      "questionId",
+      "authorId",
+      "actorUserId",
+      "resultingStatus",
+      "occurredAt"
+    ],
+    "CommunityAuditRecorded": [
+      "sourceAuditId",
+      "legacySourceId",
+      "actorId",
+      "action",
+      "targetType",
+      "targetId",
+      "outcome",
+      "occurredAt"
+    ]
+  },
+  "errorCodes": {
+    "400": [
+      "VALIDATION_FAILED",
+      "INVALID_ENUM"
+    ],
+    "401": [
+      "UNAUTHENTICATED"
+    ],
+    "403": [
+      "FORBIDDEN"
+    ],
+    "404": [
+      "CONTENT_NOT_FOUND"
+    ],
+    "409": [
+      "STATE_CONFLICT",
+      "DUPLICATE_CONTENT",
+      "POSTING_LIMIT",
+      "REPORT_ALREADY_EXISTS",
+      "KEY_REUSED",
+      "COMMAND_IN_PROGRESS"
+    ],
+    "503": [
+      "DEPENDENCY_UNAVAILABLE"
+    ]
+  },
+  "idempotency": {
+    "header": "Idempotency-Key",
+    "scope": [
+      "actorId",
+      "operation",
+      "key"
+    ],
+    "sameKeyDifferentDigestStatus": 409,
+    "retentionHours": 24,
+    "resultStoredWithBusinessTransaction": true
+  },
+  "paging": {
+    "pageBase": 0,
+    "negativePage": 0,
+    "communityDefault": 10,
+    "auditDefault": 20,
+    "maxSize": 50,
+    "response": [
+      "items",
+      "page",
+      "size",
+      "totalElements",
+      "totalPages",
+      "hasNext"
+    ]
+  },
+  "sourceFacts": {
+    "actualListenerPhase": "BEFORE_COMMIT",
+    "historicalCommentPhase": "AFTER_COMMIT",
+    "postingGuardCurrentlyLocks": "users",
+    "displayNamesCurrentlyBatched": true
+  },
+  "runtimeValidation": "NOT_RUN - documentation only"
+}
