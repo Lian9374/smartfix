@@ -1,0 +1,1 @@
+CREATE TABLE core_community_inbox(event_id UUID PRIMARY KEY, request_hash VARCHAR(64) NOT NULL, question_id BIGINT NOT NULL, aggregate_sequence BIGINT NOT NULL, received_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP, UNIQUE(question_id,aggregate_sequence));

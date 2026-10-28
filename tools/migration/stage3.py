@@ -102,6 +102,9 @@ def start(service):
     if (identity/'core-public.der').is_file():
         args += ['--smartfix.community.identity.enabled=true','--smartfix.community.identity.public-key='+str(identity/'core-public.der')]
         if service=='core':args += ['--smartfix.community.identity.private-key='+str(identity/'core-private.pk8')]
+    if (identity/'community-public.der').is_file():
+        args += ['--smartfix.community.events.enabled=true','--smartfix.community.events.public-key='+str(identity/'community-public.der')]
+        if service=='community':args += ['--smartfix.community.events.private-key='+str(identity/'community-private.pk8')]
     with (RUNTIME/(service+'-private.log')).open('wb') as out:
         app=subprocess.Popen(args,cwd=ROOT,env=env,stdout=out,stderr=out,creationflags=subprocess.CREATE_NO_WINDOW)
     data['services'][service]={'pid':app.pid,'jar':str(jar),'jarSha256':hashlib.sha256(jar.read_bytes()).hexdigest(),'url':'http://127.0.0.1:'+str(PORTS[service])}
@@ -140,8 +143,10 @@ def verify():
     identity_enabled=(RUNTIME/'identity/core-public.der').is_file()
     expected_tables={'community_questions','community_answers','community_reports','flyway_schema_history'}
     if identity_enabled:expected_tables.add('community_posting_guards')
+    events_enabled=(RUNTIME/'identity/community-public.der').is_file()
+    if events_enabled:expected_tables.update({'community_answer_commands','community_outbox'})
     assert set(public_tables)==expected_tables
-    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')==('4' if identity_enabled else '3')
+    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')==('5' if events_enabled else '4' if identity_enabled else '3')
     results['community_own_flyway_and_only_owned_tables']=True
     constraints=sql(data,"SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE connamespace='public'::regnamespace;",'smartfix_migration_community')
     assert 'REFERENCES users' not in constraints and 'REFERENCES community_answers(id, question_id)' in constraints

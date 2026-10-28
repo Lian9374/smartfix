@@ -64,7 +64,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/technician", "/technician/profile").hasRole(TECHNICIAN)
                         .requestMatchers(HttpMethod.POST, "/technician/profile").hasRole(TECHNICIAN)
                         // Frozen Sprint 3 A/D/E contracts; services still enforce authorship/recipients.
-                        .requestMatchers(HttpMethod.GET, "/community/connection").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/community/connection", "/community/migration-demo").authenticated()
                         .requestMatchers(HttpMethod.GET, "/community", "/community/mine", "/community/questions/new",
                                 "/community/questions/*", "/community/questions/*/edit", "/community/answers/*/edit",
                                 "/notifications", "/announcements").authenticated()
