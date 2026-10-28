@@ -1,6 +1,6 @@
 {
   "contractVersion": "1.0-design",
-  "implementationStatus": "NOT_IMPLEMENTED",
+  "implementationStatus": "PARTIAL_IDENTITY_FOUNDATIONS_STAGE4",
   "browserRouteMappings": [
     {
       "browserMethod": "GET",
@@ -288,7 +288,9 @@
   "errorCodes": {
     "400": [
       "VALIDATION_FAILED",
-      "INVALID_ENUM"
+      "INVALID_ENUM",
+      "DUPLICATE_CONTENT",
+      "POSTING_LIMIT"
     ],
     "401": [
       "UNAUTHENTICATED"
@@ -301,8 +303,6 @@
     ],
     "409": [
       "STATE_CONFLICT",
-      "DUPLICATE_CONTENT",
-      "POSTING_LIMIT",
       "REPORT_ALREADY_EXISTS",
       "KEY_REUSED",
       "COMMAND_IN_PROGRESS"
@@ -343,5 +343,10 @@
     "postingGuardCurrentlyLocks": "users",
     "displayNamesCurrentlyBatched": true
   },
-  "runtimeValidation": "NOT_RUN - documentation only"
+  "runtimeValidation": "NOT_RUN - documentation only",
+  "implementedFoundations": [
+    "Core short-lived identity issuance and batched display names",
+    "Community JWT authentication and role/ownership context checks",
+    "Community transactional posting guard"
+  ]
 }

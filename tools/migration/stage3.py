@@ -98,6 +98,10 @@ def start(service):
     env={k:v for k,v in os.environ.items() if not k.startswith(('DB_','SMARTFIX_','SPRING_','POSTGRES_','JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS'))}
     env.update(DB_URL='jdbc:postgresql://127.0.0.1:15453/'+db,DB_USERNAME=role,DB_PASSWORD=private[service])
     args=['java','-jar',str(jar),'--smartfix.migration.isolated=true','--smartfix.migration.root='+str(ROOT),'--server.address=127.0.0.1','--server.port='+str(PORTS[service]),'--server.servlet.session.cookie.name=SMARTFIX_MIGRATION_'+role,'--smartfix.uploads.dir='+str(uploads),'--smartfix.notification.email.enabled=false','--smartfix.bootstrap-admin.enabled=false','--smartfix.notification.delivery.scheduling-enabled=false','--smartfix.notification.delivery.eager-enabled=false','--spring.jpa.hibernate.ddl-auto=validate']
+    identity=RUNTIME/'identity'
+    if (identity/'core-public.der').is_file():
+        args += ['--smartfix.community.identity.enabled=true','--smartfix.community.identity.public-key='+str(identity/'core-public.der')]
+        if service=='core':args += ['--smartfix.community.identity.private-key='+str(identity/'core-private.pk8')]
     with (RUNTIME/(service+'-private.log')).open('wb') as out:
         app=subprocess.Popen(args,cwd=ROOT,env=env,stdout=out,stderr=out,creationflags=subprocess.CREATE_NO_WINDOW)
     data['services'][service]={'pid':app.pid,'jar':str(jar),'jarSha256':hashlib.sha256(jar.read_bytes()).hexdigest(),'url':'http://127.0.0.1:'+str(PORTS[service])}
@@ -133,8 +137,11 @@ def verify():
         with urllib.request.urlopen(data['services'][service]['url']+'/actuator/health',timeout=5) as r:assert json.loads(r.read())['status']=='UP'
         results[service+'_health']=True
     public_tables=sql(data,"SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename;",'smartfix_migration_community').splitlines()
-    assert set(public_tables)=={'community_questions','community_answers','community_reports','flyway_schema_history'}
-    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')=='3'
+    identity_enabled=(RUNTIME/'identity/core-public.der').is_file()
+    expected_tables={'community_questions','community_answers','community_reports','flyway_schema_history'}
+    if identity_enabled:expected_tables.add('community_posting_guards')
+    assert set(public_tables)==expected_tables
+    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')==('4' if identity_enabled else '3')
     results['community_own_flyway_and_only_owned_tables']=True
     constraints=sql(data,"SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE connamespace='public'::regnamespace;",'smartfix_migration_community')
     assert 'REFERENCES users' not in constraints and 'REFERENCES community_answers(id, question_id)' in constraints
@@ -155,8 +162,8 @@ def verify():
     ROLLBACK;""",'smartfix_migration_community',ROLES['community'])
     results['postgres_rejects_wrong_acceptance_and_dual_report_target']=True
     try:urllib.request.urlopen(data['services']['community']['url']+'/internal/community/v1/questions',timeout=5);raise AssertionError('Skeleton exposed business API')
-    except urllib.error.HTTPError as e:assert e.code==403
-    results['community_business_api_denied_until_stage4']=True
+    except urllib.error.HTTPError as e:assert e.code==(401 if identity_enabled else 403)
+    results['community_anonymous_business_api_denied']=True
     # Login with cloned synthetic data; never change original or baseline credentials.
     import re
     jar=http.cookiejar.CookieJar();opener=urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))

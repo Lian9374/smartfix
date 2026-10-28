@@ -24,6 +24,7 @@
     </properties>
 
     <dependencies>
+        <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-oauth2-jose</artifactId></dependency>
         <!-- Web / server-rendered UI -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

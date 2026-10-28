@@ -26,7 +26,7 @@ QuestionSummary 包含 id/title/category/authorId/status/solved/acceptedAnswerId
 
 页码从0开始，负值归零；size<=0使用各页面现有默认值（社区10、审计20），最大50。返回 items/page/size/totalElements/totalPages/hasNext。枚举大小写与现有枚举一致，未知值400。q 使用现有 trim/大小写和字面搜索语义，不扩展为 SQL 通配符查询。
 
-列表 category/filter/q 保留；filter 默认 LATEST，UNANSWERED=未采纳，SOLVED=已采纳。mine 的 tab 默认 QUESTIONS，可选 ANSWERS。举报 view=OPEN/HANDLED/ALL，默认 OPEN；OPEN 最旧优先，历史最新优先。所有排序都有 id 次级键，问题最新优先、详情回答最旧优先；保留越界分页回到有效页的 HTML 适配行为。
+列表 category/filter/q 保留；filter 默认 LATEST，UNANSWERED=未采纳，SOLVED=已采纳。mine 的 tab 默认 QUESTIONS，可选 ANSWERS。举报 view=OPEN/HANDLED/ALL，默认 OPEN；OPEN 最旧优先，历史最新优先。所有排序都有 id 次级键，问题最新优先、详情采纳回答置顶、其余最旧优先；保留越界分页回到有效页的 HTML 适配行为。
 
 ## 写入、错误与超时
 
@@ -34,7 +34,7 @@ QuestionSummary 包含 id/title/category/authorId/status/solved/acceptedAnswerId
 
 POST /commands/lookup 接收 operation+key，只返回该主体的执行状态和结果；通过 INTERNAL_UNKNOWN 表示未确认结果，不能展示“肯定失败”。重复投递有界重试，禁用未经幂等保护的 POST 自动重试。成功创建201、更新/动作200，无状态改变的合法幂等动作200且不重复发事件。
 
-统一错误体 code/message/fieldErrors/traceId/retryable。400 VALIDATION_FAILED/INVALID_ENUM；401 UNAUTHENTICATED；403 FORBIDDEN；404 CONTENT_NOT_FOUND；409 STATE_CONFLICT/DUPLICATE_CONTENT/POSTING_LIMIT/REPORT_ALREADY_EXISTS/KEY_REUSED/COMMAND_IN_PROGRESS；503 DEPENDENCY_UNAVAILABLE。保持原业务拒绝所用页面行为，发帖业务限额按既有冲突语义，不擅自改成HTTP429。基础设施过载的429须独立标注，不与业务限额混淆。
+统一错误体 code/message/fieldErrors/traceId/retryable。400 VALIDATION_FAILED/INVALID_ENUM/DUPLICATE_CONTENT/POSTING_LIMIT；401 UNAUTHENTICATED；403 FORBIDDEN；404 CONTENT_NOT_FOUND；409 STATE_CONFLICT/REPORT_ALREADY_EXISTS/KEY_REUSED/COMMAND_IN_PROGRESS；503 DEPENDENCY_UNAVAILABLE。保持原业务拒绝所用页面行为，发帖业务限额按既有冲突语义，不擅自改成HTTP429。基础设施过载的429须独立标注，不与业务限额混淆。
 
 Core 适配字段错误回原表单、冲突回原提示，保留成功后的重定向及筛选参数。初始连接超时1秒、响应超时3秒、最多一次有条件读取重试；写入按幂等查结果。具体连接池上限由阶段3资源预算配置，必须有界并隔离社区调用，不能占满维修线程。
 
@@ -43,3 +43,5 @@ Core 适配字段错误回原表单、冲突回原提示，保留成功后的重
 GET /audit（Community）返回权限控制的社区权威审计，供社区审核结果核对。原 /admin/community/audit 页面查询 Core 本地统一审计视图，按 occurredAt DESC/sourceService/sourceAuditId 稳定分页，保留非社区类别。
 
 Community→Core 使用独立服务身份和 Core 受众凭证：POST /internal/community-events/v1/events。不能使用用户凭证冒充发布器。Core 持久提交 inbox+通知任务/审计投影后返回200 accepted（duplicate=true 可表示已处理）；未知 schemaVersion422，暂时故障503并重试。同 eventId 不同摘要409并隔离告警，不覆盖。
+
+阶段4源码核对补充：问题重复/发帖配额原服务抛InputValidationException，保持400；不是此前草案409。作者可读取自己的隐藏/撤回内容及编辑表单上下文，返回editable=false；实际写入仍按状态冲突拒绝，非作者404。
