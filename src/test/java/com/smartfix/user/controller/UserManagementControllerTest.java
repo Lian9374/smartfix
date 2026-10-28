@@ -96,7 +96,7 @@ class UserManagementControllerTest {
 
         mockMvc.perform(get("/admin/users"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("No accounts exist yet.")));
+                .andExpect(content().string(containsString("No matching accounts")));
     }
 
     @Test

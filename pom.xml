@@ -110,6 +110,7 @@
                     <failIfNoTests>true</failIfNoTests>
                     <!-- Native PostgreSQL cases are opt-in through postgres-it; H2 authentication IT still runs in verify. -->
                     <excludes>
+                        <exclude>**/*PostgresIT.java</exclude>
                         <exclude>**/MigrationIT.java</exclude>
                         <exclude>**/AttachmentPersistenceIT.java</exclude>
                         <exclude>**/RequestMigrationIT.java</exclude>

@@ -7,6 +7,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import java.security.Principal;
 
 /** A fresh, recipient-scoped count for every authenticated page render. */
 @ControllerAdvice
@@ -18,9 +19,10 @@ public class NotificationNavigationAdvice {
     }
 
     @ModelAttribute
-    public void addUnreadCount(Model model, Authentication authentication) {
+    public void addUnreadCount(Model model, Principal principal) {
         long count = 0;
-        if (authentication != null && authentication.getPrincipal() instanceof SmartFixUserDetails user) {
+        if (principal instanceof Authentication authentication
+                && authentication.getPrincipal() instanceof SmartFixUserDetails user) {
             var service = notifications.getIfAvailable();
             if (service != null) count = service.getUnreadCount(user.getUserId());
         }

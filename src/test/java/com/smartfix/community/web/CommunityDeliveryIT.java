@@ -20,6 +20,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Instant;
+import java.time.Duration;
+import static org.awaitility.Awaitility.await;
 import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -45,6 +47,7 @@ class CommunityDeliveryIT {
     @Autowired CommunityModerationService moderation;
     @Autowired NotificationRepository notifications;
     @Autowired NotificationService notificationService;
+    @Autowired com.smartfix.notification.service.DeliveryDispatcher dispatcher;
     @Autowired AuditEntryRepository audit;
     @Autowired PlatformTransactionManager transactions;
     Long alice, bob, admin;
@@ -65,12 +68,14 @@ class CommunityDeliveryIT {
     @Test void committedAnswerAndAcceptanceNotifyTheCorrectPeople() {
         var question = question();
         Long answer = answerService.post(question.getId(), body(), bob);
+        awaitNotification(alice, "COMMUNITY_ANSWER_CREATED");
         var created = notificationService.getNotifications(alice);
         assertThat(created).hasSize(1);
         assertThat(created.get(0).getEventType()).isEqualTo("COMMUNITY_ANSWER_CREATED");
         assertThat(created.get(0).getTargetUrl()).isEqualTo("/community/questions/" + question.getId());
         assertThat(notificationService.getNotifications(bob)).isEmpty();
         answerService.accept(question.getId(), answer, alice);
+        awaitNotification(bob, "COMMUNITY_ANSWER_ACCEPTED");
         var accepted = notificationService.getNotifications(bob);
         assertThat(accepted).hasSize(1);
         assertThat(accepted.get(0).getEventType()).isEqualTo("COMMUNITY_ANSWER_ACCEPTED");
@@ -211,6 +216,17 @@ class CommunityDeliveryIT {
         mvc.perform(post("/notifications/{id}/read", id).session(owner).with(csrf()))
                 .andExpect(redirectedUrl("/notifications"));
         assertThat(notificationService.getUnreadCount(alice)).isZero();
+    }
+
+    private void awaitNotification(Long recipient, String eventType) {
+        // Delivery is an outbox operation, not part of the business commit. With
+        // scheduled scans disabled in tests, explicitly drive the real dispatcher.
+        await().atMost(Duration.ofSeconds(5)).pollInterval(Duration.ofMillis(25))
+                .untilAsserted(() -> {
+                    dispatcher.drain();
+                    assertThat(notificationService.getNotifications(recipient))
+                            .singleElement().extracting(n -> n.getEventType()).isEqualTo(eventType);
+                });
     }
 
     private Long account(String name, Role role) {

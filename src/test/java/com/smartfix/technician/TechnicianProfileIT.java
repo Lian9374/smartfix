@@ -53,6 +53,8 @@ class TechnicianProfileIT {
     @Autowired UserService users;
     @Autowired TechnicianDirectoryService directory;
     @Autowired JdbcTemplate jdbc;
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.smartfix.notification.service.NotificationService notifications;
     private Long technicianId;
     private Long otherTechnicianId;
 

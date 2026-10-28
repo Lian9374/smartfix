@@ -36,7 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Verifies the authenticated home page through the real filter chain and template engine.
  *
- * <p>Both collaborators are mocked here: this test is about the controller's own
+ * <p>Page data collaborators, including the shared notification count, are mocked here:
+ * this test is about the controller's own
  * wiring - which attributes it sets, which view it returns, what the template
  * makes of them - not about the queries behind them. The real data path is
  * covered by {@code RequestPagesRenderingIT}, which runs the whole stack over an
@@ -57,6 +58,9 @@ class HomeControllerTests {
     private RequestQueryService requestQueryService;
     @MockitoBean
     private com.smartfix.announcement.service.AnnouncementService announcements;
+
+    @MockitoBean
+    private com.smartfix.notification.service.NotificationService notifications;
 
     @Test
     void homeLimitsNoticePreviewAndProvidesMultipleSlideControls() throws Exception {
