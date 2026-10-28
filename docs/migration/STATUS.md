@@ -1,7 +1,7 @@
 # 迁移状态
 
-阶段1：自动备份/恢复/HTTP业务验证已通过；用户已在本聊天明确确认浏览器验收全部通过。
-Git准备：基线 baseline/ready-for-migration 不变，迁移分支 feature/community-microservice，main 不变。
-阶段2：设计文档完成，静态一致性检查通过；未修改业务实现、未执行运行期测试。
-下一步：用户核对 phase2/REGRESSION_AND_GATES.md 的功能保留清单后，再单独指示阶段3。尚未进入阶段3。
-详细证据：phase2/VALIDATION.md；API映射：phase2/contracts.json。
+阶段1：保护/恢复与用户浏览器验收通过。阶段2：设计已提交3c35854，用户已指示执行阶段3。
+阶段3：两个独立应用和数据库骨架完成，16项保护测试及实际构建/启动/重启/权限/约束/HTTP检查通过。
+业务边界尚未切换：Core保留内置社区，Community仅独立空schema与健康端点；API身份、业务和事件在后续阶段实现。
+原版、main、基线标签和19090/15443保护资源保留不变。所有运行凭据仅存在忽略的私有runtime目录。
+待用户核对phase3/RUNBOOK.md与VALIDATION.md中的浏览器入口后，单独指示阶段4。尚未进入阶段4。
