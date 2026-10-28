@@ -158,6 +158,6 @@
             </build>
         </profile>
     <profile><id>stage7-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage7/build-core</directory></build></profile>
-    </profiles>
+    <profile><id>stage8-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage8/build-core</directory></build></profile></profiles>
 
 </project>

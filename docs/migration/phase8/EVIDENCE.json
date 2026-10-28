@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-28",
+  "startCommit": "2ea36728d4d3f26506c1d064558cb43b0a7e74a0",
+  "nativeChecks": {
+    "lb_reaches_two_real_distinct_jvms": true,
+    "cross_jvm_acceptance_competition": true,
+    "cross_jvm_command_idempotency_and_conflict": true,
+    "cross_jvm_first_guard_duplicate_and_rolling_quota": true,
+    "cross_jvm_moderation_competition_and_audit": true,
+    "two_publishers_duplicate_event_has_one_notification": true,
+    "actual_claimant_jvm_exit_and_other_jvm_lease_recovery": true,
+    "lb_removes_and_restores_one_backend": true,
+    "all_community_down_core_handles_fixed_read_load_and_real_repair_write": true,
+    "independent_compatible_community_artifact_core_not_redeployed": true
+  },
+  "nativeProof": {
+    "servingJvms": [
+      "a:46780",
+      "b:77240"
+    ],
+    "killedClaimant": "b:77240",
+    "durableLeaseAfterKill": "1",
+    "communityFailureSeconds": 0.047,
+    "outageTicket": "SF-2026-000009",
+    "releases": [
+      "stage8-compatible-r2",
+      "stage8-r1"
+    ],
+    "unchangedCore": {
+      "pid": 37352,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\build-core\\smartfix-0.0.1-SNAPSHOT.jar",
+      "sha256": "c56ad2787eb681f0d002a80bf14ffb1d7469feae9bdcf849e9330cade2fb2fd3"
+    },
+    "questionId": 70,
+    "leaseRecoveryReceipt": {
+      "eventId": "58f25a0a-6322-43cb-9b02-9dff54fbc97b",
+      "attempts": 3,
+      "notifications": 1
+    }
+  },
+  "communityRegression": {
+    "real_original_question_form_api_write_no_core_copy_and_idempotency": true,
+    "literal_search_pagination_my_questions_edit_ownership": true,
+    "browser_reply_my_answers_edit_and_thread_ownership": true,
+    "postgres_accept_competition_reaccept_and_withdraw_clears_acceptance": true,
+    "reports_moderator_permissions_competition_history_hide_restore": true,
+    "solved_unanswered_filters_and_answer_report_dismissal": true,
+    "moderation_audit_failure_rolls_back_business_and_events": true,
+    "notification_repeated_actions_audit_projection_original_pages": true,
+    "global_audit_keeps_user_delivery_sla_sources_and_pagination": true,
+    "csrf_question_withdrawal_visibility_and_no_moderator_republish": true,
+    "community_outage_bounded_error_repair_and_map_remain_available": true,
+    "all_services_and_protected_recovery_available": true
+  },
+  "repair": {
+    "threeRoleRepairClosed": true,
+    "pngUploadAndAuthorizedRead": true,
+    "ticket": "SF-2026-000008",
+    "attachmentId": 2,
+    "orderId": 3,
+    "automaticRepairInAppNotifications": 8
+  },
+  "additional": {
+    "acceptVsHideRace": true,
+    "receiverOutageDurableRetryAndRecovery": true,
+    "technicianCommunityAndWorkspace": true,
+    "strangerAttachmentAndAdminDenied": true,
+    "coreArtifactUnchangedAfterRestart": true,
+    "coreBeforeReceiverOutage": {
+      "pid": 37352,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\build-core\\smartfix-0.0.1-SNAPSHOT.jar",
+      "sha256": "c56ad2787eb681f0d002a80bf14ffb1d7469feae9bdcf849e9330cade2fb2fd3"
+    },
+    "coreAfterReceiverRecovery": {
+      "pid": 44548,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\build-core\\smartfix-0.0.1-SNAPSHOT.jar",
+      "sha256": "c56ad2787eb681f0d002a80bf14ffb1d7469feae9bdcf849e9330cade2fb2fd3"
+    }
+  },
+  "unitTests": {
+    "core": 13,
+    "community": 33
+  },
+  "resources": {
+    "container": "sf-migration-stage8-20261028-220337-db",
+    "containerId": "dd162388377527231e17318fd5a23a20684bb563acc0dc48a92fca143c12ade3",
+    "volume": "sf-migration-stage8-20261028-220337-data",
+    "services": {
+      "a": {
+        "pid": 75624,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\community-r2.jar",
+        "sha256": "29fcac4a8fdc90038c0e073912ca1738244e32bd3ded47e22a4bec3fd615f48f"
+      },
+      "b": {
+        "pid": 76312,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\build-community\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "2ecfbb33ddeda8463d01617b62c857a840a35e088ab38a79b37a8a8cbd1cc9e8"
+      },
+      "core": {
+        "pid": 44548,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage8\\build-core\\smartfix-0.0.1-SNAPSHOT.jar",
+        "sha256": "c56ad2787eb681f0d002a80bf14ffb1d7469feae9bdcf849e9330cade2fb2fd3"
+      },
+      "lb": {
+        "pid": 46292,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\tools\\migration\\stage8_lb.py",
+        "sha256": "537c5478d6bb7f700e2ff259d30bf7977debb0d74baa782b0268adf974f945cd"
+      }
+    },
+    "coreSourceSha256": "bba47cdbac6f5298c7d6ff61b3efae50b882b7a6b44bde6443e1569aa67d30d2",
+    "communitySourceSha256": "08d3a1fde6afd20ab73f222a71b0f2d65b14bea9750f71f1ed66e5b1a74817a8",
+    "provisioned": true,
+    "sourceCommunityDigest": "aecd400252e1a15e9de31d8cb9197a2b2ccc76b7958fbeae93245a1ec5a687fc"
+  },
+  "protection": {
+    "originalFilesChecked": 4421,
+    "originalUnchanged": true,
+    "protectedContainersUnchanged": true,
+    "existingSevenEntriesHealthy": true,
+    "crossServiceDatabaseAccessDenied": true,
+    "stage7CutoverTriggersAbsentOnlyInStage8Clones": true
+  },
+  "stage9Allowed": false,
+  "browserAcceptance": "PENDING_USER"
+}
