@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-28",
+  "startCommit": "4e7d5d326205af180e967a8885b64b98741b6fdf",
+  "checks": {
+    "backup_restore_fixture_and_initial_copy": true,
+    "paused_drained_final_sync_single_writer_and_historical_links": true,
+    "no_new_write_rollback_to_disposable_monolith": true,
+    "new_question_answer_acceptance_report_audit_and_stale_rollback_refused": true,
+    "new_database_incremental_restore_rows_notifications_audit_accounts_sequences_and_pages": true,
+    "separate_database_roles_and_attachment_copies_verified": true,
+    "original_fingerprints_protected_containers_and_all_seven_entries_healthy": true,
+    "stale_activation_guard_and_all_inactive_writer_roles_rejected": true,
+    "restored_sequences_generate_higher_ids_without_committed_probe_data": true
+  },
+  "targetedTests": {
+    "core": 12,
+    "community": 10
+  },
+  "container": {
+    "name": "sf-migration-stage7-20261028-211700-db",
+    "id": "9ef46e1bfdb6aa8725617077dcf05f008272b4eb6163db5e828f3dbd1523ab27",
+    "volume": "sf-migration-stage7-20261028-211700-data",
+    "port": 15463
+  },
+  "ports": {
+    "source": 19093,
+    "community": 19094,
+    "core": 19095,
+    "restore_delta": 19096
+  },
+  "initialCounts": {
+    "community_questions": 2,
+    "community_answers": 2,
+    "community_reports": 1,
+    "community_audit": 3
+  },
+  "finalSourceCounts": {
+    "community_questions": 2,
+    "community_answers": 3,
+    "community_reports": 1,
+    "community_audit": 3
+  },
+  "restoredCounts": {
+    "community_questions": 3,
+    "community_answers": 4,
+    "community_reports": 2,
+    "community_audit": 6
+  },
+  "drainedTransactionSeconds": 3.062,
+  "legacyInAppTasksDrained": [
+    {
+      "database": "source",
+      "count": 4,
+      "emailUnchanged": true
+    }
+  ],
+  "notificationWatermark": 15,
+  "staleSourceRollback": "REFUSED_NEW_SERVICE_WRITES_EXIST",
+  "sequenceProbes": {
+    "community_questions": {
+      "maxBefore": 3,
+      "generatedAndRolledBack": 4
+    },
+    "community_answers": {
+      "maxBefore": 4,
+      "generatedAndRolledBack": 5
+    }
+  },
+  "restoredCommunityDigest": "bdc63bfbe9e186a6f7b8bb94d69be62031f3641fa749b29f0d62ebae8098f6cc",
+  "serviceCommunityDigest": "bdc63bfbe9e186a6f7b8bb94d69be62031f3641fa749b29f0d62ebae8098f6cc",
+  "archives": {
+    "initialSnapshotEvidence": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\01-initial-community-private.json",
+      "sha256": "def8b0e4fd71965775289b071e3a2ebf51e655a900c9fb485894efbeec99dcc6",
+      "bytes": 2535
+    },
+    "initialMonolithArchive": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\02-initial-monolith.dump",
+      "sha256": "8623f55042f5486769cbf2859add8a3506b662e1fc1dda8bcce5ac330d2a5118",
+      "bytes": 101642
+    },
+    "finalSnapshotEvidence": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\03-final-community-private.json",
+      "sha256": "8572cd83af2f01a670512d68639ed0cf547662246fd368e513a0444156f8cc97",
+      "bytes": 2837
+    },
+    "deltaSnapshotEvidence": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\04-service-final-private.json",
+      "sha256": "13440f971b45ad111635e3c868a4e0c7ad309e1fe5c2906e4aa90933a3c8236c",
+      "bytes": 4614
+    },
+    "communityArchive": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\05-community-after-new-writes.dump",
+      "sha256": "516d4f17817ff4be91f68f7a172156142fb2d6d0f9bbfbdb2daafd7ae1b53a77",
+      "bytes": 32410
+    },
+    "coreArchive": {
+      "path": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage7\\archives\\06-core-after-new-writes.dump",
+      "sha256": "6389f6430fdd57a1a201c4ca8221078ae310d2b46bc393589a250004abb624ac",
+      "bytes": 104641
+    }
+  },
+  "originalBackupSha256": "034f7412651b1647f4efceff2b56b9dd0ab439c0cd264f7502bee480c25778ba",
+  "baselineJarSha256": "15b5f8cecf3d294c5231ba974d6c8a034e207e0840b7f98974bca9582b2d2542",
+  "attachmentFilesCopied": 0,
+  "historicalAttachments": "N/A: source backup has zero attachment rows",
+  "coreLegacyDoesNotContainNewQuestion": true,
+  "authority": "restore_delta",
+  "questionIds": {
+    "historicalFixture": 2,
+    "afterCutover": 3
+  },
+  "manualUrl": "http://127.0.0.1:19096/login",
+  "browserAcceptance": "PENDING_USER",
+  "nextStageAllowed": false,
+  "authorityScope": "stage7-community-data"
+}

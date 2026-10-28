@@ -10,10 +10,12 @@ import org.springframework.web.client.RestClient;import org.springframework.http
 @Service @ConditionalOnProperty(name="smartfix.community.identity.enabled",havingValue="true")
 public class CommunityIdentityClient {
  private final UserService users;private final JwtEncoder encoder;private final RestClient client;
- public CommunityIdentityClient(UserService users,@Value("${smartfix.community.identity.private-key}")String privatePath,@Value("${smartfix.community.identity.public-key}")String publicPath)throws Exception{
+ public CommunityIdentityClient(UserService users,String privatePath,String publicPath)throws Exception{this(users,privatePath,publicPath,"http://127.0.0.1:19092");}
+ @org.springframework.beans.factory.annotation.Autowired
+ public CommunityIdentityClient(UserService users,@Value("${smartfix.community.identity.private-key}")String privatePath,@Value("${smartfix.community.identity.public-key}")String publicPath,@Value("${smartfix.community.base-url:http://127.0.0.1:19092}")String baseUrl)throws Exception{
   this.users=users;KeyFactory f=KeyFactory.getInstance("RSA");var priv=(RSAPrivateKey)f.generatePrivate(new PKCS8EncodedKeySpec(Files.readAllBytes(Path.of(privatePath))));var pub=(RSAPublicKey)f.generatePublic(new X509EncodedKeySpec(Files.readAllBytes(Path.of(publicPath))));
   encoder=new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(new com.nimbusds.jose.jwk.RSAKey.Builder(pub).privateKey(priv).keyID("stage4-core-1").build())));
-  var http=new SimpleClientHttpRequestFactory();http.setConnectTimeout(1000);http.setReadTimeout(3000);client=RestClient.builder().baseUrl("http://127.0.0.1:19092").requestFactory(http).build();
+  var http=new SimpleClientHttpRequestFactory();http.setConnectTimeout(1000);http.setReadTimeout(3000);client=RestClient.builder().baseUrl(baseUrl).requestFactory(http).build();
  }
  public String issue(SmartFixUserDetails principal){
   var a=users.getUserAccess(principal.getUserId());

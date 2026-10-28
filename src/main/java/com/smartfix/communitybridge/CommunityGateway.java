@@ -23,16 +23,16 @@ public class CommunityGateway {
     private final CommunityIdentityClient identity; private final ObjectMapper mapper; private final RestClient http;
     private final Semaphore slots;
     @org.springframework.beans.factory.annotation.Autowired
-    public CommunityGateway(CommunityIdentityClient identity,ObjectMapper mapper){
-        this(identity,mapper,defaultClient(),8);
+    public CommunityGateway(CommunityIdentityClient identity,ObjectMapper mapper,@org.springframework.beans.factory.annotation.Value("${smartfix.community.base-url:http://127.0.0.1:19092}") String baseUrl){
+        this(identity,mapper,defaultClient(baseUrl),8);
     }
     CommunityGateway(CommunityIdentityClient identity,ObjectMapper mapper,RestClient http,int concurrency){
         if(concurrency<1||concurrency>64)throw new IllegalArgumentException("Invalid community concurrency limit");
         this.identity=identity;this.mapper=mapper;this.http=http;this.slots=new Semaphore(concurrency);
     }
-    private static RestClient defaultClient(){
+    private static RestClient defaultClient(String baseUrl){
         var factory=new SimpleClientHttpRequestFactory();factory.setConnectTimeout(500);factory.setReadTimeout(2000);
-        return RestClient.builder().baseUrl("http://127.0.0.1:19092/internal/community/v1").requestFactory(factory).build();
+        return RestClient.builder().baseUrl(baseUrl+"/internal/community/v1").requestFactory(factory).build();
     }
     public JsonNode call(Long actor,String operation,Map<String,?> parameters){
         var authentication=SecurityContextHolder.getContext().getAuthentication();

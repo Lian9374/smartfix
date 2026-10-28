@@ -14,4 +14,13 @@ class MigrationIsolationGuardTest {
  @Test void realMailRejected(){assertThrows(IllegalStateException.class,()->check(valid().withProperty("smartfix.notification.email.enabled","true")));}
  @Test void alternateFlywayAndHikariConnectionRejected(){for(String k:new String[]{"spring.flyway.url","spring.flyway.user","spring.datasource.jndi-name","spring.datasource.hikari.jdbc-url","spring.datasource.type"})assertThrows(IllegalStateException.class,()->check(valid().withProperty(k,"forbidden")));}
  @Test void h2TestProfileCannotBypassFlywayGuard(){MockEnvironment e=new MockEnvironment().withProperty("spring.datasource.url","jdbc:h2:mem:unit").withProperty("spring.flyway.url","jdbc:postgresql://127.0.0.1:1/sentinel");e.setActiveProfiles("test");assertThrows(IllegalStateException.class,()->check(e));}
+ @Test void stage7RequiresItsOwnDatabasePortRoleCookieAttachmentsAndPeer(){
+  String prior=System.getProperty("user.dir");
+  try { System.setProperty("user.dir","C:/Users/zhour/smartfix-microservices");
+  var e=valid().withProperty("smartfix.migration.scenario","stage7").withProperty("spring.datasource.url","jdbc:postgresql://127.0.0.1:15463/smartfix_stage7_community").withProperty("spring.datasource.username","sf_stage7_community").withProperty("server.port","19094").withProperty("server.servlet.session.cookie.name","SMARTFIX_STAGE7_COMMUNITY").withProperty("smartfix.uploads.dir","C:/Users/zhour/smartfix-microservices/.migration-runtime/stage7/uploads-community").withProperty("smartfix.community.events.core-base-url","http://127.0.0.1:19095");
+  assertDoesNotThrow(()->check(e));
+  assertThrows(IllegalStateException.class,()->check(e.withProperty("smartfix.community.events.core-base-url","http://127.0.0.1:19090")));
+  assertThrows(IllegalStateException.class,()->check(valid().withProperty("smartfix.migration.scenario","stage7")));
+  } finally { System.setProperty("user.dir",prior); }
+ }
 }

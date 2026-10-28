@@ -157,5 +157,7 @@
                 </plugins>
             </build>
         </profile>
+    <profile><id>stage7-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage7/build-core</directory></build></profile>
     </profiles>
+
 </project>
