@@ -46,6 +46,7 @@
                 ? @{/community/questions/{id}(id=${question.id})}
                 : @{/community/questions}"
             th:object="${command}" method="post">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
 
         <!--
           Errors that belong to the form as a whole rather than to a field - the

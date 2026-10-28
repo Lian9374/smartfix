@@ -43,6 +43,7 @@
 
       <form class="card community-editor" data-community-form th:action="@{/community/answers/{id}(id=${answer.answerId})}"
             th:object="${command}" method="post">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
 
         <!--
           The form-wide error, inside the form because #fields is only bound where

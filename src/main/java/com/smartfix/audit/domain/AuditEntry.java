@@ -14,6 +14,8 @@ public class AuditEntry {
     @Column(nullable = false, name = "target_id") private Long targetId;
     @Column(nullable = false, length = 30) private String outcome;
     @Column(nullable = false, name = "occurred_at") private Instant occurredAt;
+    @Column(nullable = false, length = 20) private String source = "CORE";
+    @Column(name = "source_id") private Long sourceId;
 
     protected AuditEntry() {}
     public static AuditEntry system(String action,String targetType,Long targetId,String outcome,Instant when){
@@ -35,4 +37,6 @@ public class AuditEntry {
     public Long getTargetId() { return targetId; }
     public String getOutcome() { return outcome; }
     public Instant getOccurredAt() { return occurredAt; }
+    public String getSource() { return source; }
+    public Long getSourceId() { return sourceId == null ? id : sourceId; }
 }

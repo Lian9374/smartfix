@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.function.Supplier;
 
 /** Community-owned author lock, quota checks and save callback share one local transaction. */
+@org.springframework.context.annotation.Profile("!community-full")
 @Service
 public class CommunityPostingGuard {
     private final JdbcTemplate db;

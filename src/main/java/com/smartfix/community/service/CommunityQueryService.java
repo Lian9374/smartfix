@@ -57,6 +57,7 @@ import java.util.stream.Collectors;
  * <p>Whether the comparison is accent-insensitive or case-folds beyond ASCII depends on
  * the database collation and is not claimed either way.</p>
  */
+@org.springframework.context.annotation.Profile("!community-remote")
 @Service
 @Transactional(readOnly = true)
 public class CommunityQueryService {

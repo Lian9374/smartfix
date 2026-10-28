@@ -42,3 +42,4 @@ local-db-backups/
 # Isolated migration runtime: private credentials, data and logs
 .migration-runtime/
 community-service/target/
+tools/migration/__pycache__/

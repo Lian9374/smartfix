@@ -100,6 +100,7 @@ import java.util.Set;
  * business transaction, so they commit or roll back together. Restore needs no
  * new public event shape. See ADR-003.</p>
  */
+@org.springframework.context.annotation.Profile("!community-remote")
 @Service
 @Transactional
 public class CommunityModerationService {

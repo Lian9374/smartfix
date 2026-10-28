@@ -123,6 +123,6 @@
       <a class="btn btn--primary" th:href="@{/login}">Go to sign in</a>
     </div>
   </div>
-</main>
+<p th:if="${communityRetryMessage != null}" th:text="${communityRetryMessage}"></p></main>
 </body>
 </html>

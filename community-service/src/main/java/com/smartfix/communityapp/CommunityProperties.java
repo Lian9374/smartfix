@@ -16,6 +16,7 @@ import java.time.Duration;
  * <p>The page sizes are not in that category: default 10 and maximum 50 come from the
  * sprint 3 brief and are treated as fixed.</p>
  */
+@org.springframework.context.annotation.Profile("!community-full")
 @Component
 @ConfigurationProperties(prefix = "smartfix.community")
 public class CommunityProperties {

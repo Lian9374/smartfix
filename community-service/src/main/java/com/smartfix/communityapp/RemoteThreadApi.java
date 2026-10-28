@@ -1,5 +1,6 @@
 package com.smartfix.communityapp;
 import org.springframework.web.bind.annotation.*;import org.springframework.security.core.annotation.AuthenticationPrincipal;import org.springframework.security.oauth2.jwt.Jwt;import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.web.server.ResponseStatusException;import org.springframework.http.HttpStatus;import java.util.*;
+@org.springframework.context.annotation.Profile("!community-full")
 @RestController @RequestMapping("/internal/community/v1")
 class RemoteThreadApi{
  private final RemoteAnswerService answers;private final JdbcTemplate db;RemoteThreadApi(RemoteAnswerService answers,JdbcTemplate db){this.answers=answers;this.db=db;}

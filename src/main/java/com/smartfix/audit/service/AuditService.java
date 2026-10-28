@@ -51,6 +51,6 @@ public class AuditService {
         return repository.findAllByOrderByOccurredAtDescIdDesc(
                 PageRequest.of(Math.max(0, page), Math.min(50, size <= 0 ? 20 : size)))
                 .map(row -> new AuditEntryResponse(row.getId(), row.getActorUserId(), row.getAction(),
-                        row.getTargetType(), row.getTargetId(), row.getOutcome(), row.getOccurredAt()));
+                        row.getTargetType(), row.getTargetId(), row.getOutcome(), row.getOccurredAt(), row.getSource(), row.getSourceId()));
     }
 }

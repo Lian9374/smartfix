@@ -4,6 +4,7 @@ import com.smartfix.community.domain.CommunityContentStatus;
 import com.smartfix.notification.service.DeliveryOutboxService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.*;
+@org.springframework.context.annotation.Profile("!community-remote")
 @Component
 public class CommunityNotificationListener {
     private final DeliveryOutboxService outbox;

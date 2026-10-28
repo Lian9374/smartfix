@@ -31,6 +31,7 @@ import java.time.Instant;
  * branch in which the question is loaded and then judged: a query that cannot return
  * another author's row cannot accidentally act on one.</p>
  */
+@org.springframework.context.annotation.Profile("!community-remote")
 @Service
 @Transactional
 public class CommunityQuestionService {

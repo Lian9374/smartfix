@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
  * RequestSubmissionService}, and it keeps the module's responses from confirming whether
  * an account exists to a caller who has no business asking.</p>
  */
+@org.springframework.context.annotation.Profile("!community-remote")
 @Component
 public class CommunityAccessGuard {
 

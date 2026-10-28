@@ -98,6 +98,7 @@
             <form class="inline-form" method="post"
                   th:action="@{/community/questions/{id}/withdraw(id=${question.id})}"
                   onsubmit="return confirm('Withdraw this question? It will no longer be publicly visible.')">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
               <button class="btn btn--secondary" type="submit">Withdraw</button>
             </form>
           </th:block>
@@ -185,6 +186,7 @@
 
                 <form class="report-entry__form" method="post"
                       th:action="@{/community/questions/{id}/reports(id=${question.id})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                   <div class="report-entry__fields">
                     <p class="form-field">
                       <label class="form-field__label" for="report-question-reason">
@@ -290,6 +292,7 @@
                     <form class="inline-form" method="post"
                           th:action="@{/community/answers/{id}/withdraw(id=${answer.id})}"
                           onsubmit="return confirm('Withdraw this answer? It will no longer be publicly visible. If it is the accepted answer, the question becomes open again.')">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                       <button class="btn btn--secondary" type="submit">Withdraw</button>
                     </form>
                   </th:block>
@@ -301,6 +304,7 @@
                                     and answer.authorId != viewerId}">
                     <form class="inline-form" method="post"
                           th:action="@{/community/questions/{q}/answers/{a}/accept(q=${question.id}, a=${answer.id})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                       <button class="btn btn--primary" type="submit">Accept this answer</button>
                     </form>
                   </th:block>
@@ -308,6 +312,7 @@
                   <th:block th:if="${isAuthor and answer.accepted}">
                     <form class="inline-form" method="post"
                           th:action="@{/community/questions/{id}/acceptance/remove(id=${question.id})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                       <button class="btn btn--secondary" type="submit">Remove acceptance</button>
                     </form>
                   </th:block>
@@ -328,6 +333,7 @@
 
                   <form class="report-entry__form" method="post"
                         th:action="@{/community/answers/{id}/reports(id=${answer.id})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                     <div class="report-entry__fields">
                       <p class="form-field">
                         <label class="form-field__label"
@@ -384,6 +390,7 @@
             <div class="card__footer thread-composer" th:if="${question.status.name() == 'VISIBLE'}">
               <form method="post" th:action="@{/community/questions/{id}/answers(id=${question.id})}"
                     th:object="${answerCommand}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
 
                 <h3 class="card__title" id="answer-form-title" tabindex="-1">Your answer</h3>
 

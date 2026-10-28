@@ -150,6 +150,7 @@
               <form class="inline-form" method="post" data-confirm="Change the visibility of this content?"
                     th:if="${report.targetType.name() == 'QUESTION' and report.targetVisible}"
                     th:action="@{/admin/community/questions/{id}/hide(id=${report.targetId})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                 <input type="hidden" name="view" th:value="${selectedView}">
                 <input type="hidden" name="page" th:value="${pagination.number}">
                 <input type="hidden" name="size" th:value="${pagination.size}">
@@ -159,6 +160,7 @@
               <form class="inline-form" method="post" data-confirm="Change the visibility of this content?"
                     th:if="${report.targetType.name() == 'QUESTION' and report.targetHidden}"
                     th:action="@{/admin/community/questions/{id}/restore(id=${report.targetId})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                 <input type="hidden" name="view" th:value="${selectedView}">
                 <input type="hidden" name="page" th:value="${pagination.number}">
                 <input type="hidden" name="size" th:value="${pagination.size}">
@@ -169,6 +171,7 @@
               <form class="inline-form" method="post" data-confirm="Change the visibility of this content?"
                     th:if="${report.targetType.name() == 'ANSWER' and report.targetVisible}"
                     th:action="@{/admin/community/answers/{id}/hide(id=${report.targetId})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                 <input type="hidden" name="view" th:value="${selectedView}">
                 <input type="hidden" name="page" th:value="${pagination.number}">
                 <input type="hidden" name="size" th:value="${pagination.size}">
@@ -178,6 +181,7 @@
               <form class="inline-form" method="post" data-confirm="Change the visibility of this content?"
                     th:if="${report.targetType.name() == 'ANSWER' and report.targetHidden}"
                     th:action="@{/admin/community/answers/{id}/restore(id=${report.targetId})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                 <input type="hidden" name="view" th:value="${selectedView}">
                 <input type="hidden" name="page" th:value="${pagination.number}">
                 <input type="hidden" name="size" th:value="${pagination.size}">
@@ -207,6 +211,7 @@
             -->
             <details class="report-review" th:if="${report.isOpen()}"><summary>Review report <span aria-hidden="true">⌄</span></summary><form method="post"
                   th:action="@{/admin/community/reports/{id}/resolve(id=${report.id})}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
                 <input type="hidden" name="view" th:value="${selectedView}">
                 <input type="hidden" name="page" th:value="${pagination.number}">
                 <input type="hidden" name="size" th:value="${pagination.size}">

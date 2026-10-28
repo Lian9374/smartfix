@@ -97,7 +97,7 @@ def start(service):
     uploads=RUNTIME/('uploads-'+role);assert uploads.resolve()==uploads
     env={k:v for k,v in os.environ.items() if not k.startswith(('DB_','SMARTFIX_','SPRING_','POSTGRES_','JAVA_TOOL_OPTIONS','JDK_JAVA_OPTIONS'))}
     env.update(DB_URL='jdbc:postgresql://127.0.0.1:15453/'+db,DB_USERNAME=role,DB_PASSWORD=private[service])
-    args=['java','-jar',str(jar),'--smartfix.migration.isolated=true','--smartfix.migration.root='+str(ROOT),'--server.address=127.0.0.1','--server.port='+str(PORTS[service]),'--server.servlet.session.cookie.name=SMARTFIX_MIGRATION_'+role,'--smartfix.uploads.dir='+str(uploads),'--smartfix.notification.email.enabled=false','--smartfix.bootstrap-admin.enabled=false','--smartfix.notification.delivery.scheduling-enabled=false','--smartfix.notification.delivery.eager-enabled=false','--spring.jpa.hibernate.ddl-auto=validate']
+    args=['java','-jar',str(jar),'--smartfix.migration.isolated=true','--smartfix.migration.root='+str(ROOT),'--server.address=127.0.0.1','--server.port='+str(PORTS[service]),'--server.servlet.session.cookie.name=SMARTFIX_MIGRATION_'+role,'--smartfix.uploads.dir='+str(uploads),'--smartfix.notification.email.enabled=false','--smartfix.bootstrap-admin.enabled=false','--smartfix.notification.delivery.scheduling-enabled=false','--smartfix.notification.delivery.eager-enabled=false','--spring.jpa.hibernate.ddl-auto=validate','--spring.profiles.active='+('community-remote' if service=='core' else 'community-full')]
     identity=RUNTIME/'identity'
     if (identity/'core-public.der').is_file():
         args += ['--smartfix.community.identity.enabled=true','--smartfix.community.identity.public-key='+str(identity/'core-public.der')]
@@ -144,9 +144,9 @@ def verify():
     expected_tables={'community_questions','community_answers','community_reports','flyway_schema_history'}
     if identity_enabled:expected_tables.add('community_posting_guards')
     events_enabled=(RUNTIME/'identity/community-public.der').is_file()
-    if events_enabled:expected_tables.update({'community_answer_commands','community_outbox'})
+    if events_enabled:expected_tables.update({'community_answer_commands','community_outbox','community_commands','community_audit','community_event_sequences'})
     assert set(public_tables)==expected_tables
-    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')==('5' if events_enabled else '4' if identity_enabled else '3')
+    assert sql(data,"SELECT count(*) FROM flyway_schema_history WHERE success;",'smartfix_migration_community')==('6' if events_enabled else '4' if identity_enabled else '3')
     results['community_own_flyway_and_only_owned_tables']=True
     constraints=sql(data,"SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE connamespace='public'::regnamespace;",'smartfix_migration_community')
     assert 'REFERENCES users' not in constraints and 'REFERENCES community_answers(id, question_id)' in constraints

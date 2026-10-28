@@ -18,6 +18,7 @@
       <div class="community-workspace">
         <div class="community-main-column community-feed-shell">
           <form class="card community-filters" data-community-search method="get" th:action="@{/community}">
+<input th:if="${communityCommandKey != null}" type="hidden" name="communityCommandKey" th:value="${communityCommandKey}">
         <div class="card__body">
           <div class="community-filter-grid">
             <div class="form-field community-search-field">

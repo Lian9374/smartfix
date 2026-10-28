@@ -1,5 +1,6 @@
 package com.smartfix.communityapp;
 import org.springframework.stereotype.Service;import org.springframework.jdbc.core.JdbcTemplate;import org.springframework.transaction.annotation.*;import org.springframework.http.HttpStatus;import org.springframework.web.server.ResponseStatusException;import com.fasterxml.jackson.databind.ObjectMapper;import java.util.*;import java.time.Instant;import java.security.MessageDigest;import java.nio.charset.StandardCharsets;
+@org.springframework.context.annotation.Profile("!community-full")
 @Service
 public class RemoteAnswerService {
  public static final long DEMO=900000000001L;

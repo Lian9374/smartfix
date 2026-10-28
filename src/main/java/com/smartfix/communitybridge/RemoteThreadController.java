@@ -1,5 +1,6 @@
 package com.smartfix.communitybridge;
 import org.springframework.stereotype.Controller;import org.springframework.web.bind.annotation.*;import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;import org.springframework.security.core.annotation.AuthenticationPrincipal;import com.smartfix.auth.security.SmartFixUserDetails;import com.smartfix.community.dto.AnswerFormCommand;import org.springframework.ui.Model;import org.springframework.validation.BindingResult;import jakarta.validation.Valid;import jakarta.servlet.http.*;import org.springframework.web.server.ResponseStatusException;import org.springframework.http.HttpStatus;import org.springframework.web.client.*;import java.util.*;
+@org.springframework.context.annotation.Profile("!community-remote")
 @Controller @ConditionalOnProperty(name="smartfix.community.events.enabled",havingValue="true")
 class RemoteThreadController {
  private static final String PATH="/community/questions/900000000001";private final RemoteThreadClient client;RemoteThreadController(RemoteThreadClient client){this.client=client;}

@@ -70,6 +70,7 @@ import java.time.Instant;
  * answers, acceptance and moderation hides with AFTER_COMMIT listeners; rollback
  * sends nothing. See CommunityNotificationListener and ADR-003.</p>
  */
+@org.springframework.context.annotation.Profile("!community-remote")
 @Service
 @Transactional
 public class CommunityAnswerService {
