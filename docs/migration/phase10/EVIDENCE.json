@@ -1,0 +1,161 @@
+{
+  "date": "2026-10-29",
+  "scope": "USER_REQUESTED_MICROSERVICES_ONLY_PERFORMANCE_CANCELLED",
+  "startCommit": "5eab4dce23d3839654981b6db8cc3dfc6e0c18ef",
+  "architecture": "Core + Community, independent executable artifacts, HTTP/JWT boundary, separate logical databases/roles in shared PostgreSQL server, durable outbox/inbox",
+  "functionalDelivery": {
+    "checks": {
+      "REQUESTER/community": true,
+      "REQUESTER/notifications": true,
+      "REQUESTER/requests/mine": true,
+      "TECHNICIAN/community": true,
+      "TECHNICIAN/notifications": true,
+      "TECHNICIAN/workorders/mine": true,
+      "ADMINISTRATOR/community": true,
+      "ADMINISTRATOR/notifications": true,
+      "ADMINISTRATOR/admin/requests": true,
+      "logoutExpiresOnlyConfiguredExperimentalSession": true,
+      "coreHealthy": true,
+      "aHealthy": true,
+      "bHealthy": true,
+      "lbHealthy": true,
+      "protected19090Healthy": true
+    },
+    "performanceTest": false,
+    "services": {
+      "a": {
+        "pid": 22176,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community-v2\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "96e5d883915d3d296b031a820e575f13e7530291bc93d74461a884e7236c5993"
+      },
+      "b": {
+        "pid": 54664,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community-v2\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "96e5d883915d3d296b031a820e575f13e7530291bc93d74461a884e7236c5993"
+      },
+      "lb": {
+        "pid": 47388,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\tools\\migration\\stage9_lb.py",
+        "sha256": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+      },
+      "core": {
+        "pid": 24096,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-core-v2\\smartfix-0.0.1-SNAPSHOT.jar",
+        "sha256": "e806780003821ffd8b04828108b02149f4425ea6e1b07fc5f92fe8cea4a67da9"
+      }
+    },
+    "coreArtifactVersion": "stage10-cookie-v2",
+    "communityArtifactVersion": "stage10-v2"
+  },
+  "publisherLiveRegression": {
+    "burst30OrderedEventsTwoPublishers": true,
+    "answerCommandAndOutboxRollbackTogether": true,
+    "receiverOutagePersistentRetryAndRecovery": true,
+    "duplicateAcknowledgedEventDoesNotDuplicateEffects": true,
+    "realClaimantExitOtherProcessLeaseRecovery": true,
+    "originalCoreFormAndNotificationLinks": true,
+    "coreRepairSubmissionPreserved": true
+  },
+  "javaTestReports": [
+    {
+      "name": "com.smartfix.auth.config.SecurityConfigTest",
+      "tests": "75",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-core-v2"
+    },
+    {
+      "name": "com.smartfix.common.configuration.MigrationIsolationGuardTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-core-v2"
+    },
+    {
+      "name": "com.smartfix.communitybridge.Stage8InAppDeliveryTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-core-v2"
+    },
+    {
+      "name": "com.smartfix.community.domain.CommunityQuestionTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-community-v2"
+    },
+    {
+      "name": "com.smartfix.community.domain.CommunityReportTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-community-v2"
+    },
+    {
+      "name": "com.smartfix.communityapp.CommunityIdentitySecurityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-community-v2"
+    },
+    {
+      "name": "com.smartfix.communityapp.MigrationIsolationGuardTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "component": "build-community-v2"
+    }
+  ],
+  "javaTests": 120,
+  "pythonTests": 6,
+  "originalFilesAndBackupFilesMatchedEach": 4421,
+  "performance": {
+    "status": "CANCELLED_BY_USER",
+    "completedQuickWindows": 2,
+    "interrupted": true,
+    "remainingQuickWindowsNotRun": 10,
+    "full234RunMatrixNotCompleted": true,
+    "maxSustainedCapacity": "NOT_VALIDATED",
+    "horizontalPerformanceGain": "NOT_PROVEN",
+    "AWS": "NOT_RUN",
+    "verticalScaling": "NOT_RUN",
+    "autoScaling": "NOT_IMPLEMENTED_NOT_RUN"
+  },
+  "mainUnchanged": true,
+  "baselineTagUnchanged": true,
+  "nextStageAutomaticallyStarted": false,
+  "browserAcceptance": "PENDING_USER",
+  "safeFiles": [
+    "pom.xml",
+    "community-service/pom.xml",
+    "src/main/java/com/smartfix/auth/config/SecurityConfig.java",
+    "community-service/src/main/java/com/smartfix/communityapp/CommunityEventPublisher.java",
+    "community-service/src/main/resources/community-release.txt",
+    "docs/migration/STATUS.md",
+    "docs/migration/SAFETY_CONTRACT.md",
+    "tools/migration/perf9.py",
+    "tools/migration/perf9_observe.py",
+    "tools/migration/perf9_suite.py",
+    "tools/migration/stage9.py",
+    "tools/migration/test_perf9.py",
+    "tools/migration/phase10.py",
+    "tools/migration/phase10_analyze.py",
+    "tools/migration/phase10_awake.py",
+    "tools/migration/phase10_outbox_check.py",
+    "tools/migration/phase10_quick.py",
+    "tools/migration/verify_stage10_delivery.py",
+    "docs/migration/phase10/RUNBOOK.md",
+    "docs/migration/phase10/QUICK_PLAN.json",
+    "docs/migration/phase10/MICROSERVICES_READY.md",
+    "docs/migration/phase10/VALIDATION.md",
+    "docs/migration/phase10/EVIDENCE.json"
+  ]
+}

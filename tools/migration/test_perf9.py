@@ -3,6 +3,23 @@ import threading,time,unittest
 from perf9 import target,arrivals
 
 class PerformanceSafetyTest(unittest.TestCase):
+    def page_driver(self,post_path):
+        from perf9 import Driver,CORE
+        from unittest.mock import Mock
+        d=Driver.__new__(Driver);d.local=threading.local();d.sessions={1000000:object()};d.session_locks={1000000:threading.Lock()}
+        page='<h1>Perf9 question 0</h1><input name="_csrf" value="test"><input name="communityCommandKey" value="key">'
+        d.request=Mock(side_effect=[(page,CORE+'/community/questions/1000000'),('<textarea>Perf9 runtime unit-marker</textarea>',CORE+post_path)])
+        return d
+    def test_200_form_error_is_not_committed_page_success(self):
+        from unittest.mock import patch
+        from perf9 import Failure
+        d=self.page_driver('/community/questions/1000000/answers')
+        with patch('perf9.uuid.uuid4',return_value='unit-marker'),self.assertRaises(Failure) as e:d.operation('page',0,1,force_write=True)
+        self.assertEqual(e.exception.kind,'content')
+    def test_committed_thread_redirect_is_page_success(self):
+        from unittest.mock import patch
+        d=self.page_driver('/community/questions/1000000')
+        with patch('perf9.uuid.uuid4',return_value='unit-marker'):self.assertEqual(d.operation('page',0,1,force_write=True),'answer')
     def test_protected_and_remote_targets_rejected(self):
         for url in ['http://127.0.0.1:19090','http://127.0.0.1:19101','http://127.0.0.1:8080','http://localhost:19111','https://127.0.0.1:19111','http://aws.example:19111','http://127.0.0.1:19111@evil.example:19111','http://127.0.0.1:19111.evil.example:19111']:
             with self.subTest(url=url),self.assertRaises((AssertionError,ValueError)):target(url)

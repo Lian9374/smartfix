@@ -30,7 +30,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
             SmartFixUserDetailsService userDetailsService, PasswordEncoder passwordEncoder,
-            UserService userService) throws Exception {
+            UserService userService,
+            @org.springframework.beans.factory.annotation.Value("${server.servlet.session.cookie.name:JSESSIONID}") String sessionCookieName) throws Exception {
         DaoAuthenticationProvider provider = new SelectedAccountTypeAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
         http.authenticationProvider(provider)
@@ -113,7 +114,7 @@ public class SecurityConfig {
                         .failureHandler(new SelectedAccountTypeFailureHandler())
                         .defaultSuccessUrl("/", true))
                 .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true).clearAuthentication(true).deleteCookies("JSESSIONID"))
+                        .invalidateHttpSession(true).clearAuthentication(true).deleteCookies(sessionCookieName))
                 .exceptionHandling(errors -> errors
                         .accessDeniedHandler((request, response, exception) -> response.sendError(403)))
                 // No servlet bean: run once, after session loading and before CSRF/logout/authorization.

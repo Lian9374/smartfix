@@ -35,7 +35,13 @@ class Inputs(HTMLParser):
 
 def fields(html):p=Inputs();p.feed(html);return p.fields
 
-def opener():return urllib.request.build_opener(SafeRedirect(),urllib.request.ProxyHandler({}),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+def opener():
+    # Only loopback HTTP is allowlisted. build_opener() also constructs an unused
+    # HTTPS context and scans the Windows certificate store on EVERY new client.
+    # Keep normal HTTP errors/redirects/cookies; do not construct unsupported transports.
+    client=urllib.request.OpenerDirector()
+    for handler in (urllib.request.HTTPHandler(),urllib.request.HTTPDefaultErrorHandler(),SafeRedirect(),urllib.request.HTTPErrorProcessor(),urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar())):client.add_handler(handler)
+    return client
 
 def endpoint(url):
     path=urllib.parse.urlsplit(url).path
@@ -66,14 +72,14 @@ class Driver:
         target(url);h=dict(headers or {});data=None
         if form is not None:data=urllib.parse.urlencode(form).encode()
         if payload is not None:data=json.dumps(payload).encode();h['Content-Type']='application/json'
-        start=time.monotonic();code=0;body=b'';final=url;rh={};HTTP_LOCAL.redirects=0
+        start=time.perf_counter();code=0;body=b'';final=url;rh={};HTTP_LOCAL.redirects=0
         try:
             with c.open(urllib.request.Request(url,data=data,headers=h),timeout=5) as r:code=r.status;body=r.read();final=r.geturl();rh=dict(r.headers)
         except urllib.error.HTTPError as e:code=e.code;body=e.read()
         except (TimeoutError,OSError):
-            if hasattr(self.local,'requests'):self.local.requests.append({'endpoint':endpoint(url),'seconds':time.monotonic()-start,'status':0})
+            if hasattr(self.local,'requests'):self.local.requests.append({'endpoint':endpoint(url),'seconds':time.perf_counter()-start,'status':0})
             raise Failure('timeout_or_transport')
-        if hasattr(self.local,'requests'):self.local.requests.append({'endpoint':endpoint(url),'seconds':time.monotonic()-start,'status':code,'redirectGets':HTTP_LOCAL.redirects,'responseBodyBytes':len(body),'requestBodyBytes':len(data or b'')})
+        if hasattr(self.local,'requests'):self.local.requests.append({'endpoint':endpoint(url),'seconds':time.perf_counter()-start,'status':code,'redirectGets':HTTP_LOCAL.redirects,'responseBodyBytes':len(body),'requestBodyBytes':len(data or b'')})
         if 'X-Community-Instance' in rh:
             with self.count_lock:self.instances[rh['X-Community-Instance']]=self.instances.get(rh['X-Community-Instance'],0)+1
         if code!=expected:raise Failure('http_'+str(code))
@@ -86,14 +92,15 @@ class Driver:
         self.sessions[actor]=c;self.session_locks[actor]=threading.Lock()
     def prepare(self,path,users):
         # Authentication/setup is outside the measured window and reported separately.
-        start=time.monotonic()
+        start=time.perf_counter()
         base=900 if path=='repair' else 0
         if path in ('page','repair'):
             with concurrent.futures.ThreadPoolExecutor(8) as pool:list(pool.map(lambda i:self.login(1000000+i,'perf9_'+str(i)),range(base,base+users)))
         for i in range(base,base+users):self.token(1000000+i)
-        return time.monotonic()-start
+        return time.perf_counter()-start
     def api(self,actor,op,p):
-        body,_=self.request(opener(),API+'/internal/community/v1/operations/'+op,payload=p,headers={'Authorization':'Bearer '+self.token(actor),'Idempotency-Key':str(uuid.uuid4())})
+        if not hasattr(self.local,'api_client'):self.local.api_client=opener()
+        body,_=self.request(self.local.api_client,API+'/internal/community/v1/operations/'+op,payload=p,headers={'Authorization':'Bearer '+self.token(actor),'Idempotency-Key':str(uuid.uuid4())})
         return json.loads(body)
     def operation(self,path,index,users,hot=False,force_write=False):
         self.local.requests=[];actor=1000000+(900 if path=='repair' else 0)+(index*17+index//users)%users;q=1000000 if hot else 1000000+(index*7919)%10000
@@ -134,12 +141,15 @@ class Driver:
                     expected=list(range(1009999-(index%5)*20,1009999-(index%5)*20-20,-1)) if op=='search' else self.expected_pages[(index%5)*20:(index%5+1)*20]
                     if not all('href="/community/questions/'+str(qid)+'"' in html for qid in expected):raise Failure('content')
                 else:
-                    html,_=self.request(c,CORE+'/community/questions/'+str(q))
-                    if 'Perf9 question' not in html:raise Failure('content')
+                    html,detail_url=self.request(c,CORE+'/community/questions/'+str(q))
+                    expected_path='/community/questions/'+str(q)
+                    if urllib.parse.urlsplit(detail_url).path!=expected_path or 'Perf9 question '+str(q-1000000) not in html:raise Failure('content')
                     if op=='answer':
                         f=fields(html)
                         html,url=self.request(c,CORE+f'/community/questions/{q}/answers',form={'body':marker,'_csrf':f['_csrf'],'communityCommandKey':f['communityCommandKey']})
-                        if marker not in html or '/community/questions/'+str(q) not in url:raise Failure('content')
+                        # Validation errors may rerender a 200 form containing the submitted body.
+                        # Success requires the committed thread GET, not the POST /answers URL.
+                        if marker not in html or urllib.parse.urlsplit(url).path!=expected_path:raise Failure('content')
             finally:self.session_locks[actor].release()
         return op
 
@@ -150,24 +160,24 @@ def quantile(values,p):
 def arrivals(driver,path,rate,duration,users,workers=64,hot=False,offset=0):
     permit=threading.BoundedSemaphore(workers);rows=[];lock=threading.Lock();planned=math.floor(rate*duration);dropped=0
     def work(i,due):
-        start=time.monotonic();error=None;op=None
+        start=time.perf_counter();error=None;op=None
         try:op=driver.operation(path,i+offset,users,hot)
         except Failure as e:error=e.kind
         except Exception as e:error='driver_'+type(e).__name__
         finally:
-            with lock:rows.append({'iteration':i+offset,'scheduledOffsetSeconds':due-origin,'startedOffsetSeconds':start-origin,'completedOffsetSeconds':time.monotonic()-origin,'operation':op,'error':error,'seconds':time.monotonic()-start,'scheduleLagSeconds':start-due,'requests':getattr(driver.local,'requests',[])})
+            with lock:rows.append({'iteration':i+offset,'scheduledOffsetSeconds':due-origin,'startedOffsetSeconds':start-origin,'completedOffsetSeconds':time.perf_counter()-origin,'operation':op,'error':error,'seconds':time.perf_counter()-start,'scheduleLagSeconds':start-due,'requests':getattr(driver.local,'requests',[])})
             permit.release()
-    start=time.monotonic();origin=start;started_unix=time.time();cpu_start=time.process_time();signer_start=driver.signer_cpu() if hasattr(driver,'signer_cpu') else 0
+    start=time.perf_counter();origin=start;started_unix=time.time();cpu_start=time.process_time();signer_start=driver.signer_cpu() if hasattr(driver,'signer_cpu') else 0
     with concurrent.futures.ThreadPoolExecutor(workers) as pool:
         for i in range(planned):
-            due=start+i/rate;delay=due-time.monotonic()
+            due=start+i/rate;delay=due-time.perf_counter()
             if delay>0:time.sleep(delay)
             # No catch-up burst when the generator itself falls behind.
-            if time.monotonic()-due>max(.05,1/rate) or not permit.acquire(blocking=False):dropped+=1;continue
+            if time.perf_counter()-due>max(.05,1/rate) or not permit.acquire(blocking=False):dropped+=1;continue
             pool.submit(work,i,due)
-        remaining=start+duration-time.monotonic()
+        remaining=start+duration-time.perf_counter()
         if remaining>0:time.sleep(remaining)
-    elapsed=time.monotonic()-start;success=[r for r in rows if not r['error']];errors={}
+    elapsed=time.perf_counter()-start;success=[r for r in rows if not r['error']];errors={}
     for r in rows:
         if r['error']:errors[r['error']]=errors.get(r['error'],0)+1
     endpoint={}

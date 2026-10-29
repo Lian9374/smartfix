@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "scope": "USER_SELECTED_REDUCED_COMPARISON",
+  "date": "2026-10-29",
+  "formalCapacityCertification": false,
+  "runs": 12,
+  "replicas": [
+    1,
+    2,
+    3
+  ],
+  "paths": [
+    "api",
+    "page"
+  ],
+  "repeats": 2,
+  "orders": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      3,
+      2,
+      1
+    ]
+  ],
+  "offeredBusinessIterationsPerSecond": 80,
+  "activeUsers": 128,
+  "warmupRate": 2,
+  "warmupSeconds": 15,
+  "measureSeconds": 60,
+  "sampleIntervalSeconds": 15,
+  "communityMix": {
+    "browse": 40,
+    "detail": 30,
+    "search": 20,
+    "answer": 10
+  },
+  "qualityTargetsUnchanged": {
+    "businessP95Seconds": 1.0,
+    "businessP99Seconds": 2.0,
+    "endpointP95Seconds": 0.8,
+    "endpointP99Seconds": 1.5,
+    "businessErrorRateMax": 0.005,
+    "contentErrorsMax": 0,
+    "authErrorsMax": 0,
+    "droppedIterationsMax": 0,
+    "startedToTargetRateMin": 0.99,
+    "outboxOldestPendingSecondsMax": 10,
+    "eventReceiptP95SecondsMax": 5,
+    "failedOutboxMax": 0,
+    "generatorCpuPercentMax": 70,
+    "generatorScheduleP99SecondsMax": 0.05,
+    "repairP95DegradationMax": 0.2
+  },
+  "fullPlanPreserved": "docs/migration/phase9/PLAN.json",
+  "dataset": "Same sealed 1000 synthetic users / 10000 questions / 30000 answers plus frozen legacy data; active actor cohort is fixed first128 for these short runs",
+  "resourceSpecsUnchanged": {
+    "core": "http://127.0.0.1:19111",
+    "community": [
+      "http://127.0.0.1:19112",
+      "http://127.0.0.1:19113",
+      "http://127.0.0.1:19115"
+    ],
+    "lb": "http://127.0.0.1:19114",
+    "databasePort": 15483,
+    "coreReplicas": 1,
+    "communityReplicas": [
+      1,
+      2,
+      3
+    ],
+    "jvmPerInstance": {
+      "xmsMiB": 128,
+      "xmxMiB": 384,
+      "activeProcessorCount": 2,
+      "gc": "G1",
+      "tomcatThreads": 40,
+      "hikariMax": 5
+    },
+    "database": {
+      "image": "postgres:16-alpine",
+      "cpus": 2,
+      "memoryMiB": 1024,
+      "sharedBuffersMiB": 128,
+      "maxConnections": 60
+    },
+    "hostLimitation": "Same Windows/Docker host and shared storage; ActiveProcessorCount is not an OS CPU quota. Record all background processes, total CPU and memory. Local and AWS runs must never be pooled."
+  },
+  "reset": "New database generation from exact same private snapshot before every run; prior databases and results archived, never delete originals",
+  "notRun": [
+    "maximum sustainable capacity ladder",
+    "mixed repair/community pressure matrix",
+    "long-duration stability",
+    "AWS",
+    "vertical scaling",
+    "autoscaling"
+  ],
+  "interpretation": "Only short equal-pressure throughput/latency/error comparison. Cannot calculate capacity-based Sn/En or prove long-term stability. No favorable result promised."
+}

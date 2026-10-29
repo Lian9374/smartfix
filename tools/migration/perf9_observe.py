@@ -60,7 +60,7 @@ if __name__=='__main__':
     d=Driver();rows=[]
     try:
         for i in range(a.samples):
-            start=time.monotonic();row=capture(d);row['captureSeconds']=time.monotonic()-start;rows.append(row)
+            start=time.perf_counter();row=capture(d);row['captureSeconds']=time.perf_counter()-start;rows.append(row)
             if i+1<a.samples:time.sleep(max(0,a.interval-row['captureSeconds']))
         (env.R/a.output).write_text(json.dumps(rows,indent=2));print(json.dumps({'samples':len(rows),'applications':list(rows[-1]['applications']),'outbox':rows[-1]['database']['outbox'],'eventLatency':rows[-1].get('eventLatency'),'output':a.output}))
     finally:d.close()

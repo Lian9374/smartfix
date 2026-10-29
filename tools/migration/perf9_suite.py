@@ -36,14 +36,22 @@ def one(spec,plan):
     def monitor():
         try:
             while not stop.is_set():
-                t=time.monotonic();sample=capture(observer);sample['captureSeconds']=time.monotonic()-t;samples.append(sample);stop.wait(max(0,plan['timing']['sampleIntervalSeconds']-sample['captureSeconds']))
+                t=time.perf_counter();sample=capture(observer);sample['captureSeconds']=time.perf_counter()-t;samples.append(sample)
+                (folder/'observations-private.json').write_text(json.dumps(samples))
+                stop.wait(max(0,plan['timing']['sampleIntervalSeconds']-sample['captureSeconds']))
         except Exception as e:monitor_errors.append(type(e).__name__)
     try:
         driver.location=int(env.sql('core','SELECT min(id) FROM locations WHERE active;'));users=900 if spec['group']=='mixed' else 1000
         if spec['rate']>0:driver.prepare(spec['path'],users)
         if spec['group']=='mixed':driver.prepare('repair',100)
-        # Original posting limits stay enabled; warmup uses its own unique bodies and consumes quota.
-        if spec['rate']>0:load.arrivals(driver,spec['path'],2,60,users,offset=100000)
+        # Warm every active stream for the SAME predeclared window, including repair-only baselines.
+        # Previously only Community was warmed, making mixed baselines incomparable.
+        warmup={}
+        with concurrent.futures.ThreadPoolExecutor(2) as pool:
+            jobs={}
+            if spec['rate']>0:jobs['community']=pool.submit(load.arrivals,driver,spec['path'],plan['timing']['warmupBusinessRate'],plan['timing']['warmupSeconds'],users,64,spec['group']=='hotContention',100000)
+            if spec['group']=='mixed':jobs['repair']=pool.submit(load.arrivals,driver,'repair',2,plan['timing']['warmupSeconds'],100,64,False,100000)
+            for name,f in jobs.items():warmup[name]=f.result()
         observer.observe_since=time.time();thread=__import__('threading').Thread(target=monitor);thread.start()
         time.sleep(1);result={};duration=plan['timing']['measureSeconds']
         with concurrent.futures.ThreadPoolExecutor(2) as pool:
@@ -52,9 +60,12 @@ def one(spec,plan):
             if spec['group']=='mixed':jobs['repair']=pool.submit(load.arrivals,driver,'repair',2,duration,100)
             for name,f in jobs.items():result[name]=f.result()
         # Allow bounded event drain, still sampled. Not part of offered-load window.
-        end=time.monotonic()+plan['timing']['drainSecondsMax']
-        while time.monotonic()<end and env.sql('community',"SELECT count(*) FROM community_outbox WHERE status<>'SENT';")!='0':time.sleep(1)
+        end=time.perf_counter()+plan['timing']['drainSecondsMax']
+        while time.perf_counter()<end and env.sql('community',"SELECT count(*) FROM community_outbox WHERE status<>'SENT';")!='0':time.sleep(1)
         stop.set();thread.join(timeout=60);assert not thread.is_alive()
+        # A final sample is required after drain; periodic snapshots alone can miss an ending backlog.
+        samples.append(capture(observer))
+        for name,row in warmup.items():(folder/(name+'-warmup-private.json')).write_text(json.dumps(row))
         for name,row in result.items():
             (folder/(name+'-iterations-private.json')).write_text(json.dumps(row.pop('raw')))
         result['spec']=spec;result['applicationGoalsPass']=all(quality(v,plan) for k,v in result.items() if k in ('community','repair'))
@@ -63,8 +74,12 @@ def one(spec,plan):
         result['analysisPending']='Evaluate all per-sample thresholds, mixed repair-only p95 baseline and all three repeats before capacity acceptance.'
         result['planSha256']=__import__('hashlib').sha256((env.ROOT/'docs/migration/phase9/PLAN.json').read_bytes()).hexdigest()
         result['environment']=env.state;result['snapshot']=json.loads((env.R/'fixed-snapshot/manifest.json').read_text())
-        (folder/'observations-private.json').write_text(json.dumps(samples));(folder/'summary.json').write_text(json.dumps(result,indent=2))
-    finally:stop.set();driver.close();observer.close()
+        (folder/'observations-private.json').write_text(json.dumps(samples));(folder/'summary.json').write_text(json.dumps(result,indent=2));return folder
+    finally:
+        stop.set()
+        if 'thread' in locals():thread.join(timeout=60)
+        (folder/'observations-private.json').write_text(json.dumps(samples))
+        driver.close();observer.close()
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--list',action='store_true');p.add_argument('--execute',action='store_true');p.add_argument('--index',type=int);a=p.parse_args()

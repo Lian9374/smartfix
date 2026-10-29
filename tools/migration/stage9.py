@@ -87,7 +87,9 @@ def start(service):
         artifact=ROOT/'tools/migration/stage9_lb.py';args=['python',str(artifact)]
     else:
         key='core' if service=='core' else 'community'
-        artifact=R/('build-core/smartfix-0.0.1-SNAPSHOT.jar' if key=='core' else 'build-community/smartfix-community-0.0.1-SNAPSHOT.jar')
+        version=state.get('communityArtifactVersion','stage9');assert version in ('stage9','stage10-v2')
+        core_version=state.get('coreArtifactVersion','stage9');assert core_version in ('stage9','stage10-cookie-v2')
+        artifact=R/((('build-core-v2/' if core_version=='stage10-cookie-v2' else 'build-core/')+'smartfix-0.0.1-SNAPSHOT.jar') if key=='core' else ('build-community-v2/' if version=='stage10-v2' else 'build-community/')+'smartfix-community-0.0.1-SNAPSHOT.jar')
         env['DB_PASSWORD']=credentials[key]
         args=['java','-Xms128m','-Xmx384m','-XX:ActiveProcessorCount=2','-XX:+UseG1GC','-Xlog:gc:file='+str(R/(service+'-gc-private.log')),'-jar',str(artifact),
           '--server.address=127.0.0.1','--server.port='+str(PORTS[service]),'--server.tomcat.threads.max=40','--server.tomcat.threads.min-spare=4','--server.tomcat.mbeanregistry.enabled=true',

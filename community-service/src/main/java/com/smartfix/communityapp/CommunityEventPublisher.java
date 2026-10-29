@@ -6,13 +6,20 @@ public class CommunityEventPublisher {
  public CommunityEventPublisher(JdbcTemplate db,PlatformTransactionManager manager,InstanceIdentity instance,@Value("${smartfix.community.events.private-key}")String privPath,@Value("${smartfix.community.events.public-key}")String pubPath,@Value("${smartfix.community.events.core-base-url:http://127.0.0.1:19091}")String coreUrl)throws Exception{
   this.instance=instance;this.db=db;tx=new TransactionTemplate(manager);var factory=KeyFactory.getInstance("RSA");var priv=(RSAPrivateKey)factory.generatePrivate(new PKCS8EncodedKeySpec(Files.readAllBytes(Path.of(privPath))));var pub=(RSAPublicKey)factory.generatePublic(new X509EncodedKeySpec(Files.readAllBytes(Path.of(pubPath))));signer=new NimbusJwtEncoder(new ImmutableJWKSet<>(new JWKSet(new com.nimbusds.jose.jwk.RSAKey.Builder(pub).privateKey(priv).keyID("stage5-community-1").build())));var requestFactory=new SimpleClientHttpRequestFactory();requestFactory.setConnectTimeout(1000);requestFactory.setReadTimeout(3000);http=RestClient.builder().baseUrl(coreUrl).requestFactory(requestFactory).build();
  }
- @Scheduled(fixedDelay=1000) public void publish(){
+ // Bound work per tick without limiting a healthy publisher to one event per second.
+ // Each event still gets its OWN committed lease and the existing acknowledgement CAS.
+ @Scheduled(fixedDelay=250) public void publish(){
+  long deadline=System.nanoTime()+2_000_000_000L;
+  for(int sent=0;sent<32 && System.nanoTime()<deadline;sent++)if(!publishOne())break;
+ }
+ private boolean publishOne(){
   Map<String,Object> row=tx.execute(s->{var found=db.queryForList("SELECT o.event_id,o.payload,o.attempts FROM community_outbox o WHERE o.status='PENDING' AND o.next_attempt_at<=CURRENT_TIMESTAMP AND (o.lease_until IS NULL OR o.lease_until<CURRENT_TIMESTAMP) AND NOT EXISTS (SELECT 1 FROM community_outbox earlier WHERE earlier.question_id=o.question_id AND earlier.aggregate_sequence<o.aggregate_sequence AND earlier.status<>'SENT') ORDER BY o.created_at LIMIT 1 FOR UPDATE OF o SKIP LOCKED");if(found.isEmpty())return null;var item=found.get(0);UUID lease=UUID.randomUUID();db.update("UPDATE community_outbox SET lease_token=?,lease_owner=?,lease_until=CURRENT_TIMESTAMP+INTERVAL '15 seconds',attempts=attempts+1 WHERE event_id=?",lease,instance.owner(),item.get("event_id"));item.put("lease",lease);return item;});
-  if(row==null)return;
+  if(row==null)return false;
   boolean ok=false,permanent=false;String error=null;
   try{Instant now=Instant.now();String token=signer.encode(JwtEncoderParameters.from(JwsHeader.with(SignatureAlgorithm.RS256).keyId("stage5-community-1").build(),JwtClaimsSet.builder().issuer("smartfix-community").audience(List.of("smartfix-core-events")).subject("community-publisher").issuedAt(now).notBefore(now).expiresAt(now.plusSeconds(30)).build())).getTokenValue();Map<?,?> reply=http.post().uri("/internal/community-events/v1/events").headers(h->h.setBearerAuth(token)).contentType(MediaType.APPLICATION_JSON).body(row.get("payload")).retrieve().body(Map.class);ok=reply!=null&&Boolean.TRUE.equals(reply.get("accepted"))&&row.get("event_id").toString().equals(reply.get("eventId"));if(!ok)error="Invalid acknowledgement";
   }catch(RestClientResponseException e){error="HTTP_"+e.getStatusCode().value();permanent=e.getStatusCode().is4xxClientError();}catch(Exception e){error=e.getClass().getSimpleName();}
   if(ok)db.update("UPDATE community_outbox SET status='SENT',lease_until=NULL,lease_token=NULL,lease_owner=NULL,last_error=NULL WHERE event_id=? AND lease_token=?",row.get("event_id"),row.get("lease"));
   else {int attempts=((Number)row.get("attempts")).intValue()+1;db.update("UPDATE community_outbox SET status=?,lease_until=NULL,lease_token=NULL,lease_owner=NULL,next_attempt_at=?,last_error=? WHERE event_id=? AND lease_token=?",permanent||attempts>=20?"FAILED":"PENDING",java.sql.Timestamp.from(Instant.now().plusSeconds(Math.min(30,1L<<Math.min(attempts,5)))),error,row.get("event_id"),row.get("lease"));}
+  return true;
  }
 }

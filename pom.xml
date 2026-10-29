@@ -158,6 +158,6 @@
             </build>
         </profile>
     <profile><id>stage7-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage7/build-core</directory></build></profile>
-    <profile><id>stage8-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage8/build-core</directory></build></profile><profile><id>stage9-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage9/build-core</directory></build></profile></profiles>
+    <profile><id>stage8-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage8/build-core</directory></build></profile><profile><id>stage9-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage9/build-core</directory></build></profile><profile><id>stage10-core-artifact</id><build><directory>${project.basedir}/.migration-runtime/stage9/build-core-v2</directory></build></profile></profiles>
 
 </project>
