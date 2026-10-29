@@ -9,7 +9,7 @@ import java.util.List;
 
 /** Core-owned local acceptance configuration: deliver repair notices, never scan mail or SLA. */
 @Configuration @Profile("community-remote") @EnableScheduling
-@ConditionalOnProperty(name="smartfix.migration.scenario",havingValue="stage8")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnExpression("'${smartfix.migration.scenario:}' == 'stage8' or '${smartfix.migration.scenario:}' == 'stage9'")
 public class Stage8InAppDelivery {
     private final JdbcTemplate db;private final DeliveryWorker worker;
     public Stage8InAppDelivery(JdbcTemplate db,DeliveryWorker worker){this.db=db;this.worker=worker;}

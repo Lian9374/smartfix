@@ -15,6 +15,6 @@ class CommunityJwtSecurity {
  }
  @Bean SecurityFilterChain communityApi(HttpSecurity http)throws Exception{
   JwtAuthenticationConverter c=new JwtAuthenticationConverter();c.setJwtGrantedAuthoritiesConverter(j->List.of(new SimpleGrantedAuthority("ROLE_"+j.getClaimAsString("role"))));
-  return http.csrf(csrf->csrf.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(a->a.dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll().requestMatchers("/actuator/health").permitAll().requestMatchers("/internal/community/v1/moderation/**","/internal/community/v1/audit").hasRole("ADMINISTRATOR").requestMatchers("/internal/community/v1/**").authenticated().anyRequest().denyAll()).oauth2ResourceServer(o->o.jwt(j->j.jwtAuthenticationConverter(c))).build();
+  return http.csrf(csrf->csrf.disable()).sessionManagement(s->s.sessionCreationPolicy(SessionCreationPolicy.STATELESS)).authorizeHttpRequests(a->a.dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll().requestMatchers("/actuator/health").permitAll().requestMatchers("/actuator/metrics","/actuator/metrics/**","/internal/community/v1/moderation/**","/internal/community/v1/audit").hasRole("ADMINISTRATOR").requestMatchers("/internal/community/v1/**").authenticated().anyRequest().denyAll()).oauth2ResourceServer(o->o.jwt(j->j.jwtAuthenticationConverter(c))).build();
  }
 }

@@ -1,0 +1,436 @@
+{
+  "date": "2026-10-29",
+  "stage": "9",
+  "startCommit": "5d0f134a714626219f94652413fcdbfc79e47296",
+  "automatedVerification": {
+    "checks": {
+      "coreRoleCannotConnectToOtherDatabase": true,
+      "communityRoleCannotConnectToOtherDatabase": true,
+      "metricsRejectAnonymousAndRequester": true,
+      "threeDistinctIdenticalCommunityProcesses": true,
+      "apiSmoke": true,
+      "pageSmoke": true,
+      "repairSmoke": true,
+      "realApplicationDatabaseLbOsTelemetry": true,
+      "noFailedOutbox": true,
+      "isolatedSessionCookie": true
+    },
+    "telemetryErrors": [],
+    "telemetrySamples": 5,
+    "telemetryCaptureSeconds": [
+      10.280999999999949,
+      10.327999999999975,
+      9.875,
+      10.297000000000025,
+      9.813000000000102
+    ],
+    "databaseIdentity": {
+      "containerId": "c1ce7fdf14242335a89571f30012ba438a62d1734ec52313e2eeb010ed1273a9",
+      "volume": "sf-migration-stage9-20261029-095934-data",
+      "port": 15483
+    },
+    "services": {
+      "core": {
+        "pid": 8676,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-core\\smartfix-0.0.1-SNAPSHOT.jar",
+        "sha256": "69f13ba42c8e103d90904d14543fb8ba4d8df066b6b207527a006ade68198660"
+      },
+      "a": {
+        "pid": 60848,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b"
+      },
+      "b": {
+        "pid": 22196,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b"
+      },
+      "c": {
+        "pid": 61372,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community\\smartfix-community-0.0.1-SNAPSHOT.jar",
+        "sha256": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b"
+      },
+      "lb": {
+        "pid": 45220,
+        "artifact": "C:\\Users\\zhour\\smartfix-microservices\\tools\\migration\\stage9_lb.py",
+        "sha256": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+      }
+    },
+    "snapshot": {
+      "core": "a81d7179bce3ea0c79dab1f46a2ddeaabfaaa536bc377bdbc8c5bb2eaf5dc731",
+      "community": "8621cf90a567a063b33543f06fd2cff9127dd42983e6f0d998b7d3155b802ae2"
+    },
+    "planSha256": "7a5450309add987215fd53519794cb614cdf830a564e4e69037748d1f6b660d8"
+  },
+  "smoke": [
+    {
+      "path": "api",
+      "plannedIterations": 10,
+      "startedIterations": 10,
+      "successfulBusinessIterations": 10,
+      "dropped_iterations": 0,
+      "targetIterationsPerSecond": 0.5,
+      "windowSeconds": 20,
+      "elapsedIncludingDrainSeconds": 20.0,
+      "successfulBusinessPerSecond": 0.5,
+      "completedIterationsPerSecond": 0.5,
+      "actualMeasuredHttpRequests": 11,
+      "actualMeasuredHttpRps": 0.55,
+      "generator": {
+        "pid": 21108,
+        "pythonCpuSeconds": 1.390625,
+        "signerCpuSeconds": 0.015625,
+        "cpuPercentOneCore": 7.03125,
+        "logicalCpuCount": 32,
+        "scheduleP99Seconds": 0.06300000000010186
+      },
+      "applicationPayloadBytes": {
+        "sent": 350,
+        "received": 46760,
+        "note": "Bodies of completed calls, not TCP wire bytes; host NIC counters collected separately"
+      },
+      "businessErrorRate": 0.0,
+      "errors": {},
+      "businessP95Seconds": 0.2660000000000764,
+      "businessP99Seconds": 0.2660000000000764,
+      "endpointLatency": {
+        "/internal/community/v1/operations/browse": {
+          "count": 7,
+          "p95": 0.125,
+          "p99": 0.125
+        },
+        "/internal/community/v1/operations/detail": {
+          "count": 2,
+          "p95": 0.047000000000025466,
+          "p99": 0.047000000000025466
+        },
+        "/internal/community/v1/operations/answer": {
+          "count": 1,
+          "p95": 0.0929999999998472,
+          "p99": 0.0929999999998472
+        },
+        "/internal/community/v1/operations/ownAnswer": {
+          "count": 1,
+          "p95": 0.047000000000025466,
+          "p99": 0.047000000000025466
+        }
+      },
+      "smokeOnly": true,
+      "setupSeconds": 0.4679999999998472,
+      "instances": {
+        "c:61372": 5,
+        "a:60848": 4,
+        "b:22196": 4
+      },
+      "rateUnit": "business iterations/second",
+      "authenticationEnabled": true,
+      "runDirectory": "run-20261029-102018-7455",
+      "planSha256": "7a5450309add987215fd53519794cb614cdf830a564e4e69037748d1f6b660d8",
+      "artifacts": {
+        "core": "69f13ba42c8e103d90904d14543fb8ba4d8df066b6b207527a006ade68198660",
+        "a": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "b": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "c": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "lb": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+      },
+      "snapshot": {
+        "core": "a81d7179bce3ea0c79dab1f46a2ddeaabfaaa536bc377bdbc8c5bb2eaf5dc731",
+        "community": "8621cf90a567a063b33543f06fd2cff9127dd42983e6f0d998b7d3155b802ae2"
+      }
+    },
+    {
+      "path": "page",
+      "plannedIterations": 10,
+      "startedIterations": 10,
+      "successfulBusinessIterations": 10,
+      "dropped_iterations": 0,
+      "targetIterationsPerSecond": 0.5,
+      "windowSeconds": 20,
+      "elapsedIncludingDrainSeconds": 20.0,
+      "successfulBusinessPerSecond": 0.5,
+      "completedIterationsPerSecond": 0.5,
+      "actualMeasuredHttpRequests": 12,
+      "actualMeasuredHttpRps": 0.6,
+      "generator": {
+        "pid": 21108,
+        "pythonCpuSeconds": 0.984375,
+        "signerCpuSeconds": 0.03125,
+        "cpuPercentOneCore": 5.078125,
+        "logicalCpuCount": 32,
+        "scheduleP99Seconds": 0.0
+      },
+      "applicationPayloadBytes": {
+        "sent": 215,
+        "received": 483039,
+        "note": "Bodies of completed calls, not TCP wire bytes; host NIC counters collected separately"
+      },
+      "businessErrorRate": 0.0,
+      "errors": {},
+      "businessP95Seconds": 0.3429999999998472,
+      "businessP99Seconds": 0.3429999999998472,
+      "endpointLatency": {
+        "/community": {
+          "count": 7,
+          "p95": 0.15599999999994907,
+          "p99": 0.15599999999994907
+        },
+        "/community/questions/{id}": {
+          "count": 3,
+          "p95": 0.1089999999999236,
+          "p99": 0.1089999999999236
+        },
+        "/community/questions/{id}/answers": {
+          "count": 1,
+          "p95": 0.2339999999999236,
+          "p99": 0.2339999999999236
+        }
+      },
+      "smokeOnly": true,
+      "setupSeconds": 0.7190000000000509,
+      "instances": {
+        "a:60848": 1,
+        "b:22196": 1
+      },
+      "rateUnit": "business iterations/second",
+      "authenticationEnabled": true,
+      "runDirectory": "run-20261029-102043-d0ef",
+      "planSha256": "7a5450309add987215fd53519794cb614cdf830a564e4e69037748d1f6b660d8",
+      "artifacts": {
+        "core": "69f13ba42c8e103d90904d14543fb8ba4d8df066b6b207527a006ade68198660",
+        "a": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "b": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "c": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "lb": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+      },
+      "snapshot": {
+        "core": "a81d7179bce3ea0c79dab1f46a2ddeaabfaaa536bc377bdbc8c5bb2eaf5dc731",
+        "community": "8621cf90a567a063b33543f06fd2cff9127dd42983e6f0d998b7d3155b802ae2"
+      }
+    },
+    {
+      "path": "repair",
+      "plannedIterations": 10,
+      "startedIterations": 10,
+      "successfulBusinessIterations": 10,
+      "dropped_iterations": 0,
+      "targetIterationsPerSecond": 0.5,
+      "windowSeconds": 20,
+      "elapsedIncludingDrainSeconds": 20.0,
+      "successfulBusinessPerSecond": 0.5,
+      "completedIterationsPerSecond": 0.5,
+      "actualMeasuredHttpRequests": 14,
+      "actualMeasuredHttpRps": 0.7,
+      "generator": {
+        "pid": 21108,
+        "pythonCpuSeconds": 0.484375,
+        "signerCpuSeconds": 0.015625,
+        "cpuPercentOneCore": 2.5,
+        "logicalCpuCount": 32,
+        "scheduleP99Seconds": 0.0
+      },
+      "applicationPayloadBytes": {
+        "sent": 562,
+        "received": 198155,
+        "note": "Bodies of completed calls, not TCP wire bytes; host NIC counters collected separately"
+      },
+      "businessErrorRate": 0.0,
+      "errors": {},
+      "businessP95Seconds": 0.21900000000005093,
+      "businessP99Seconds": 0.21900000000005093,
+      "endpointLatency": {
+        "/requests/mine": {
+          "count": 8,
+          "p95": 0.06199999999989814,
+          "p99": 0.06199999999989814
+        },
+        "/requests/new": {
+          "count": 2,
+          "p95": 0.047000000000025466,
+          "p99": 0.047000000000025466
+        },
+        "/requests": {
+          "count": 2,
+          "p95": 0.1570000000001528,
+          "p99": 0.1570000000001528
+        }
+      },
+      "smokeOnly": true,
+      "setupSeconds": 0.7660000000000764,
+      "instances": {
+        "c:61372": 1,
+        "a:60848": 1
+      },
+      "rateUnit": "business iterations/second",
+      "authenticationEnabled": true,
+      "runDirectory": "run-20261029-102108-b80d",
+      "planSha256": "7a5450309add987215fd53519794cb614cdf830a564e4e69037748d1f6b660d8",
+      "artifacts": {
+        "core": "69f13ba42c8e103d90904d14543fb8ba4d8df066b6b207527a006ade68198660",
+        "a": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "b": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "c": "dc11415a4d129658e207d739397fd2c5fab4b88cc9493c486faf99ba17bfe86b",
+        "lb": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+      },
+      "snapshot": {
+        "core": "a81d7179bce3ea0c79dab1f46a2ddeaabfaaa536bc377bdbc8c5bb2eaf5dc731",
+        "community": "8621cf90a567a063b33543f06fd2cff9127dd42983e6f0d998b7d3155b802ae2"
+      }
+    }
+  ],
+  "restore": {
+    "newDatabaseRestore": true,
+    "oldDatabaseArchivePreserved": true,
+    "fixtureCounts": [
+      1000,
+      10000,
+      30000
+    ],
+    "smokeWritesAbsentAfterRestore": true,
+    "threeIdenticalCommunityArtifacts": true
+  },
+  "protection": {
+    "fileFingerprints": {
+      "original": 4421,
+      "backup": 4421
+    },
+    "containers": {
+      "smartfix-db": {
+        "sameIdentityAndMounts": true,
+        "beforeRunning": false,
+        "nowRunning": true,
+        "startedAtUTC": "2026-10-29T02:10:07.099509479Z",
+        "originStartExpected": "PASS_USER_CONFIRMED",
+        "confirmation": "User explicitly confirmed starting original system only to inspect it; preserve running state."
+      },
+      "sf-stage1-20261028-105721-db": {
+        "sameIdentityAndMounts": true,
+        "beforeRunning": false,
+        "nowRunning": true,
+        "startedAtUTC": "2026-10-29T02:01:58.869866621Z",
+        "originStartExpected": "EXPLICIT_ALLOWED_RECOVERY_RESTART"
+      }
+    },
+    "baselineRestartReadOnlyChecks": {
+      "REQUESTER/community": true,
+      "REQUESTER/notifications": true,
+      "REQUESTER/requests/mine": true,
+      "TECHNICIAN/community": true,
+      "TECHNICIAN/notifications": true,
+      "TECHNICIAN/workorders/mine": true,
+      "ADMINISTRATOR/community": true,
+      "ADMINISTRATOR/notifications": true,
+      "ADMINISTRATOR/admin/requests": true
+    }
+  },
+  "formalExecutionGuards": [
+    {
+      "script": "tools/migration/perf9.py",
+      "unauthorizedFormalRefused": true
+    },
+    {
+      "script": "tools/migration/perf9_suite.py",
+      "unauthorizedFormalRefused": true
+    }
+  ],
+  "unitTests": {
+    "java": 22,
+    "python": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "telemetry": {
+    "samples": 5,
+    "actualCaptureSeconds": [
+      10.280999999999949,
+      10.327999999999975,
+      9.875,
+      10.297000000000025,
+      9.813000000000102
+    ],
+    "observedApplications": [
+      "a",
+      "b",
+      "c",
+      "core"
+    ],
+    "missingMetricNames": {
+      "core": [],
+      "a": [],
+      "b": [],
+      "c": []
+    },
+    "lastOutbox": {
+      "failed": 0,
+      "leased": 0,
+      "pending": 0,
+      "attempts": 144,
+      "oldestPendingSeconds": 0
+    },
+    "eventSamples": [
+      null,
+      {
+        "count": 1,
+        "receiptP95Seconds": 0.491234,
+        "visibleNotificationP95Seconds": null
+      },
+      {
+        "count": 4,
+        "receiptP95Seconds": 0.47077369999999996,
+        "visibleNotificationP95Seconds": 0.20429
+      },
+      {
+        "count": 5,
+        "receiptP95Seconds": 0.526842,
+        "visibleNotificationP95Seconds": 0.4695102
+      },
+      {
+        "count": 6,
+        "receiptP95Seconds": 0.5246165,
+        "visibleNotificationP95Seconds": 0.4695102
+      }
+    ]
+  },
+  "notRun": [
+    "formal 1/2/3 same-load comparison",
+    "formal capacity ladder",
+    "formal mixed repair isolation",
+    "AWS",
+    "autoscaling",
+    "full historical test suite"
+  ],
+  "stage9Status": "AUTOMATED_PASS_PENDING_USER",
+  "nextStageAllowed": false,
+  "fixedDatasetActualTotals": {
+    "fixedSnapshotCoreUsers": 1021,
+    "fixedSnapshotCommunityQuestions": 10092,
+    "fixedSnapshotCommunityAnswers": 30030
+  },
+  "safeFiles": [
+    "pom.xml",
+    "community-service/pom.xml",
+    "src/main/java/com/smartfix/auth/config/SecurityConfig.java",
+    "src/main/java/com/smartfix/common/configuration/MigrationIsolationGuard.java",
+    "src/main/java/com/smartfix/communitybridge/Stage8InAppDelivery.java",
+    "community-service/src/main/java/com/smartfix/communityapp/CommunityJwtSecurity.java",
+    "community-service/src/main/java/com/smartfix/communityapp/MigrationIsolationGuard.java",
+    "src/test/java/com/smartfix/common/configuration/MigrationIsolationGuardTest.java",
+    "community-service/src/test/java/com/smartfix/communityapp/MigrationIsolationGuardTest.java",
+    "tools/migration/stage9.py",
+    "tools/migration/stage9_fixture.py",
+    "tools/migration/stage9_lb.py",
+    "tools/migration/perf9.py",
+    "tools/migration/perf9_observe.py",
+    "tools/migration/perf9_suite.py",
+    "tools/migration/PerfTokenSigner.java",
+    "tools/migration/test_perf9.py",
+    "tools/migration/verify_stage9.py",
+    "docs/migration/STATUS.md",
+    "docs/migration/SAFETY_CONTRACT.md",
+    "docs/migration/phase9/PLAN.json",
+    "docs/migration/phase9/DESIGN.md",
+    "docs/migration/phase9/RUNBOOK.md",
+    "docs/migration/phase9/VALIDATION.md",
+    "docs/migration/phase9/EVIDENCE.json"
+  ]
+}

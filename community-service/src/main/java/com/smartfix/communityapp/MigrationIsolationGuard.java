@@ -16,24 +16,25 @@ public class MigrationIsolationGuard implements EnvironmentPostProcessor, Ordere
   if(Arrays.asList(e.getActiveProfiles()).contains("test") && url.startsWith("jdbc:h2:mem:")) return;
   require("true".equals(e.getProperty("smartfix.migration.isolated")),"Explicit isolated environment required");
   String scenario=e.getProperty("smartfix.migration.scenario","stage3");
-  require(scenario.equals("stage3")||scenario.equals("stage7")||scenario.equals("stage8"),"Unknown isolation scenario");
+  require(scenario.equals("stage3")||scenario.equals("stage7")||scenario.equals("stage8")||scenario.equals("stage9"),"Unknown isolation scenario");
+  boolean stage9=scenario.equals("stage9");
   boolean stage8=scenario.equals("stage8");
   boolean stage7=scenario.equals("stage7");
-  require((stage8?"jdbc:postgresql://127.0.0.1:15473/smartfix_stage8_community":stage7?"jdbc:postgresql://127.0.0.1:15463/smartfix_stage7_community":"jdbc:postgresql://127.0.0.1:15453/smartfix_migration_community").equals(url),"Database URL is outside the stage3 allowlist");
-  require((stage8?"sf_stage8_community":stage7?"sf_stage7_community":"sf_migration_community").equals(e.getProperty("spring.datasource.username")),"Wrong service database identity");
-  require((stage8?"http://127.0.0.1:19101":stage7?"http://127.0.0.1:19095":"http://127.0.0.1:19091").equals(e.getProperty("smartfix.community.events.core-base-url","http://127.0.0.1:19091")),"Wrong internal service endpoint");
+  require((stage9?"jdbc:postgresql://127.0.0.1:15483/smartfix_stage9_community":stage8?"jdbc:postgresql://127.0.0.1:15473/smartfix_stage8_community":stage7?"jdbc:postgresql://127.0.0.1:15463/smartfix_stage7_community":"jdbc:postgresql://127.0.0.1:15453/smartfix_migration_community").equals(url),"Database URL is outside the stage3 allowlist");
+  require((stage9?"sf_stage9_community":stage8?"sf_stage8_community":stage7?"sf_stage7_community":"sf_migration_community").equals(e.getProperty("spring.datasource.username")),"Wrong service database identity");
+  require((stage9?"http://127.0.0.1:19111":stage8?"http://127.0.0.1:19101":stage7?"http://127.0.0.1:19095":"http://127.0.0.1:19091").equals(e.getProperty("smartfix.community.events.core-base-url","http://127.0.0.1:19091")),"Wrong internal service endpoint");
   require("127.0.0.1".equals(e.getProperty("server.address")),"Loopback binding required");
-  require(stage8?java.util.Set.of("19102","19103").contains(e.getProperty("server.port")):(stage7?"19094":"19092").equals(e.getProperty("server.port")),"Wrong migration web port");
+  require(stage9?java.util.Set.of("19112","19113","19115").contains(e.getProperty("server.port")):stage8?java.util.Set.of("19102","19103").contains(e.getProperty("server.port")):(stage7?"19094":"19092").equals(e.getProperty("server.port")),"Wrong migration web port");
   require("false".equals(e.getProperty("smartfix.notification.email.enabled")),"External mail must be disabled");
   require("false".equals(e.getProperty("smartfix.bootstrap-admin.enabled")),"Bootstrap must be disabled");
   require("false".equals(e.getProperty("smartfix.notification.delivery.scheduling-enabled")),"Delivery scanner must be disabled");
   require("false".equals(e.getProperty("smartfix.notification.delivery.eager-enabled")),"Eager delivery must be disabled");
-  require((stage8?"SMARTFIX_STAGE8_COMMUNITY":stage7?"SMARTFIX_STAGE7_COMMUNITY":"SMARTFIX_MIGRATION_sf_migration_community").equals(e.getProperty("server.servlet.session.cookie.name")),"Isolated cookie required");
+  require((stage9?"SMARTFIX_STAGE9_COMMUNITY":stage8?"SMARTFIX_STAGE8_COMMUNITY":stage7?"SMARTFIX_STAGE7_COMMUNITY":"SMARTFIX_MIGRATION_sf_migration_community").equals(e.getProperty("server.servlet.session.cookie.name")),"Isolated cookie required");
   Path root=Path.of(e.getProperty("smartfix.migration.root","")).toAbsolutePath().normalize();
   require(root.equals(Path.of("C:/Users/zhour/smartfix-microservices").toAbsolutePath().normalize()),"Wrong migration root");
   require(root.equals(Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize()),"Wrong working directory");
   Path uploads=Path.of(e.getProperty("smartfix.uploads.dir","")).toAbsolutePath().normalize();
-  require(uploads.equals(root.resolve(stage8?".migration-runtime/stage8/uploads-community":stage7?".migration-runtime/stage7/uploads-community":".migration-runtime/uploads-sf_migration_community")),"Wrong attachment location");
+  require(uploads.equals(root.resolve(stage9?".migration-runtime/stage9/uploads-community":stage8?".migration-runtime/stage8/uploads-community":stage7?".migration-runtime/stage7/uploads-community":".migration-runtime/uploads-sf_migration_community")),"Wrong attachment location");
  }
  private static void require(boolean ok,String message){if(!ok)throw new IllegalStateException("MIGRATION_ISOLATION_REJECTED: "+message);}
 }

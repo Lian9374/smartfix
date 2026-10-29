@@ -97,7 +97,7 @@ public class SecurityConfig {
                         .requestMatchers("/admin/requests/*/dispatch", "/admin/requests/*/assign",
                                 "/admin/requests/*/reassign", "/admin/requests/*/withdraw").denyAll()
                         .requestMatchers("/admin/**").hasRole("ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.GET, "/actuator/info").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.GET, "/actuator/info", "/actuator/metrics", "/actuator/metrics/**").hasRole("ADMINISTRATOR")
                         .anyRequest().denyAll())
                 .formLogin(login -> login.loginPage("/login")
                         // The account-type choice rides along as the request's details. It is

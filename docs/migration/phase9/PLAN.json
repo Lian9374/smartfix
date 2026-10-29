@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "frozenBeforeSmoke": true,
+  "purpose": "Stage9 design and smoke only; formal runs require stage10 authorization",
+  "environment": {
+    "core": "http://127.0.0.1:19111",
+    "community": [
+      "http://127.0.0.1:19112",
+      "http://127.0.0.1:19113",
+      "http://127.0.0.1:19115"
+    ],
+    "lb": "http://127.0.0.1:19114",
+    "databasePort": 15483,
+    "coreReplicas": 1,
+    "communityReplicas": [
+      1,
+      2,
+      3
+    ],
+    "jvmPerInstance": {
+      "xmsMiB": 128,
+      "xmxMiB": 384,
+      "activeProcessorCount": 2,
+      "gc": "G1",
+      "tomcatThreads": 40,
+      "hikariMax": 5
+    },
+    "database": {
+      "image": "postgres:16-alpine",
+      "cpus": 2,
+      "memoryMiB": 1024,
+      "sharedBuffersMiB": 128,
+      "maxConnections": 60
+    },
+    "hostLimitation": "Same Windows/Docker host and shared storage; ActiveProcessorCount is not an OS CPU quota. Record all background processes, total CPU and memory. Local and AWS runs must never be pooled."
+  },
+  "dataset": {
+    "syntheticUsers": 1000,
+    "syntheticQuestions": 10000,
+    "syntheticAnswers": 30000,
+    "additionalData": "Frozen stage8 clone; actual total counts and hashes recorded separately",
+    "seed": 7919,
+    "normalQuestionSelection": "(iteration*7919)%10000",
+    "actorSelection": "(iteration*17+floor(iteration/activeUsers))%activeUsers; 1000 active normally, 900 Community + 100 disjoint repair actors in mixed tests",
+    "hotQuestion": 1000000,
+    "reset": "Restore immutable private snapshot into new stage9 databases; preserve old databases and uploads. Reset before EVERY independent run, including API/page and warmup.",
+    "quota": "Original posting limits preserved. Historical fixture timestamps are January 2026. Quota errors remain errors, never discounted; do not reset guards during a measured run."
+  },
+  "units": {
+    "primary": "successful business iterations / elapsed wall seconds including drain",
+    "secondary": "completed iterations/s and explicit instrumented HTTP calls/s",
+    "note": "Each explicit client call and auto-followed redirect GET counted. Endpoint latency is whole call including its redirect/body; business latency includes form/token/write/readback. Counts are not browser subresource loads."
+  },
+  "mix": {
+    "community": {
+      "browse": 40,
+      "detail": 30,
+      "search": 20,
+      "answer": 10
+    },
+    "repair": {
+      "listMine": 80,
+      "submitRequest": 20
+    },
+    "mapping": "bucket=(iteration*37)%100, exact mix per consecutive 100 iterations. Smoke is too short to establish business proportions."
+  },
+  "quality": {
+    "businessP95Seconds": 1.0,
+    "businessP99Seconds": 2.0,
+    "endpointP95Seconds": 0.8,
+    "endpointP99Seconds": 1.5,
+    "businessErrorRateMax": 0.005,
+    "contentErrorsMax": 0,
+    "authErrorsMax": 0,
+    "droppedIterationsMax": 0,
+    "startedToTargetRateMin": 0.99,
+    "outboxOldestPendingSecondsMax": 10,
+    "eventReceiptP95SecondsMax": 5,
+    "failedOutboxMax": 0,
+    "generatorCpuPercentMax": 70,
+    "generatorScheduleP99SecondsMax": 0.05,
+    "repairP95DegradationMax": 0.2
+  },
+  "classification": [
+    "HTTP 4xx including posting quota/conflict",
+    "HTTP 5xx",
+    "timeout/transport",
+    "unexpected login",
+    "invalid content including missing write readback",
+    "driver failure",
+    "dropped iteration",
+    "busy actor/session"
+  ],
+  "timing": {
+    "warmupSeconds": 60,
+    "warmupBusinessRate": 2,
+    "measureSeconds": 300,
+    "drainSecondsMax": 30,
+    "repeats": 3,
+    "orders": [
+      [
+        1,
+        2,
+        3
+      ],
+      [
+        3,
+        1,
+        2
+      ],
+      [
+        2,
+        3,
+        1
+      ]
+    ],
+    "sampleIntervalSeconds": 15
+  },
+  "experiments": {
+    "equalArrival": {
+      "rates": [
+        5,
+        20
+      ],
+      "paths": [
+        "api",
+        "page"
+      ]
+    },
+    "sustainedCapacity": {
+      "rates": [
+        5,
+        10,
+        20,
+        40,
+        80,
+        160
+      ],
+      "paths": [
+        "api",
+        "page"
+      ],
+      "rule": "Report highest offered rate meeting every goal in all three repeats; a failed level is a valid observation. Never assume higher rates pass, never silently change targets."
+    },
+    "mixed": {
+      "repairRate": 2,
+      "communityRates": [
+        0,
+        5,
+        20,
+        40
+      ],
+      "paths": [
+        "api",
+        "page"
+      ],
+      "rule": "Run independent open-arrival repair and community streams concurrently; compare repair p95 to repair-only baseline."
+    },
+    "hotContention": {
+      "rate": 5,
+      "paths": [
+        "api",
+        "page"
+      ],
+      "separate": true
+    }
+  },
+  "smoke": {
+    "rateMax": 1,
+    "secondsMax": 20,
+    "usersMax": 8,
+    "purpose": "Validate scripts, auth, content, counters, restore and metrics only; not a capacity result"
+  },
+  "missingMetricsRule": "NOT_RUN/FAIL readiness; never replace unavailable values with zero or claim capacity without required observations"
+}

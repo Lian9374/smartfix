@@ -23,4 +23,15 @@ class MigrationIsolationGuardTest {
   assertThrows(IllegalStateException.class,()->check(valid().withProperty("smartfix.migration.scenario","stage7")));
   } finally { System.setProperty("user.dir",prior); }
  }
+
+ @Test void stage9RejectsProtectedResourcesAndAcceptsOnlyItsOwnIdentity(){
+  String prior=System.getProperty("user.dir");
+  try {System.setProperty("user.dir","C:/Users/zhour/smartfix-microservices");
+   var e=valid().withProperty("smartfix.migration.scenario","stage9").withProperty("spring.datasource.url","jdbc:postgresql://127.0.0.1:15483/smartfix_stage9_community").withProperty("spring.datasource.username","sf_stage9_community").withProperty("server.port","19112").withProperty("server.servlet.session.cookie.name","SMARTFIX_STAGE9_COMMUNITY").withProperty("smartfix.uploads.dir","C:/Users/zhour/smartfix-microservices/.migration-runtime/stage9/uploads-community").withProperty("smartfix.community.events.core-base-url","http://127.0.0.1:19111");
+   assertDoesNotThrow(()->check(e));
+   for(String forbidden:new String[]{"19090","19101","8080"})assertThrows(IllegalStateException.class,()->check(e.withProperty("server.port",forbidden)));
+   e.withProperty("server.port","19112");
+   assertThrows(IllegalStateException.class,()->check(e.withProperty("spring.datasource.url","jdbc:postgresql://127.0.0.1:15443/smartfix")));
+  } finally {System.setProperty("user.dir",prior);}
+ }
 }
