@@ -1,0 +1,286 @@
+{
+  "date": "2026-10-29 Asia/Shanghai",
+  "startCommit": "674a355c00c0eb7814e5e2dbb9bb433e71906728",
+  "branch": "feature/community-microservice",
+  "main": "6cb329f4fe9b1f7e2e708b9ee00d81c456740fc0",
+  "baseline": "ea102f85398e268ef76eb091ebc73bc52328cec1",
+  "restore": {
+    "startCommit": "674a355c00c0eb7814e5e2dbb9bb433e71906728",
+    "performanceRun": false,
+    "originalAndBackupFingerprintFiles": 4421,
+    "originalDumpSha256": "034f7412651b1647f4efceff2b56b9dd0ab439c0cd264f7502bee480c25778ba",
+    "newRestoreUrl": "http://127.0.0.1:19121/login",
+    "restoredCounts": {
+      "account_initialization": 1,
+      "announcements": 0,
+      "assignments": 1,
+      "audit_entries": 5,
+      "community_answers": 1,
+      "community_questions": 1,
+      "community_reports": 0,
+      "delivery_tasks": 11,
+      "facilities": 0,
+      "flyway_schema_history": 25,
+      "locations": 186,
+      "maintenance_requests": 7,
+      "notifications": 11,
+      "repair_records": 2,
+      "request_attachments": 0,
+      "request_feedback": 1,
+      "request_status_history": 10,
+      "request_ticket_sequences": 1,
+      "sla_policies": 0,
+      "sla_states": 0,
+      "technician_profiles": 1,
+      "technician_service_areas": 3,
+      "technician_skills": 1,
+      "users": 11,
+      "work_orders": 1
+    },
+    "restoredJarSha256": "15b5f8cecf3d294c5231ba974d6c8a034e207e0840b7f98974bca9582b2d2542",
+    "restoreChecks": {
+      "requester/community": true,
+      "requester/notifications": true,
+      "requester/requests/mine": true,
+      "tech/community": true,
+      "tech/notifications": true,
+      "tech/workorders/mine": true,
+      "admin/community": true,
+      "admin/notifications": true,
+      "admin/admin/requests": true
+    },
+    "historicalAttachmentRead": "N/A: original backup has zero attachment rows",
+    "restoreContainer": "sf-migration-stage11-20261029-150233-db",
+    "restoreVolume": "sf-migration-stage11-20261029-150233-data",
+    "protectedResourcesUnchanged": true,
+    "coldBackup": {
+      "sha256": "5840a5eb5faab9d460cf3a3d2f547453d24681ce7671cfde5618dfe4075a7521",
+      "bytes": 88220672,
+      "tarMemberCount": 2083,
+      "readable": true
+    }
+  },
+  "stopRehearsal": {
+    "onlyExperimentalAppsStopped": true,
+    "allFourPortsClosed": true,
+    "protected19090UpWhileExperimentStopped": true,
+    "protected19090RealLoginAndWorkspaceWhileStopped": true,
+    "protectedContainersUnchanged": true,
+    "databaseAndUploadsRetained": true,
+    "experimentRestarted": true
+  },
+  "currentChecks": {
+    "aActualProcessArtifactAndHealth": true,
+    "bActualProcessArtifactAndHealth": true,
+    "lbActualProcessArtifactAndHealth": true,
+    "coreActualProcessArtifactAndHealth": true,
+    "REQUESTER/community": true,
+    "REQUESTER/notifications": true,
+    "REQUESTER/requests/mine": true,
+    "TECHNICIAN/community": true,
+    "TECHNICIAN/notifications": true,
+    "TECHNICIAN/workorders/mine": true,
+    "ADMINISTRATOR/community": true,
+    "ADMINISTRATOR/notifications": true,
+    "ADMINISTRATOR/admin/requests": true,
+    "protected19090REQUESTERLoginAndWorkspace": true,
+    "protected19090TECHNICIANLoginAndWorkspace": true,
+    "protected19090ADMINISTRATORLoginAndWorkspace": true,
+    "protectedResourcesUnchangedAtEnd": true
+  },
+  "currentServices": {
+    "a": {
+      "pid": 61808,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community-v2\\smartfix-community-0.0.1-SNAPSHOT.jar",
+      "sha256": "96e5d883915d3d296b031a820e575f13e7530291bc93d74461a884e7236c5993"
+    },
+    "b": {
+      "pid": 54204,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-community-v2\\smartfix-community-0.0.1-SNAPSHOT.jar",
+      "sha256": "96e5d883915d3d296b031a820e575f13e7530291bc93d74461a884e7236c5993"
+    },
+    "lb": {
+      "pid": 26016,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\tools\\migration\\stage9_lb.py",
+      "sha256": "b9a06bcd815cc3605ca6feeda50979fc63e0d6e7500db2a9bdc7ef5b012cfcde"
+    },
+    "core": {
+      "pid": 65020,
+      "artifact": "C:\\Users\\zhour\\smartfix-microservices\\.migration-runtime\\stage9\\build-core-v2\\smartfix-0.0.1-SNAPSHOT.jar",
+      "sha256": "e806780003821ffd8b04828108b02149f4425ea6e1b07fc5f92fe8cea4a67da9"
+    }
+  },
+  "protectedContainerIdentities": {
+    "smartfix-db": {
+      "id": "ba84de8c73cb3e44a04ee1899f3534a96e7fbc048176a67b7a125355e050c85d",
+      "status": "exited",
+      "mounts": [
+        {
+          "type": "volume",
+          "name": "smartfix_smartfix_pgdata",
+          "destination": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    "sf-stage1-20261028-105721-db": {
+      "id": "6cc24149b563d123c2fd643ac423d2413c90e06c351d82768329626b179ef9fd",
+      "status": "running",
+      "mounts": [
+        {
+          "type": "volume",
+          "name": "sf-stage1-20261028-105721-data",
+          "destination": "/var/lib/postgresql/data"
+        }
+      ]
+    }
+  },
+  "original8080": "NOT_LISTENING",
+  "javaReportsPreviouslyRunAndRechecked": [
+    {
+      "name": "com.smartfix.auth.config.SecurityConfigTest",
+      "tests": "75",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.common.configuration.MigrationIsolationGuardTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.communitybridge.Stage8InAppDeliveryTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.community.domain.CommunityQuestionTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.community.domain.CommunityReportTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.communityapp.CommunityIdentitySecurityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.smartfix.communityapp.MigrationIsolationGuardTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "pythonTestsPreviouslyPassed": 6,
+  "priorReportsSha256": {
+    "docs\\migration\\phase10\\EVIDENCE.json": "648b842fae4ca44c5c39c5ef88171a491e3fb4b683fc31e0e7eaa7c536b74622",
+    "docs\\migration\\phase10\\MICROSERVICES_READY.md": "b580cc28a23f27b4b0fc7c82f8ac11ef296a453cea9d99659d7182f1f767c7b0",
+    "docs\\migration\\phase10\\QUICK_PLAN.json": "a708100b2a98d58336133048e6344452d9e2646401f13d24377e24a078e0b652",
+    "docs\\migration\\phase10\\RUNBOOK.md": "6260680c38af2e94b42c0614532601d960e2d7cf75cc8e447cc4bca23570b162",
+    "docs\\migration\\phase10\\VALIDATION.md": "27dac8bfe7e594d3d15ac4ca91675acdf871c29135175ad1af220a02cf5132d6",
+    "docs\\migration\\phase2\\API_CONTRACT.md": "e9e58bb2f1ff7d5136c35ee86285229b9808ad1e2c9dce1547e15273dade47e0",
+    "docs\\migration\\phase2\\contracts.json": "917f80e9b532851930e54d24f7ff00685f2deddc473463d98fecff5ee26ba1e1",
+    "docs\\migration\\phase2\\DATA_AND_DEPENDENCIES.md": "d5ffaa7a197d2c8acc82de6ca160bb06c18efa2bc9bb1994371265b077645899",
+    "docs\\migration\\phase2\\EVENT_CONTRACT.md": "06f0ac98d39c62fcdc86193c4d6e0ce938c4606f7c6f7c4512a7710391dda8b1",
+    "docs\\migration\\phase2\\REGRESSION_AND_GATES.md": "2dd722d2745d7ac36bd2b50c82d82cabfc276b4bd2616406ede799cdc23ad179",
+    "docs\\migration\\phase2\\VALIDATION.md": "45ef5dfd04457e789b5554ea7680159b938d41ccb8bfdeed3007eb00229decd2",
+    "docs\\migration\\phase3\\RUNBOOK.md": "19ea06489269335799369b45ee6bcd45e94e0429c182eef169de19b459ffefe0",
+    "docs\\migration\\phase3\\VALIDATION.md": "0a37510dc61340ab5a65a5f5aaf5a43d1fb2e61e86bbc8144b3e1a00f9f2a9c9",
+    "docs\\migration\\phase4\\RUNBOOK.md": "3d243048f9aca60a0867751cc09414c707aa27164466340e795df092bc43bb8f",
+    "docs\\migration\\phase4\\VALIDATION.md": "3b19119ff8ead22f0174f0d54d6e215b31c9baa0e40dcbe2681b07e7678569ea",
+    "docs\\migration\\phase5\\RUNBOOK.md": "0c9535f08ee43be3dc56e424378a2a12e94b49238e3258167b7042065c842a09",
+    "docs\\migration\\phase5\\VALIDATION.md": "8af19dce138ec80f0f7bdfb9d3353ca4780e87eed18250b129c5e39233466b1c",
+    "docs\\migration\\phase6\\VALIDATION.md": "2523cff3e926d7c5421375f0c3b08f95cb9524d259a0bd03e032a7d8b30b7374",
+    "docs\\migration\\phase7\\EVIDENCE.json": "ca62c571309cc0cff3f6eb6d4aac6583c2b8cb4841f4993c463596ede6df9ae3",
+    "docs\\migration\\phase7\\RUNBOOK.md": "b4ddc4bc8915c395ba6bbc6cf8c25c1528ce5f28fcfd654e8cc1c9115c1b2898",
+    "docs\\migration\\phase7\\VALIDATION.md": "b81fb3c4dccf576bbd42b4079f3ca5d4ad5be902269a79c73b6c6a715fc487a0",
+    "docs\\migration\\phase8\\EVIDENCE.json": "645266cc8e31cb1e88fbf06d22151b6d0c125fb6deda279265baf1d644cbe417",
+    "docs\\migration\\phase8\\RUNBOOK.md": "36b20ac73d588ed592cc20613c6def72d50764c2fdfe8471a73242b656ab2fc6",
+    "docs\\migration\\phase8\\VALIDATION.md": "b7fcb4b0c49a83730e1868577f63d166489774aab8c8acec059f87f9565c7fb7",
+    "docs\\migration\\phase9\\DESIGN.md": "a3b83197d71a8109f4e587b0b7dd07f06f3c43dd3bb076ef5dd8d78ed0ae7408",
+    "docs\\migration\\phase9\\EVIDENCE.json": "dfe9f773788bad5de7eeff166b07d899646f4ba83a127e24e08443d826b4a318",
+    "docs\\migration\\phase9\\PLAN.json": "825b2877aa12e6e86bbc5e8835004a574f42128541ef2043b57868e536aef3a4",
+    "docs\\migration\\phase9\\RUNBOOK.md": "137134ee19cd25c4b633c40ffff1bea95c4fa7348ff69507ae6bf0cc9caca0c3",
+    "docs\\migration\\phase9\\VALIDATION.md": "020dc61f130a0d425cd5a74d85bf87ae641226a281e581161e33496202cb56d4"
+  },
+  "implementationCommits": [
+    "674a355c00c0eb7814e5e2dbb9bb433e71906728 fix: finalize functional microservices and session isolation; cancel remaining benchmarks",
+    "5eab4dce23d3839654981b6db8cc3dfc6e0c18ef test: prepare isolated scalability plan telemetry and bounded smoke",
+    "5d0f134a714626219f94652413fcdbfc79e47296 test: verify two community JVMs failover and independent release",
+    "2ea36728d4d3f26506c1d064558cb43b0a7e74a0 test: rehearse isolated community migration and incremental monolith recovery",
+    "4e7d5d326205af180e967a8885b64b98741b6fdf feat: migrate community operations and transactional audit behind service boundary",
+    "f6c9cf2f5496285569e3c9c0cd878d1fc2cfc8c2 feat: connect community reply outbox and core notification pipeline",
+    "5ed233b8219ad36c7aec06dfe378593c2010e4b3 feat: secure core community identity and transactional posting guards",
+    "4a76aab5c75968207fbeca4b2f4d80303ef8168b feat: add isolated community service skeleton and local migration environment",
+    "3c3585438e0b0b7b9ab0c2e97bcf84eb69e0af94 docs: define community service boundaries and migration contracts"
+  ],
+  "architecture": "IMPLEMENTED_LOCAL_CORE_COMMUNITY",
+  "functional": "AUTOMATED_PASS_BROWSER_PENDING_USER",
+  "dataRecovery": "NEW_ORIGINAL_RESTORE_AND_PRIOR_INCREMENTAL_REHEARSAL_PASS",
+  "scalabilityPerformance": "INCOMPLETE_CANCELLED_BY_USER_NO_SCALING_CLAIM",
+  "aws": "NOT_RUN_UNCHANGED",
+  "autoScaling": "NOT_IMPLEMENTED",
+  "verticalScalingExperiment": "NOT_RUN",
+  "allRepositoryTestsThisStage": "NOT_RUN_NO_BUSINESS_CODE_CHANGE",
+  "historicalAttachmentRead": "N/A_ZERO_ORIGINAL_ROWS",
+  "browserAcceptance": "PENDING_USER",
+  "nextStageAllowed": false,
+  "priorMigrationAndIncrementalArchivesVerified": {
+    "initialSnapshotEvidence": {
+      "sha256": "def8b0e4fd71965775289b071e3a2ebf51e655a900c9fb485894efbeec99dcc6",
+      "bytes": 2535,
+      "matchesPriorEvidence": true
+    },
+    "initialMonolithArchive": {
+      "sha256": "8623f55042f5486769cbf2859add8a3506b662e1fc1dda8bcce5ac330d2a5118",
+      "bytes": 101642,
+      "matchesPriorEvidence": true
+    },
+    "finalSnapshotEvidence": {
+      "sha256": "8572cd83af2f01a670512d68639ed0cf547662246fd368e513a0444156f8cc97",
+      "bytes": 2837,
+      "matchesPriorEvidence": true
+    },
+    "deltaSnapshotEvidence": {
+      "sha256": "13440f971b45ad111635e3c868a4e0c7ad309e1fe5c2906e4aa90933a3c8236c",
+      "bytes": 4614,
+      "matchesPriorEvidence": true
+    },
+    "communityArchive": {
+      "sha256": "516d4f17817ff4be91f68f7a172156142fb2d6d0f9bbfbdb2daafd7ae1b53a77",
+      "bytes": 32410,
+      "matchesPriorEvidence": true
+    },
+    "coreArchive": {
+      "sha256": "6389f6430fdd57a1a201c4ca8221078ae310d2b46bc393589a250004abb624ac",
+      "bytes": 104641,
+      "matchesPriorEvidence": true
+    }
+  },
+  "safeFiles": [
+    "docs/migration/STATUS.md",
+    "docs/migration/SAFETY_CONTRACT.md",
+    "docs/migration/phase11/A_ORIGINAL.md",
+    "docs/migration/phase11/B_MICROSERVICES.md",
+    "docs/migration/phase11/C_STOP_EXPERIMENT.md",
+    "docs/migration/phase11/DELIVERY.md",
+    "docs/migration/phase11/EVIDENCE.json",
+    "tools/migration/phase11_verify.py"
+  ],
+  "verificationScriptSha256": "ea2eb628bdfef8f2486f1b40bcee3b59d5d11a65f703e750f42569471cd5ce82"
+}
