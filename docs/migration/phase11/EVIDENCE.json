@@ -230,7 +230,7 @@
     "3c3585438e0b0b7b9ab0c2e97bcf84eb69e0af94 docs: define community service boundaries and migration contracts"
   ],
   "architecture": "IMPLEMENTED_LOCAL_CORE_COMMUNITY",
-  "functional": "AUTOMATED_PASS_BROWSER_PENDING_USER",
+  "functional": "AUTOMATED_PASS_STAGE10_USER_ACCEPTED_FINAL_RESTORE_PENDING",
   "dataRecovery": "NEW_ORIGINAL_RESTORE_AND_PRIOR_INCREMENTAL_REHEARSAL_PASS",
   "scalabilityPerformance": "INCOMPLETE_CANCELLED_BY_USER_NO_SCALING_CLAIM",
   "aws": "NOT_RUN_UNCHANGED",
@@ -282,5 +282,15 @@
     "docs/migration/phase11/EVIDENCE.json",
     "tools/migration/phase11_verify.py"
   ],
-  "verificationScriptSha256": "ea2eb628bdfef8f2486f1b40bcee3b59d5d11a65f703e750f42569471cd5ce82"
+  "verificationScriptSha256": "ea2eb628bdfef8f2486f1b40bcee3b59d5d11a65f703e750f42569471cd5ce82",
+  "phase10BrowserAcceptance": {
+    "status": "PASS_USER_CONFIRMED",
+    "confirmation": "已检查，全部通过",
+    "scope": [
+      "19111 three-role login",
+      "19111 answers and notifications",
+      "19090 login"
+    ],
+    "source": "Direct user answer to phase10 prerequisite question"
+  }
 }
