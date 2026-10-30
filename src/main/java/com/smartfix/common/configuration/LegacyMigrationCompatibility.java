@@ -1,16 +1,16 @@
 package com.smartfix.common.configuration;
 
-import org.flywaydb.core.api.FlywayException;
-import org.flywaydb.core.api.callback.Callback;
-import org.flywaydb.core.api.callback.Context;
-import org.flywaydb.core.api.callback.Event;
-import org.springframework.stereotype.Component;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.callback.Callback;
+import org.flywaydb.core.api.callback.Context;
+import org.flywaydb.core.api.callback.Event;
+import org.springframework.stereotype.Component;
 
 /**
  * Executes immutable historical DDL even when another published branch created its tables.
@@ -87,10 +87,26 @@ public class LegacyMigrationCompatibility implements Callback {
                     ? queryString(connection, "SELECT pg_get_serial_sequence(" + literal(source) + ",'id')") : null;
             long lastValue = 0; boolean called = false;
             if (sequence != null) {
-                try (var statement = connection.createStatement(); var row = statement.executeQuery("SELECT last_value,is_called FROM " + sequence)) {
-                    row.next(); lastValue = row.getLong(1); called = row.getBoolean(2);
+            String safeSequence = validateSequenceIdentifier(
+                    connection,
+                    sequence
+            );
+
+            try (var statement = connection.createStatement();
+                var row = statement.executeQuery(
+                        "SELECT last_value, is_called FROM " + safeSequence
+                )) {
+
+                if (!row.next()) {
+                    throw new SQLException(
+                            "Sequence state could not be retrieved"
+                    );
                 }
+
+                lastValue = row.getLong(1);
+                called = row.getBoolean(2);
             }
+        }
             archived.add(new ArchivedTable(table, columns, queryLong(connection, "SELECT count(*) FROM " + source), lastValue, called));
             execute(connection, "ALTER TABLE " + source + " SET SCHEMA " + quote(archiveSchema));
         }
@@ -153,4 +169,31 @@ public class LegacyMigrationCompatibility implements Callback {
         try (var statement = connection.createStatement(); var row = statement.executeQuery(sql)) { row.next(); return row.getLong(1); }
     }
     private record ArchivedTable(String name, List<String> columns, long rows, long sequenceValue, boolean sequenceCalled) {}
+    private static String validateSequenceIdentifier(
+        Connection connection,
+        String sequence
+    ) throws SQLException {
+
+        try (var statement = connection.prepareStatement("""
+                SELECT format('%I.%I', n.nspname, c.relname)
+                FROM pg_class c
+                JOIN pg_namespace n
+                ON n.oid = c.relnamespace
+                WHERE c.oid = ?::regclass
+                AND c.relkind = 'S'
+                """)) {
+
+            statement.setString(1, sequence);
+
+            try (var row = statement.executeQuery()) {
+                if (!row.next()) {
+                    throw new SQLException(
+                            "Invalid PostgreSQL sequence identifier"
+                    );
+                }
+
+                return row.getString(1);
+            }
+        }
+    }
 }
